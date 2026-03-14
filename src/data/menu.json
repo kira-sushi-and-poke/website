@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "name": "California Roll",
+    "originalPrice": 12.99,
+    "discountedPrice": 9.99,
+    "imageLink": "/images/california_roll.jpg",
+    "description": "Classic roll with imitation crab, avocado, and cucumber, topped with sesame seeds."
+  },
+  {
+    "id": 2,
+    "name": "Spicy Tuna Roll",
+    "originalPrice": 14.99,
+    "discountedPrice": 11.99,
+    "imageLink": "/images/spicy_tuna_roll.jpg",
+    "description": "Fresh tuna mixed with spicy mayo, cucumber, and scallions, rolled in seaweed and rice."
+  },
+  {
+    "id": 3,
+    "name": "Dragon Roll",
+    "originalPrice": 16.99,
+    "discountedPrice": 13.99,
+    "imageLink": "/images/dragon_roll.jpg",
+    "description": "Shrimp tempura and cucumber topped with avocado, eel sauce, and sesame seeds."
+  },
+  {
+    "id": 4,
+    "name": "Salmon Nigiri (2 pieces)",
+    "originalPrice": 8.99,
+    "discountedPrice": 6.99,
+    "imageLink": "/images/salmon_nigiri.jpg",
+    "description": "Two pieces of premium salmon over pressed sushi rice."
+  },
+  {
+    "id": 5,
+    "name": "Rainbow Roll",
+    "originalPrice": 17.99,
+    "discountedPrice": 14.99,
+    "imageLink": "/images/rainbow_roll.jpg",
+    "description": "California roll topped with assorted fresh fish including tuna, salmon, and yellowtail."
+  }
+]
