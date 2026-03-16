@@ -2,6 +2,8 @@
   {
     "id": 1,
     "name": "California Roll",
+    "category": "solo",
+    "status": "available",
     "originalPrice": 12.99,
     "discountedPrice": 9.99,
     "imageLink": "/images/california_roll.jpg",
@@ -10,6 +12,8 @@
   {
     "id": 2,
     "name": "Spicy Tuna Roll",
+    "category": "solo",
+    "status": "available",
     "originalPrice": 14.99,
     "discountedPrice": 11.99,
     "imageLink": "/images/spicy_tuna_roll.jpg",
@@ -18,6 +22,8 @@
   {
     "id": 3,
     "name": "Dragon Roll",
+    "category": "solo",
+    "status": "popular",
     "originalPrice": 16.99,
     "discountedPrice": 13.99,
     "imageLink": "/images/dragon_roll.jpg",
@@ -26,6 +32,8 @@
   {
     "id": 4,
     "name": "Salmon Nigiri (2 pieces)",
+    "category": "solo",
+    "status": "available",
     "originalPrice": 8.99,
     "discountedPrice": 6.99,
     "imageLink": "/images/salmon_nigiri.jpg",
@@ -34,9 +42,91 @@
   {
     "id": 5,
     "name": "Rainbow Roll",
+    "category": "solo",
+    "status": "available",
     "originalPrice": 17.99,
     "discountedPrice": 14.99,
     "imageLink": "/images/rainbow_roll.jpg",
     "description": "California roll topped with assorted fresh fish including tuna, salmon, and yellowtail."
+  },
+  {
+    "id": 6,
+    "name": "Poke Bowl",
+    "category": "solo",
+    "status": "new",
+    "originalPrice": 15.99,
+    "discountedPrice": 12.99,
+    "imageLink": "/images/poke_bowl.jpg",
+    "description": "Fresh ahi tuna or salmon over rice with edamame, seaweed salad, and your choice of toppings."
+  },
+  {
+    "id": 7,
+    "name": "Sushi Platter (30 pieces)",
+    "category": "sharer",
+    "status": "available",
+    "originalPrice": 49.99,
+    "discountedPrice": 39.99,
+    "imageLink": "/images/sushi_platter.jpg",
+    "description": "Perfect for sharing! Assorted nigiri, maki rolls, and California rolls."
+  },
+  {
+    "id": 8,
+    "name": "Party Platter (50 pieces)",
+    "category": "sharer",
+    "status": "available",
+    "originalPrice": 79.99,
+    "discountedPrice": 69.99,
+    "imageLink": "/images/party_platter.jpg",
+    "description": "Our ultimate sharing platter with a variety of sushi, sashimi, and specialty rolls."
+  },
+  {
+    "id": 9,
+    "name": "Family Combo",
+    "category": "sharer",
+    "status": "popular",
+    "originalPrice": 64.99,
+    "discountedPrice": 54.99,
+    "imageLink": "/images/family_combo.jpg",
+    "description": "40 pieces of assorted rolls plus 2 miso soups and edamame. Feeds 3-4 people."
+  },
+  {
+    "id": 10,
+    "name": "Sake (Hot/Cold)",
+    "category": "drinks",
+    "status": "available",
+    "originalPrice": 8.99,
+    "discountedPrice": null,
+    "imageLink": "/images/sake.jpg",
+    "description": "Premium Japanese rice wine, served hot or cold."
+  },
+  {
+    "id": 11,
+    "name": "Japanese Soda",
+    "category": "drinks",
+    "status": "available",
+    "originalPrice": 3.99,
+    "discountedPrice": null,
+    "imageLink": "/images/ramune.jpg",
+    "description": "Ramune and other refreshing Japanese sodas in various flavors."
+  },
+  {
+    "id": 12,
+    "name": "Green Tea",
+    "category": "drinks",
+    "status": "available",
+    "originalPrice": 2.99,
+    "discountedPrice": null,
+    "imageLink": "/images/green_tea.jpg",
+    "description": "Hot or iced traditional Japanese green tea."
+  },
+  {
+    "id": 13,
+    "name": "Craft Beer Selection",
+    "category": "drinks",
+    "status": "seasonal",
+    "originalPrice": 6.99,
+    "discountedPrice": null,
+    "imageLink": "/images/beer.jpg",
+    "description": "Rotating selection of Japanese and local craft beers."
   }
 ]
