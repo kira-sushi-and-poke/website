@@ -7,46 +7,52 @@ const OpeningHoursChat = () => {
 
     // Opening hours data
     const openingHours = {
-        Monday: { open: "11:00", close: "21:00" },
-        Tuesday: { open: "11:00", close: "21:00" },
-        Wednesday: { open: "11:00", close: "21:00" },
-        Thursday: { open: "11:00", close: "21:00" },
-        Friday: { open: "11:00", close: "22:00" },
-        Saturday: { open: "12:00", close: "22:00" },
-        Sunday: { open: "12:00", close: "20:00" }
+        Monday: { open: "11:00", close: "19:00" },
+        Tuesday: { open: "11:00", close: "19:00" },
+        Wednesday: { open: "11:00", close: "19:00" },
+        Thursday: { open: "11:00", close: "19:00" },
+        Friday: { open: "11:00", close: "19:00" },
+        Saturday: { open: "11:00", close: "19:00" },
+        Sunday: { open: "11:00", close: "19:00" }
+    };
+
+    // Constants
+    const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const CLOSING_SOON_THRESHOLD = 30; // minutes
+
+    // Helper functions
+    const getCurrentDay = () => DAYS[new Date().getDay()];
+    
+    const getTodayHours = () => openingHours[getCurrentDay()];
+    
+    const timeToMinutes = (timeString) => {
+        const [hours, minutes] = timeString.split(":").map(Number);
+        return hours * 60 + minutes;
+    };
+    
+    const getCurrentTimeInMinutes = () => {
+        const now = new Date();
+        return now.getHours() * 60 + now.getMinutes();
     };
 
     // Check if currently open
     const isOpen = () => {
-        const now = new Date();
-        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-        const currentDay = days[now.getDay()];
-        const currentTime = now.getHours() * 100 + now.getMinutes();
-        
-        const todayHours = openingHours[currentDay];
-        const [openHour, openMin] = todayHours.open.split(":").map(Number);
-        const [closeHour, closeMin] = todayHours.close.split(":").map(Number);
-        
-        const openTime = openHour * 100 + openMin;
-        const closeTime = closeHour * 100 + closeMin;
+        const currentTime = getCurrentTimeInMinutes();
+        const todayHours = getTodayHours();
+        const openTime = timeToMinutes(todayHours.open);
+        const closeTime = timeToMinutes(todayHours.close);
         
         return currentTime >= openTime && currentTime < closeTime;
     };
 
-    // Check if closing soon (within 30 minutes of closing)
+    // Check if closing soon (within CLOSING_SOON_THRESHOLD minutes of closing)
     const isClosingSoon = () => {
-        const now = new Date();
-        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-        const currentDay = days[now.getDay()];
-        const currentTime = now.getHours() * 60 + now.getMinutes(); // Convert to minutes
+        const currentTime = getCurrentTimeInMinutes();
+        const todayHours = getTodayHours();
+        const closeTime = timeToMinutes(todayHours.close);
+        const timeDifference = closeTime - currentTime;
         
-        const todayHours = openingHours[currentDay];
-        const [closeHour, closeMin] = todayHours.close.split(":").map(Number);
-        
-        const closeTimeInMinutes = closeHour * 60 + closeMin;
-        const timeDifference = closeTimeInMinutes - currentTime;
-        
-        return timeDifference > 0 && timeDifference <= 30;
+        return timeDifference > 0 && timeDifference <= CLOSING_SOON_THRESHOLD;
     };
 
     const restaurantOpen = isOpen();
@@ -80,13 +86,13 @@ const OpeningHoursChat = () => {
                                 e.stopPropagation();
                                 setShowSign(false);
                             }}
-                            className="absolute -top-3 -right-3 bg-yellow text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-600 transition-colors text-sm font-bold"
+                            className="absolute -top-3 -right-3 bg-yellow text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-600 transition-colors text-xl font-bold"
                             aria-label="Close opening hours sign"
                         >
                             ×
                         </button>
                         
-                        <div className="flex flex-col items-center gap-1">
+                        <div className="flex flex-col items-center">
                             <div className="text-xs tracking-widest uppercase opacity-90 text-hot-pink">We are</div>
                             <div className="text-3xl md:text-4xl font-black tracking-wider uppercase text-yellow">
                                 {restaurantOpen ? "OPEN" : "CLOSED"}
@@ -142,6 +148,11 @@ const OpeningHoursChat = () => {
                                 </li>
                             ))}
                         </ul>
+                        <div className="mt-6 p-3 bg-yellow/10 rounded-lg border border-yellow/30">
+                            <p className="text-sm text-gray-700 text-center">
+                                <i className="fas fa-info-circle"></i> Hours subject to change. Check our social media for holiday schedules and updates.
+                            </p>
+                        </div>
                     </div>
                 </div>
             )}

@@ -17,22 +17,7 @@ const AboutUs = () => {
                 </h2>
                 <div className="space-y-3 md:space-y-4 text-gray-700 leading-relaxed">
                     <p className="text-lg">
-                        Kira Sushi and Poke was founded in 2018 with a simple mission: to bring authentic, 
-                        fresh Japanese cuisine to our community. What started as a small dream has grown into 
-                        a beloved local establishment.
-                    </p>
-                    <p className="text-lg">
-                        Our founder, Chef Kira Tanaka, trained in Tokyo for over a decade before bringing her 
-                        expertise and passion to our city. She believed that everyone deserves access to 
-                        high-quality, fresh sushi and poke bowls at prices that don't break the bank.
-                    </p>
-                    <p className="text-lg">
-                        Today, we continue to honor traditional Japanese culinary techniques while embracing 
-                        local flavors and ingredients. Every dish is prepared with care, using sustainably 
-                        sourced fish and the freshest produce available.
-                    </p>
-                    <p className="text-lg font-semibold text-hot-pink">
-                        From our family to yours, thank you for making us part of your dining experience!
+                        To be added soon! We are currently working on our story and history, so stay tuned for updates.
                     </p>
                 </div>
             </section>

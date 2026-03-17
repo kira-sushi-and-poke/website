@@ -15,11 +15,6 @@ html, body {
   color: #2d2d2d;
 }
 
-a {
-  text-decoration: none;
-  color: inherit;
-}
-
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -41,32 +36,4 @@ a {
   position: relative;
   bottom: 0;
   width: 100%;
-}
-
-.menu-item {
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  padding: 15px;
-  margin: 10px 0;
-  background-color: white;
-  transition: box-shadow 0.3s;
-}
-
-.menu-item:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.menu-item img {
-  max-width: 100%;
-  border-radius: 5px;
-}
-
-.discounted-price {
-  color: #f3a924;
-  font-weight: bold;
-}
-
-.original-price {
-  text-decoration: line-through;
-  color: #999;
 }

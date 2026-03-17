@@ -18,7 +18,7 @@ const Sidebar = () => {
                         <p className="mb-1">
                             <span className="font-semibold">Phone:</span>
                             <br />
-                            <a href="tel:+1234567890" className="hover:text-yellow transition-colors">
+                            <a href="tel:+1234567890" className="hover:text-yellow transition-colors underline">
                                 (123) 456-7890
                             </a>
                         </p>

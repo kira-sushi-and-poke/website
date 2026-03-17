@@ -1,5 +1,14 @@
 import Reviews from "../components/Reviews";
 
+export const metadata = {
+    title: "Home | Fresh Japanese Sushi & Poke Bowls in Chester-le-Street",
+    description: "Welcome to Kira Sushi and Poke in Chester-le-Street. Authentic Japanese sushi and poke bowls made fresh daily. Visit us at 148 Front Street for the best sushi experience.",
+    openGraph: {
+        title: "Kira Sushi and Poke | Fresh Japanese Sushi in Chester-le-Street",
+        description: "Visit us for authentic Japanese sushi and poke bowls made fresh daily in Chester-le-Street",
+    }
+};
+
 const HomePage = () => {
     return (
         <div>
@@ -73,55 +82,52 @@ const HomePage = () => {
                         <div className="bg-white border-2 border-hot-pink rounded-lg p-4 md:p-6">
                             <div className="space-y-4 md:space-y-6">
                                 <div>
-                                    <h3 className="text-xl font-bold text-hot-pink mb-3">Phone</h3>
-                                    <p className="text-gray-700 mb-2">
-                                        <a href="tel:+1234567890" className="text-yellow hover:text-hot-pink transition-colors text-lg font-semibold">
-                                            (123) 456-7890
-                                        </a>
+                                    <h3 className="text-xl font-bold text-hot-pink mb-3">Social Media - Main Contact</h3>
+                                    <p className="text-gray-700 mb-3 font-semibold">
+                                        <i className="fas fa-star text-yellow"></i> The best way to reach us is through social media!
                                     </p>
-                                    <p className="text-sm text-gray-600">Call us for reservations or inquiries</p>
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-bold text-hot-pink mb-3">Email</h3>
-                                    <p className="text-gray-700 mb-2">
-                                        <a href="mailto:info@kirasushi.com" className="text-yellow hover:text-hot-pink transition-colors text-lg font-semibold">
-                                            info@kirasushi.com
-                                        </a>
-                                    </p>
-                                    <p className="text-sm text-gray-600">We'll respond within 24 hours</p>
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-bold text-hot-pink mb-3">Reservations</h3>
-                                    <p className="text-gray-700 mb-2">
-                                        <span className="text-lg font-semibold">Walk-ins welcome!</span>
-                                    </p>
-                                    <p className="text-sm text-gray-600">Or call ahead for groups of 6+</p>
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-bold text-hot-pink mb-3">Social Media</h3>
                                     <p className="text-gray-700 mb-3">
-                                        Follow us for daily specials and updates!
+                                        Follow us for daily specials, updates, and the fastest responses to your questions.
                                     </p>
                                     <div className="flex gap-4">
                                         <a 
-                                            href="https://www.instagram.com/kirasushiandpoke" 
+                                            href="https://www.instagram.com/kira_sushi_and_poke" 
                                             target="_blank" 
                                             rel="noopener noreferrer"
                                             className="flex items-center gap-2 text-yellow hover:text-hot-pink transition-colors font-semibold"
                                         >
                                             <i className="fab fa-instagram text-2xl"></i>
-                                            Instagram
+                                            <span className="underline">Instagram</span>
                                         </a>
                                         <a 
-                                            href="https://www.facebook.com/kirasushiandpoke" 
+                                            href="https://www.facebook.com/people/Kira-Sushi-Poke/61583413766423/" 
                                             target="_blank" 
                                             rel="noopener noreferrer"
                                             className="flex items-center gap-2 text-yellow hover:text-hot-pink transition-colors font-semibold"
                                         >
                                             <i className="fab fa-facebook text-2xl"></i>
-                                            Facebook
+                                            <span className="underline">Facebook</span>
                                         </a>
                                     </div>
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-hot-pink mb-3">Email</h3>
+                                    <p className="text-gray-700 mb-2">
+                                        <a href="mailto:soon" className="text-yellow italic hover:text-hot-pink transition-colors text-lg font-semibold underline">
+                                            To be added
+                                        </a>
+                                    </p>
+                                    {/* <p className="text-sm text-gray-600">We'll respond within 24 hours</p> */}
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-hot-pink mb-3">Reservations</h3>
+                                    <p className="text-gray-700 mb-2">
+                                        We operate primarily as a dine-in only restaurant. For any special arrangements, please contact us through our social media channels.
+                                    </p>
+                                    {/* <p className="text-gray-700 mb-2">
+                                        <span className="text-lg font-semibold">Walk-ins welcome!</span>
+                                    </p>
+                                    <p className="text-sm text-gray-600">Or call ahead for groups of 6+</p> */}
                                 </div>
                             </div>
                         </div>

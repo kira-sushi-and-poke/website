@@ -20,11 +20,11 @@ const MenuList = ({ menuItems }) => {
     });
   };
 
-  // Group items by category and sort by status
+  // Group items by category
   const categories = {
-    solo: sortByStatus(menuItems.filter(item => item.category === "solo")),
-    sharer: sortByStatus(menuItems.filter(item => item.category === "sharer")),
-    drinks: sortByStatus(menuItems.filter(item => item.category === "drinks"))
+    sharer: menuItems.filter(item => item.category === "sharer"),
+    solo: menuItems.filter(item => item.category === "solo"),
+    drinks: menuItems.filter(item => item.category === "drinks")
   };
 
   const categoryTitles = {
@@ -33,31 +33,64 @@ const MenuList = ({ menuItems }) => {
     drinks: "Drinks & Beverages"
   };
 
+  // Group items by subcategory within a category
+  const groupBySubcategory = (items) => {
+    const subcategories = {};
+    items.forEach(item => {
+      const subcategory = item.subcategory || "Other";
+      if (!subcategories[subcategory]) {
+        subcategories[subcategory] = [];
+      }
+      subcategories[subcategory].push(item);
+    });
+    
+    // Sort items within each subcategory by status
+    Object.keys(subcategories).forEach(key => {
+      subcategories[key] = sortByStatus(subcategories[key]);
+    });
+    
+    return subcategories;
+  };
+
   return (
-    <div className="menu-list space-y-8 md:space-y-10">
-      {Object.entries(categories).map(([category, items]) => (
-        items.length > 0 && (
+    <div className="menu-list space-y-10 md:space-y-12">
+      {Object.entries(categories).map(([category, items]) => {
+        if (items.length === 0) return null;
+        
+        const subcategories = groupBySubcategory(items);
+        
+        return (
           <div key={category} className="category-section">
-            <h2 className="text-2xl md:text-3xl font-bold text-hot-pink mb-4 md:mb-6 border-b-2 border-yellow pb-2">
+            <h2 className="text-2xl md:text-3xl font-bold text-hot-pink mb-6 md:mb-8 border-b-2 border-yellow pb-2">
               {categoryTitles[category]}
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-              {items.map(item => (
-                <MenuItem
-                  key={item.id}
-                  id={item.id}
-                  name={item.name}
-                  originalPrice={item.originalPrice}
-                  discountedPrice={item.discountedPrice}
-                  image={item.imageLink}
-                  description={item.description}
-                  status={item.status}
-                />
-              ))}
-            </div>
+            
+            {Object.entries(subcategories).map(([subcategory, subcategoryItems]) => (
+              <div key={subcategory} className="subcategory-section mb-8">
+                <h3 className="text-xl md:text-2xl font-semibold text-gray-800 mb-4 flex items-center">
+                  <span className="bg-hot-pink/10 text-hot-pink px-3 py-1 rounded-full text-base md:text-lg">
+                    {subcategory}
+                  </span>
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                  {subcategoryItems.map(item => (
+                    <MenuItem
+                      key={item.name}
+                      id={item.id}
+                      name={item.name}
+                      originalPrice={item.originalPrice}
+                      discountedPrice={item.discountedPrice}
+                      image={item.imageLink}
+                      description={item.description}
+                      status={item.status}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
-        )
-      ))}
+        );
+      })}
     </div>
   );
 };
