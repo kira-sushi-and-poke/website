@@ -78,6 +78,13 @@ const Layout = ({ children }) => {
         })),
         "url": restaurantInfo.url,
         "logo": restaurantInfo.logo,
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "5",
+            "bestRating": "5",
+            "worstRating": "1",
+            "ratingCount": "5"
+        },
         "sameAs": [
             restaurantInfo.socialMedia.facebook,
             restaurantInfo.socialMedia.instagram

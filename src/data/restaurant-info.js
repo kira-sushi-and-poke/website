@@ -39,7 +39,16 @@ export const restaurantInfo = {
     "sushi chester-le-street",
     "poke chester-le-street",
     "japanese restaurant",
-    "sushi county durham"
+    "sushi county durham",
+    "makizushi",
+    "nigiri",
+    "sashimi",
+    "hosomaki",
+    "inarizushi",
+    "moriawase",
+    "japanese curry",
+    "teriyaki",
+    "hot japanese dishes"
   ],
   
   // URL

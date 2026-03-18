@@ -78,6 +78,20 @@ const MenuItem = ({ name, originalPrice, discountedPrice, image, description, st
                         <span>Tap to view</span>
                     </div>
                     
+                    {/* Status Tags */}
+                    {status === 'popular' && (
+                        <div className="absolute top-2 right-2 bg-yellow text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg flex items-center gap-1.5 z-20">
+                            <i className="fas fa-star"></i>
+                            <span>POPULAR</span>
+                        </div>
+                    )}
+                    {status === 'new' && (
+                        <div className="absolute top-2 right-2 bg-hot-pink text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg flex items-center gap-1.5 z-20">
+                            <i className="fas fa-sparkles"></i>
+                            <span>NEW</span>
+                        </div>
+                    )}
+                    
                     {hasMultipleImages && (
                         <div className="absolute top-2 right-2 bg-black bg-opacity-60 text-white px-2 py-1 rounded text-xs font-bold">
                             <i className="fas fa-images mr-1"></i>
