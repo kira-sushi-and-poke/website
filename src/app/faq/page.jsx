@@ -14,20 +14,28 @@ const FAQPage = () => {
             answer: "Unfortunately not at the moment. We are currently operating as a dine-in only restaurant. We hope to offer takeaway and delivery options in the future, so stay tuned!"
         },
         {
-            question: "Do you have vegetarian or vegan options?",
-            answer: "Yes, we offer vegetarian options including cucumber rolls, avocado rolls, and vegetable poke bowls. Please ask our staff about vegan-friendly modifications."
+            question: "Do you have gluten-free options?",
+            answer: "Yes! We offer gluten-free options including sashimi (sliced raw fish), nigiri (fish on rice), and poke bowls made with rice. Please note that soy sauce naturally contains gluten. Always inform our staff about your gluten sensitivity when ordering, as cross-contamination may occur in our kitchen."
         },
         {
-            question: "Can I make reservations?",
-            answer: "We operate primarily as a dine-in only restaurant. For any special arrangements, please contact us through our social media channels."
+            question: "Do you have vegetarian or vegan options?",
+            answer: "Yes, we offer several vegetarian and vegan options including cucumber rolls, avocado rolls, vegetable poke bowls, and our Garden Futomaki. We also have vegan gyoza and various veggie inarizushi options. Please inform our staff about your dietary requirements, and we'll be happy to guide you through our plant-based selections."
+        },
+        {
+            question: "Are there any allergens in your food?",
+            answer: "Our menu contains common allergens including fish, shellfish, soy, sesame, eggs, and gluten. Some items may contain traces of nuts. We take allergies seriously—please inform our staff of any dietary restrictions or allergies when ordering, and we'll provide detailed information about specific dishes and take appropriate precautions where possible."
+        },
+        {
+            question: "Is your fish fresh?",
+            answer: "Absolutely! We source high-quality, fresh fish daily to ensure the best taste and quality in our sushi and poke bowls. Our commitment to freshness is what makes every dish special."
+        },
+        {
+            question: "Can I make reservations or book for large groups?",
+            answer: "We operate primarily on a walk-in basis for regular dining. However, for large groups or special occasions, please contact us through our social media channels (Instagram or Facebook) and we'll do our best to accommodate your needs."
         },
         {
             question: "What payment methods do you accept?",
             answer: "We accept cash, all major credit and debit cards, and contactless payments including Apple Pay and Google Pay."
-        },
-        {
-            question: "Are there any allergens in your food?",
-            answer: "Our menu contains fish, shellfish, soy, sesame, and may contain traces of nuts and gluten. Please inform our staff of any allergies when ordering so we can advise you accordingly."
         },
         {
             question: "Where can I park?",
@@ -35,7 +43,7 @@ const FAQPage = () => {
         },
         {
             question: "How can I stay updated on daily specials?",
-            answer: "Follow us on Instagram and Facebook! We post our daily specials, new menu items, and promotional offers regularly on social media."
+            answer: "Follow us on Instagram (@kira_sushi_and_poke) and Facebook! We post our daily specials, new menu items, promotional offers, and behind-the-scenes content regularly."
         }
     ];
 
@@ -66,11 +74,11 @@ const FAQPage = () => {
                 }}
             />
             <div className="py-8 md:py-12 px-5 md:px-10 max-w-4xl mx-auto">
-                <h1 className="text-3xl md:text-4xl font-bold mb-4 text-hot-pink text-center">
-                    Frequently Asked Questions
+                <h1 className="text-2xl md:text-4xl font-bold mb-4 text-hot-pink text-center">
+                    FAQ | Kira Sushi & Poke
                 </h1>
                 <p className="text-center text-gray-600 mb-8">
-                    Have a question? Find answers to our most commonly asked questions below.
+                    Find answers about our gluten-free sashimi, vegan poke bowls, opening hours, allergen information, and everything else you need to know about dining at Kira Sushi and Poke in Chester-le-Street.
                 </p>
 
                 <div className="space-y-4">

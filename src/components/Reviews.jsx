@@ -4,31 +4,31 @@ const Reviews = () => {
     const reviews = [
         {
             id: 1,
-            name: "Sarah M.",
+            name: "Craig Birkett",
             rating: 5,
-            comment: "Absolutely amazing! The freshest sushi I've had outside of Japan. The Dragon Roll is a must-try!",
-            date: "2 weeks ago"
+            comment: "High quality sushi made to order. Their signature Kira Rolls were phenomenal and the Salmon Teriyaki bowl a generous portion. Super fresh ingredients and friendly staff. Makes the high street a better place! Hope it succeeds.",
+            date: "Mar 2026"
         },
         {
             id: 2,
-            name: "Michael T.",
+            name: "Caroline Jones",
             rating: 5,
-            comment: "Perfect spot for family dinners. The sharing platters are generous and delicious. Staff is super friendly!",
-            date: "1 month ago"
+            comment: "We had the chicken katsu and the chicken dumplings. It was totes delish and generous portions, 10/10!",
+            date: "Mar 2026"
         },
         {
             id: 3,
-            name: "Emily R.",
+            name: "StevefromWashington",
             rating: 5,
-            comment: "The poke bowls are incredible! Fresh ingredients, great portions, and the atmosphere is lovely.",
-            date: "3 weeks ago"
+            comment: "Excellent fresh sushi and very tasty chicken katsu curry. Top quality food at sensible prices.",
+            date: "Feb 2026"
         },
         {
             id: 4,
-            name: "David L.",
-            rating: 4,
-            comment: "Great food and quick service. The prices are reasonable for the quality. Will definitely be back!",
-            date: "1 week ago"
+            name: "Rosie Martin",
+            rating: 5,
+            comment: "Absolutely stunning sushi....I got Kira and best sushi I've ever tasted.....staff so welcoming and highly recommend to everyone x",
+            date: "Jan 2026"
         }
     ];
 

@@ -23,13 +23,21 @@ const MenuList = ({ menuItems }) => {
   // Group items by category
   const categories = {
     sharer: menuItems.filter(item => item.category === "sharer"),
+    sushi: menuItems.filter(item => item.category === "sushi"),
+    poke: menuItems.filter(item => item.category === "poke"),
+    hot: menuItems.filter(item => item.category === "hot"),
     solo: menuItems.filter(item => item.category === "solo"),
+    desserts: menuItems.filter(item => item.category === "desserts"),
     drinks: menuItems.filter(item => item.category === "drinks")
   };
 
   const categoryTitles = {
-    solo: "Solo Dishes",
-    sharer: "Sharing Platters",
+    sushi: "Sushi",
+    poke: "Poke Bowls",
+    hot: "Hot Dishes",
+    solo: "Sides & Appetizers",
+    desserts: "Desserts",
+    sharer: "Moriawase (Chef's Selection)",
     drinks: "Drinks & Beverages"
   };
 
@@ -37,7 +45,7 @@ const MenuList = ({ menuItems }) => {
   const groupBySubcategory = (items) => {
     const subcategories = {};
     items.forEach(item => {
-      const subcategory = item.subcategory || "Other";
+      const subcategory = item.subcategory || null;
       if (!subcategories[subcategory]) {
         subcategories[subcategory] = [];
       }
@@ -60,18 +68,20 @@ const MenuList = ({ menuItems }) => {
         const subcategories = groupBySubcategory(items);
         
         return (
-          <div key={category} className="category-section">
+          <div key={category} id={category} className="category-section scroll-mt-32">
             <h2 className="text-2xl md:text-3xl font-bold text-hot-pink mb-6 md:mb-8 border-b-2 border-yellow pb-2">
               {categoryTitles[category]}
             </h2>
             
             {Object.entries(subcategories).map(([subcategory, subcategoryItems]) => (
               <div key={subcategory} className="subcategory-section mb-8">
-                <h3 className="text-xl md:text-2xl font-semibold text-gray-800 mb-4 flex items-center">
-                  <span className="bg-hot-pink/10 text-hot-pink px-3 py-1 rounded-full text-base md:text-lg">
-                    {subcategory}
-                  </span>
-                </h3>
+                {subcategory !== 'null' && subcategory && (
+                  <h3 className="text-xl md:text-2xl font-semibold text-gray-800 mb-4 flex items-center">
+                    <span className="bg-hot-pink/10 text-hot-pink px-3 py-1 rounded-full text-base md:text-lg">
+                      {subcategory}
+                    </span>
+                  </h3>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                   {subcategoryItems.map(item => (
                     <MenuItem

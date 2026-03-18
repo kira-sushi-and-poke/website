@@ -1,8 +1,7 @@
 [
   {
-    "id": 1,
     "name": "The Kira Roll",
-    "category": "solo",
+    "category": "sushi",
     "subcategory": "Makizushi (Sushi Rolls)",
     "status": "popular",
     "originalPrice": 14,
@@ -11,9 +10,8 @@
     "description": "Our signature roll with crunchy prawn, avocado, and cucumber-filled uramaki, topped with seared salmon teriyaki, chives, and sesame seeds"
   },
   {
-    "id": 2,
     "name": "The Pixie Roll",
-    "category": "solo",
+    "category": "sushi",
     "subcategory": "Makizushi (Sushi Rolls)",
     "status": "popular",
     "originalPrice": 14,
@@ -22,9 +20,8 @@
     "description": "Crunchy prawn, cucumber, and mango-filled uramaki, topped with premium bluefin tuna and a sprinkle of yuzu sesame"
   },
   {
-    "id": 3,
     "name": "Krabby Maki",
-    "category": "solo",
+    "category": "sushi",
     "subcategory": "Makizushi (Sushi Rolls)",
     "status": "available",
     "originalPrice": 14,
@@ -33,9 +30,8 @@
     "description": "Crispy tempura crab, mango and cucumber filled. Topped with avocado fans, citrus mayo and tobiko"
   },
   {
-    "id": 4,
     "name": "Unagi Roll",
-    "category": "solo",
+    "category": "sushi",
     "subcategory": "Makizushi (Sushi Rolls)",
     "status": "available",
     "originalPrice": 14,
@@ -44,9 +40,8 @@
     "description": "Crispy prawns and cucumber, topped with grilled eel, teriyaki sauce and sesame seeds"
   },
   {
-    "id": 5,
     "name": "Snowcrab California",
-    "category": "solo",
+    "category": "sushi",
     "subcategory": "Makizushi (Sushi Rolls)",
     "status": "available",
     "originalPrice": 14,
@@ -55,9 +50,8 @@
     "description": "Avocado, cucumber and mango filled. Topped with snowcrab mixed in citrus mayonnaise then sprinkled with tobiko"
   },
   {
-    "id": 6,
     "name": "Garden Futomaki",
-    "category": "solo",
+    "category": "sushi",
     "subcategory": "Makizushi (Sushi Rolls)",
     "status": "available",
     "originalPrice": 12,
@@ -66,9 +60,8 @@
     "description": "Vegan - avocado, cucumber, mango, takuan (pickled radish) & Kanpo (sweet gourd) with a drizzle of sesame dressing"
   },
   {
-    "id": 7,
     "name": "Salmon Avocado Roll",
-    "category": "solo",
+    "category": "sushi",
     "subcategory": "Makizushi (Sushi Rolls)",
     "status": "available",
     "originalPrice": 10,
@@ -77,9 +70,8 @@
     "description": "Savoury combination of fresh salmon and cream avocado. Finished with a generous topping of fish eggs"
   },
   {
-    "id": 8,
     "name": "Spicy Bluefin Tuna Roll",
-    "category": "solo",
+    "category": "sushi",
     "subcategory": "Makizushi (Sushi Rolls)",
     "status": "available",
     "originalPrice": 10,
@@ -88,9 +80,8 @@
     "description": "Bluefin tuna in silky, spicy dressing with spring onions, rolled with cucumber and mango topped with shichimi powder"
   },
   {
-    "id": 8,
     "name": "Salmon Inarizushi",
-    "category": "solo",
+    "category": "sushi",
     "subcategory": "Inarizushi",
     "status": "new",
     "originalPrice": 4,
@@ -99,9 +90,8 @@
     "description": "Our salmon inarizushi features a generous portion of fresh salmon on top of the sushi rice, all encased in a sweet and savory fried tofu pouch."
   },
   {
-    "id": 9,
     "name": "Tuna Inarizushi",
-    "category": "solo",
+    "category": "sushi",
     "subcategory": "Inarizushi",
     "status": "new",
     "originalPrice": 4.5,
@@ -110,9 +100,8 @@
     "description": "Our tuna inarizushi features a generous portion of fresh tuna on top of the sushi rice, all encased in a sweet and savory fried tofu pouch."
   },
   {
-    "id": 10,
     "name": "Chicken Inarizushi",
-    "category": "solo",
+    "category": "sushi",
     "subcategory": "Inarizushi",
     "status": "new",
     "originalPrice": 3,
@@ -121,9 +110,8 @@
     "description": "Our chicken inarizushi features a generous portion of fresh chicken on top of the sushi rice, all encased in a sweet and savory fried tofu pouch."
   },
   {
-    "id": 11,
     "name": "Prawn Inarizushi",
-    "category": "solo",
+    "category": "sushi",
     "subcategory": "Inarizushi",
     "status": "new",
     "originalPrice": 3,
@@ -132,9 +120,8 @@
     "description": "Our prawn inarizushi features a generous portion of fresh prawn on top of the sushi rice, all encased in a sweet and savory fried tofu pouch."
   },
   {
-    "id": 12,
     "name": "Veggie Inarizushi",
-    "category": "solo",
+    "category": "sushi",
     "subcategory": "Inarizushi",
     "status": "new",
     "originalPrice": 3,
@@ -143,10 +130,8 @@
     "description": "Our veggie inarizushi features a generous portion of fresh vegetables on top of the sushi rice, all encased in a sweet and savory fried tofu pouch."
   },
   {
-    "id": 13,
     "name": "Salmon Poke Bowl",
-    "category": "solo",
-    "subcategory": "Poke Bowls",
+    "category": "poke",
     "status": "available",
     "originalPrice": 12,
     "discountedPrice": null,
@@ -154,10 +139,8 @@
     "description": "Authentic rice bowl with salmon. Choice of shoyu, spicy mayo or creamy sesame dressing. Mango, cucumber, avocado, sesame seaweed, sesame seeds and spring onions"
   },
   {
-    "id": 14,
     "name": "Bluefin Tuna Poke Bowl",
-    "category": "solo",
-    "subcategory": "Poke Bowls",
+    "category": "poke",
     "status": "available",
     "originalPrice": 13,
     "discountedPrice": null,
@@ -165,10 +148,8 @@
     "description": "Authentic rice bowl with bluefin tuna. Choice of shoyu, spicy mayo or creamy sesame dressing. Mango, cucumber, avocado, sesame seaweed, sesame seeds and spring onions"
   },
   {
-    "id": 15,
     "name": "Crispy Tofu Poke Bowl",
-    "category": "solo",
-    "subcategory": "Poke Bowls",
+    "category": "poke",
     "status": "available",
     "originalPrice": 10,
     "discountedPrice": null,
@@ -176,10 +157,8 @@
     "description": "Vegan rice bowl with crispy tofu. Choice of shoyu, spicy mayo or creamy sesame dressing. Mango, cucumber, avocado, sesame seaweed, sesame seeds and spring onions"
   },
   {
-    "id": 16,
     "name": "Chicken Katsu Curry",
-    "category": "solo",
-    "subcategory": "Main Dishes (Hot)",
+    "category": "hot",
     "status": "popular",
     "originalPrice": 12,
     "discountedPrice": null,
@@ -187,10 +166,8 @@
     "description": "Served with sticky rice, Japanese curry sauce and beni shoga (pickled ginger)"
   },
   {
-    "id": 17,
     "name": "Crispy Prawn Curry",
-    "category": "solo",
-    "subcategory": "Main Dishes (Hot)",
+    "category": "hot",
     "status": "available",
     "originalPrice": 12,
     "discountedPrice": null,
@@ -198,10 +175,8 @@
     "description": "Crispy prawns served with sticky rice, Japanese curry sauce and beni shoga (pickled ginger)"
   },
   {
-    "id": 18,
     "name": "Salmon Teriyaki",
-    "category": "solo",
-    "subcategory": "Main Dishes (Hot)",
+    "category": "hot",
     "status": "available",
     "originalPrice": 12,
     "discountedPrice": null,
@@ -209,10 +184,8 @@
     "description": "Slices of salmon cooked in teriyaki sauce, sticky rice and beni shoga"
   },
   {
-    "id": 19,
     "name": "Pumpkin Croquette Curry",
-    "category": "solo",
-    "subcategory": "Main Dishes (Hot)",
+    "category": "hot",
     "status": "available",
     "originalPrice": 10,
     "discountedPrice": null,
@@ -220,10 +193,8 @@
     "description": "Vegan - pumpkin croquette served with sticky rice, Japanese curry sauce and beni shoga"
   },
   {
-    "id": 20,
     "name": "Crispy Tofu Curry",
-    "category": "solo",
-    "subcategory": "Main Dishes (Hot)",
+    "category": "hot",
     "status": "available",
     "originalPrice": 10,
     "discountedPrice": null,
@@ -231,9 +202,8 @@
     "description": "Vegan - crispy tofu served with sticky rice, Japanese curry sauce and beni shoga"
   },
   {
-    "id": 21,
     "name": "Bluefin Tuna Sashimi",
-    "category": "solo",
+    "category": "sushi",
     "subcategory": "Sashimi",
     "status": "available",
     "originalPrice": 7,
@@ -242,9 +212,8 @@
     "description": "3 slices of premium bluefin tuna (gluten free)"
   },
   {
-    "id": 22,
     "name": "Salmon Sashimi",
-    "category": "solo",
+    "category": "sushi",
     "subcategory": "Sashimi",
     "status": "available",
     "originalPrice": 6.5,
@@ -253,9 +222,8 @@
     "description": "3 slices of fresh salmon (gluten free)"
   },
   {
-    "id": 23,
     "name": "Hamachi Sashimi",
-    "category": "solo",
+    "category": "sushi",
     "subcategory": "Sashimi",
     "status": "available",
     "originalPrice": 7,
@@ -264,9 +232,8 @@
     "description": "3 slices of hamachi yellowtail (gluten free)"
   },
   {
-    "id": 24,
     "name": "Bluefin Tuna Nigiri",
-    "category": "solo",
+    "category": "sushi",
     "subcategory": "Nigiri",
     "status": "available",
     "originalPrice": 5,
@@ -275,9 +242,8 @@
     "description": "2 pieces of hand-pressed bluefin tuna on rice (gluten free)"
   },
   {
-    "id": 25,
     "name": "Salmon Nigiri",
-    "category": "solo",
+    "category": "sushi",
     "subcategory": "Nigiri",
     "status": "available",
     "originalPrice": 4,
@@ -286,9 +252,8 @@
     "description": "2 pieces of hand-pressed salmon on rice (gluten free)"
   },
   {
-    "id": 26,
     "name": "Salmon Hosomaki",
-    "category": "solo",
+    "category": "sushi",
     "subcategory": "Hosomaki",
     "status": "available",
     "originalPrice": 5,
@@ -297,9 +262,8 @@
     "description": "8 small bite-size salmon rolls (gluten free)"
   },
   {
-    "id": 27,
     "name": "Tuna Hosomaki",
-    "category": "solo",
+    "category": "sushi",
     "subcategory": "Hosomaki",
     "status": "available",
     "originalPrice": 5.5,
@@ -308,9 +272,8 @@
     "description": "8 small bite-size tuna rolls (gluten free)"
   },
   {
-    "id": 28,
     "name": "Avocado Hosomaki",
-    "category": "solo",
+    "category": "sushi",
     "subcategory": "Hosomaki",
     "status": "available",
     "originalPrice": 4,
@@ -319,10 +282,8 @@
     "description": "Vegan - 8 small bite-size avocado rolls (gluten free)"
   },
   {
-    "id": 29,
     "name": "Edamame",
     "category": "solo",
-    "subcategory": "Sides & Appetizers",
     "status": "available",
     "originalPrice": 4,
     "discountedPrice": null,
@@ -330,10 +291,8 @@
     "description": "Vegan - steamed soybeans with sea salt"
   },
   {
-    "id": 29,
     "name": "Dorayaki",
-    "category": "solo",
-    "subcategory": "Sides & Appetizers",
+    "category": "desserts",
     "status": "available",
     "originalPrice": 2.95,
     "discountedPrice": null,
@@ -341,10 +300,8 @@
     "description": "Sweet red bean pancake"
   },
   {
-    "id": 26,
     "name": "Pumpkin Katsu",
     "category": "solo",
-    "subcategory": "Sides & Appetizers",
     "status": "available",
     "originalPrice": 6,
     "discountedPrice": null,
@@ -352,10 +309,8 @@
     "description": "Vegan - 4 slices of crispy breaded pumpkin"
   },
   {
-    "id": 27,
     "name": "Vegan Gyoza",
     "category": "solo",
-    "subcategory": "Sides & Appetizers",
     "status": "available",
     "originalPrice": 5,
     "discountedPrice": null,
@@ -363,10 +318,8 @@
     "description": "Vegan - 5 pieces of pan-fried vegetable dumplings"
   },
   {
-    "id": 28,
     "name": "Classic Moriawase",
     "category": "sharer",
-    "subcategory": "Moriawase (Chef's Selection)",
     "status": "popular",
     "originalPrice": 30,
     "discountedPrice": null,
@@ -374,10 +327,8 @@
     "description": "Chef's selection - Kira Signature Roll, Spicy Tuna Roll, plus 2 pcs each of salmon and tuna nigiri and sashimi"
   },
   {
-    "id": 29,
     "name": "Deluxe Moriawase",
     "category": "sharer",
-    "subcategory": "Moriawase (Chef's Selection)",
     "status": "popular",
     "originalPrice": 40,
     "discountedPrice": null,
@@ -385,10 +336,17 @@
     "description": "Chef's selection - Kira Roll, Pixie Roll, plus 2 pcs each of salmon, bluefin tuna and hamachi nigiri and sashimi"
   },
   {
-    "id": 30,
+    "name": "Ramune",
+    "category": "drinks",
+    "status": "available",
+    "originalPrice": 2.50,
+    "discountedPrice": null,
+    "imageLink": ["/images/ramune/1.svg"],
+    "description": "A popular Japanese carbonated soft drink known for its unique Codd-neck glass bottle sealed with a glass marble."
+  },
+  {
     "name": "Pepsi",
     "category": "drinks",
-    "subcategory": "Beverages",
     "status": "available",
     "originalPrice": 1,
     "discountedPrice": null,
@@ -396,10 +354,8 @@
     "description": "330ml can"
   },
   {
-    "id": 31,
     "name": "Pepsi Max",
     "category": "drinks",
-    "subcategory": "Beverages",
     "status": "available",
     "originalPrice": 1,
     "discountedPrice": null,
@@ -407,10 +363,8 @@
     "description": "330ml can"
   },
   {
-    "id": 32,
     "name": "7UP",
     "category": "drinks",
-    "subcategory": "Beverages",
     "status": "available",
     "originalPrice": 1,
     "discountedPrice": null,
@@ -418,10 +372,8 @@
     "description": "330ml can"
   },
   {
-    "id": 33,
     "name": "Water",
     "category": "drinks",
-    "subcategory": "Beverages",
     "status": "available",
     "originalPrice": 0.50,
     "discountedPrice": null,
@@ -429,10 +381,8 @@
     "description": "Still water bottle"
   },
   {
-    "id": 34,
     "name": "Fruit Shoots",
     "category": "drinks",
-    "subcategory": "Beverages",
     "status": "available",
     "originalPrice": 0.50,
     "discountedPrice": null,
