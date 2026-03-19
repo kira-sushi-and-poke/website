@@ -1,7 +1,7 @@
 "use client";
 import React, { useRef, useState, useEffect } from "react";
 import MenuList from "@/components/MenuList";
-import menuData from "@/data/menu.json";
+import menuDataFallback from "@/data/menu.json";
 import restaurantInfo from "@/data/restaurant-info";
 
 // Category navigation items
@@ -20,6 +20,36 @@ const MenuPage = () => {
     const [showLeftArrow, setShowLeftArrow] = useState(false);
     const [showRightArrow, setShowRightArrow] = useState(false);
     const [activeCategory, setActiveCategory] = useState("sharer");
+    const [menuData, setMenuData] = useState(menuDataFallback);
+    const [dataSource, setDataSource] = useState('loading');
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Fetch menu data from Square API
+    useEffect(() => {
+        const fetchMenuData = async () => {
+            try {
+                const response = await fetch('/api/square/catalog');
+                const data = await response.json();
+
+                if (response.ok && data.transformed && data.transformed.length > 0) {
+                    setMenuData(data.transformed);
+                    setDataSource('square');
+                } else {
+                    // API responded but no data, use fallback
+                    setMenuData(menuDataFallback);
+                    setDataSource('fallback');
+                }
+            } catch (error) {
+                console.error('Failed to fetch menu from Square:', error);
+                setMenuData(menuDataFallback);
+                setDataSource('fallback');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchMenuData();
+    }, []);
 
     const checkScrollPosition = () => {
         if (navRef.current) {
@@ -204,7 +234,25 @@ const MenuPage = () => {
             />
             <div className="py-8 md:py-12 px-5 md:px-10 max-w-7xl mx-auto">
                 <h1 className="text-2xl md:text-4xl font-bold mb-4 md:mb-6 text-hot-pink">Menu | Kira Sushi & Poke</h1>
-                
+
+                {/* Fallback Notice */}
+                {dataSource === 'fallback' && (
+                    <div className="bg-yellow/20 border-l-4 border-yellow p-4 mb-6 md:mb-8 rounded">
+                        <p className="text-sm font-semibold text-gray-700">
+                            <i className="fas fa-info-circle"></i> Showing cached menu. Live updates temporarily unavailable.
+                        </p>
+                    </div>
+                )}
+
+                {/* Loading State */}
+                {isLoading && (
+                    <div className="bg-hot-pink/10 border-l-4 border-hot-pink p-4 mb-6 md:mb-8 rounded">
+                        <p className="text-sm font-semibold text-hot-pink">
+                            <i className="fas fa-spinner fa-spin"></i> Loading menu from Square...
+                        </p>
+                    </div>
+                )}
+
                 {/* Sample Menu Notice */}
                 <div className="bg-yellow/20 border-l-4 border-hot-pink p-4 mb-6 md:mb-8 rounded">
                     <p className="text-sm font-semibold text-hot-pink">

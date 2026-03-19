@@ -83,9 +83,9 @@ const MenuList = ({ menuItems }) => {
                   </h3>
                 )}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                  {subcategoryItems.map(item => (
+                  {subcategoryItems.map((item, index) => (
                     <MenuItem
-                      key={item.name}
+                      key={item.variationId || `${item.id}-${item.name}-${index}`}
                       id={item.id}
                       name={item.name}
                       originalPrice={item.originalPrice}
