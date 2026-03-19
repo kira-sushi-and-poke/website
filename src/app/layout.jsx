@@ -102,6 +102,7 @@ const Layout = ({ children }) => {
                     referrerPolicy="no-referrer"
                 />
                 <link rel="canonical" href={restaurantInfo.url} />
+                <meta name="google-site-verification" content="sU2-OcfYsD2h1pvrh84bZRnCNvYd-5W_5IK_2xQhl4A" />
                 <script
                     type="application/ld+json"
                     dangerouslySetInnerHTML={{
