@@ -159,6 +159,7 @@
   {
     "name": "Chicken Katsu Curry",
     "category": "hot",
+    "subcategory": "Japanese Curry",
     "status": "popular",
     "originalPrice": 12,
     "discountedPrice": null,
@@ -168,6 +169,7 @@
   {
     "name": "Crispy Prawn Curry",
     "category": "hot",
+    "subcategory": "Japanese Curry",
     "status": "available",
     "originalPrice": 12,
     "discountedPrice": null,
@@ -177,6 +179,7 @@
   {
     "name": "Salmon Teriyaki",
     "category": "hot",
+    "subcategory": "Teriyaki",
     "status": "available",
     "originalPrice": 12,
     "discountedPrice": null,
@@ -186,6 +189,7 @@
   {
     "name": "Pumpkin Croquette Curry",
     "category": "hot",
+    "subcategory": "Japanese Curry",
     "status": "available",
     "originalPrice": 10,
     "discountedPrice": null,
@@ -195,6 +199,7 @@
   {
     "name": "Crispy Tofu Curry",
     "category": "hot",
+    "subcategory": "Japanese Curry",
     "status": "available",
     "originalPrice": 10,
     "discountedPrice": null,
@@ -388,5 +393,23 @@
     "discountedPrice": null,
     "imageLink": ["/images/fruit-shoots/1.svg"],
     "description": "Fruit shoots bottle"
+  },
+  {
+    "name": "School Special Japanese Curry",
+    "category": "kids",
+    "status": "available",
+    "originalPrice": 5,
+    "discountedPrice": null,
+    "imageLink": ["/images/school-special-curry/1.svg"],
+    "description": "A smaller portion of our popular Japanese curry, perfect for kids. Served with sticky rice, Japanese curry sauce and beni shoga (pickled ginger)"
+  },
+  {
+    "name": "School Special Teriyaki",
+    "category": "kids",
+    "status": "available",
+    "originalPrice": 5,
+    "discountedPrice": null,
+    "imageLink": ["/images/school-special-teriyaki/1.svg"],
+    "description": "A smaller portion of our popular teriyaki dish, perfect for kids. Cooked in teriyaki sauce, served with sticky rice and beni shoga"
   }
 ]
