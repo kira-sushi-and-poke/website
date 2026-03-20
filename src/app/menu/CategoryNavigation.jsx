@@ -3,7 +3,7 @@ import React, { useRef, useState, useEffect } from "react";
 
 // Category navigation items
 const categoryNavItems = [
-    { id: "sharer", label: "Chef's Selection", icon: "fa-star" },
+    { id: "platters", label: "Chef's Selection", icon: "fa-star" },
     { id: "sushi", label: "Sushi", icon: "fa-stroopwafel" },
     { id: "poke", label: "Poke Bowls", icon: "fa-bowl-rice" },
     { id: "hot", label: "Main Dishes (Hot)", icon: "fa-fire" },
@@ -17,7 +17,7 @@ const CategoryNavigation = () => {
     const navRef = useRef(null);
     const [showLeftArrow, setShowLeftArrow] = useState(false);
     const [showRightArrow, setShowRightArrow] = useState(false);
-    const [activeCategory, setActiveCategory] = useState("sharer");
+    const [activeCategory, setActiveCategory] = useState("platters");
 
     const checkScrollPosition = () => {
         if (navRef.current) {
@@ -54,7 +54,7 @@ const CategoryNavigation = () => {
             }));
 
             // Find which section is currently most visible
-            let currentSection = "sharer";
+            let currentSection = "platters";
             const scrollPosition = window.scrollY + 200; // Offset for sticky nav
 
             for (const section of sections) {

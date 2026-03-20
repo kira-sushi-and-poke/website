@@ -11,7 +11,7 @@ export function generateMenuSchema(menuData) {
             {
                 "@type": "MenuSection",
                 "name": "Moriawase (Chef's Selection)",
-                "hasMenuItem": menuData.filter(item => item.category === "sharer").map(item => ({
+                "hasMenuItem": menuData.filter(item => item.category === "platters").map(item => ({
                     "@type": "MenuItem",
                     "name": item.name,
                     "description": item.description,

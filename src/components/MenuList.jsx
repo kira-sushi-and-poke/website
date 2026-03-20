@@ -4,7 +4,7 @@ import MenuItem from "./MenuItem";
 const MenuList = ({ menuItems }) => {
   // Group items by category
   const categories = {
-    sharer: menuItems.filter(item => item.category === "sharer"),
+    platters: menuItems.filter(item => item.category === "platters"),
     sushi: menuItems.filter(item => item.category === "sushi"),
     poke: menuItems.filter(item => item.category === "poke"),
     hot: menuItems.filter(item => item.category === "hot"),
@@ -21,7 +21,7 @@ const MenuList = ({ menuItems }) => {
     kids: "Kids Menu",
     solo: "Sides & Appetizers",
     desserts: "Desserts",
-    sharer: "Moriawase (Chef's Selection)",
+    platters: "Moriawase (Chef's Selection)",
     drinks: "Drinks & Beverages"
   };
 
