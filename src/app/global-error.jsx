@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import React from 'react';
+import React from "react";
 
 export default function GlobalError({ error, reset }) {
     React.useEffect(() => {
         // Log critical errors
-        console.error('Global application error:', error);
+        console.error("Global application error:", error);
 
         // In production, send to error tracking service
-        // Example: Sentry.captureException(error, { level: 'fatal' });
+        // Example: Sentry.captureException(error, { level: "fatal" });
     }, [error]);
 
     return (
@@ -42,7 +42,7 @@ export default function GlobalError({ error, reset }) {
                         </p>
 
                         <p className="text-gray-600 mb-6">
-                            If the problem persists, please contact us via{' '}
+                            If the problem persists, please contact us via{" "}
                             <a
                                 href="https://www.facebook.com/people/Kira-Sushi-Poke/61583413766423/"
                                 target="_blank"
@@ -51,7 +51,7 @@ export default function GlobalError({ error, reset }) {
                             >
                                 Facebook
                             </a>
-                            {' '}or{' '}
+                            {" "}or{" "}
                             <a
                                 href="https://www.instagram.com/kira_sushi_and_poke"
                                 target="_blank"
@@ -63,13 +63,13 @@ export default function GlobalError({ error, reset }) {
                             .
                         </p>
 
-                        {process.env.NODE_ENV === 'development' && (
+                        {process.env.NODE_ENV === "development" && (
                             <details className="mb-6 text-left">
                                 <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">
                                     Error details (development only)
                                 </summary>
                                 <pre className="mt-2 text-xs bg-gray-100 p-3 rounded overflow-auto max-h-40">
-                                    {error?.message || 'Unknown error'}
+                                    {error?.message || "Unknown error"}
                                 </pre>
                             </details>
                         )}
@@ -83,7 +83,7 @@ export default function GlobalError({ error, reset }) {
                             </button>
 
                             <button
-                                onClick={() => window.location.href = '/'}
+                                onClick={() => window.location.href = "/"}
                                 className="bg-gray-200 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors font-medium"
                             >
                                 Go Home

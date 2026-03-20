@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import React from 'react';
+import React from "react";
 
 export default function Error({ error, reset }) {
     React.useEffect(() => {
         // Log error to console in development
-        console.error('Application error:', error);
+        console.error("Application error:", error);
 
         // In production, you'd send this to an error tracking service like Sentry
         // Example: Sentry.captureException(error);
@@ -40,7 +40,7 @@ export default function Error({ error, reset }) {
                 </p>
 
                 <p className="text-gray-600 mb-6">
-                    If the problem persists, please let us know via{' '}
+                    If the problem persists, please let us know via{" "}
                     <a
                         href="https://www.facebook.com/people/Kira-Sushi-Poke/61583413766423/"
                         target="_blank"
@@ -49,7 +49,7 @@ export default function Error({ error, reset }) {
                     >
                         Facebook
                     </a>
-                    {' '}or{' '}
+                    {" "}or{" "}
                     <a
                         href="https://www.instagram.com/kira_sushi_and_poke"
                         target="_blank"
@@ -61,7 +61,7 @@ export default function Error({ error, reset }) {
                     .
                 </p>
 
-                {process.env.NODE_ENV === 'development' && (
+                {process.env.NODE_ENV === "development" && (
                     <details className="mb-6 text-left">
                         <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">
                             Error details (development only)

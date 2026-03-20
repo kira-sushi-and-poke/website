@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React from 'react';
+import React from "react";
 
 export default function ReviewsError({ error, reset }) {
     React.useEffect(() => {
-        console.error('Reviews page error:', error);
+        console.error("Reviews page error:", error);
     }, [error]);
 
     return (
@@ -35,7 +35,7 @@ export default function ReviewsError({ error, reset }) {
                     We're having trouble loading customer reviews at the moment. Please try again later or visit our social media pages to see what people are saying!
                 </p>
 
-                {process.env.NODE_ENV === 'development' && (
+                {process.env.NODE_ENV === "development" && (
                     <details className="mb-6 text-left">
                         <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">
                             Error details (development only)

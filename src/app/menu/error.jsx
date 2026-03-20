@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React from 'react';
+import React from "react";
 
 export default function MenuError({ error, reset }) {
     React.useEffect(() => {
-        console.error('Menu page error:', error);
+        console.error("Menu page error:", error);
     }, [error]);
 
     return (
@@ -36,14 +36,7 @@ export default function MenuError({ error, reset }) {
                 </p>
 
                 <p className="text-gray-600 mb-6">
-                    You can reach us at{' '}
-                    <a
-                        href="tel:+61733567566"
-                        className="text-hot-pink hover:underline font-medium"
-                    >
-                        (07) 3356 7566
-                    </a>
-                    {' '}or via{' '}
+                    You can reach us via{" "}
                     <a
                         href="https://www.facebook.com/people/Kira-Sushi-Poke/61583413766423/"
                         target="_blank"
@@ -52,7 +45,7 @@ export default function MenuError({ error, reset }) {
                     >
                         Facebook
                     </a>
-                    {' '}or{' '}
+                    {" "}or{" "}
                     <a
                         href="https://www.instagram.com/kira_sushi_and_poke"
                         target="_blank"
@@ -64,7 +57,7 @@ export default function MenuError({ error, reset }) {
                     .
                 </p>
 
-                {process.env.NODE_ENV === 'development' && (
+                {process.env.NODE_ENV === "development" && (
                     <details className="mb-6 text-left">
                         <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">
                             Error details (development only)
@@ -88,13 +81,6 @@ export default function MenuError({ error, reset }) {
                         className="bg-gray-200 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors font-medium"
                     >
                         Go Home
-                    </a>
-
-                    <a
-                        href="tel:+61733567566"
-                        className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium"
-                    >
-                        Call Us
                     </a>
                 </div>
             </div>
