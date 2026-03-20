@@ -324,7 +324,7 @@
   },
   {
     "name": "Classic Moriawase",
-    "category": "sharer",
+    "category": "platters",
     "status": "popular",
     "originalPrice": 30,
     "discountedPrice": null,
@@ -333,7 +333,7 @@
   },
   {
     "name": "Deluxe Moriawase",
-    "category": "sharer",
+    "category": "platters",
     "status": "popular",
     "originalPrice": 40,
     "discountedPrice": null,

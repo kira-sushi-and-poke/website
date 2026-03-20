@@ -218,20 +218,20 @@ function mapCategory(apiCategoryName, itemName) {
     if (itemLower.includes("drink") || itemLower.includes("pepsi") || itemLower.includes("ramune") || itemLower.includes("water")) {
       return "drinks";
     }
-    if (itemLower.includes("moriawase")) return "sharer";
+    if (itemLower.includes("moriawase")) return "platters";
     if (itemLower.includes("school special") || itemLower.includes("kids")) return "kids";
     return "solo";
   }
 
   // Category mapping configuration
   const categoryMap = {
-    // Sharer/Chef's Selection
-    "chef selection": "sharer",
-    "chef's selection": "sharer",
-    "moriawase": "sharer",
-    "sharing": "sharer",
-    "platters": "sharer",
-    "sushi platters": "sharer",
+    // Platters/Chef's Selection
+    "chef selection": "platters",
+    "chef's selection": "platters",
+    "moriawase": "platters",
+    "sharing": "platters",
+    "platters": "platters",
+    "sushi platters": "platters",
 
     // Sushi
     "sushi": "sushi",
