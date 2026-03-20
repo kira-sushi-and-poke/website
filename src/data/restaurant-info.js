@@ -52,7 +52,7 @@ export const restaurantInfo = {
   ],
   
   // URL
-  url: "https://kira-sushi-and-poke.netlify.app",
+  url: "https://kirasushi.co.uk",
   logo: "/kira-sushi-and-poke-logo.png",
   image: "/images/restaurant-exterior.jpg" // Add this image
 };

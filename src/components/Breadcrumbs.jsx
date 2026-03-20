@@ -29,7 +29,7 @@ const Breadcrumbs = () => {
             "@type": "ListItem",
             "position": index + 1,
             "name": crumb.label,
-            "item": `https://kira-sushi-and-poke.netlify.app${crumb.href}`
+            "item": `https://kirasushi.co.uk${crumb.href}`
         }))
     };
 
