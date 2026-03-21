@@ -4,13 +4,15 @@ import OpeningHoursChat from "../components/OpeningHoursChat";
 import Navigation from "../components/Navigation";
 import Breadcrumbs from "../components/Breadcrumbs";
 import restaurantInfo from "../data/restaurant-info";
+import Image from "next/image";
+import KiraLogo from "../../public/kira-sushi-and-poke-logo.png";
 
 export const metadata = {
     title: {
-        default: "Kira Sushi and Poke | Fresh Japanese Sushi & Poke Bowls in London",
+        default: "Kira Sushi and Poke | Fresh Japanese Sushi & Poke Bowls in Chester-le-Street",
         template: "%s | Kira Sushi and Poke"
     },
-    description: "Authentic Japanese sushi and poke bowls made fresh daily with premium ingredients. Order online for delivery or pickup in London.",
+    description: "Authentic Japanese sushi and poke bowls made fresh daily with premium ingredients. Order online for delivery or pickup in Chester-le-Street.",
     keywords: restaurantInfo.keywords.join(", "),
     authors: [{ name: "Kira Sushi and Poke" }],
     icons: {
@@ -114,10 +116,13 @@ const Layout = ({ children }) => {
                 <header className="bg-hot-pink text-white p-5">
                     <div className="flex flex-col items-center gap-4">
                         <div className="flex items-center">
-                            <img 
-                                src="/kira-sushi-and-poke-logo.png" 
+                            <Image 
+                                src={KiraLogo} 
                                 alt="Kira Sushi and Poke Logo"
                                 className="h-25 w-auto"
+                                width={339}
+                                height={100}
+                                priority
                             />
                         </div>
                         <Navigation />
