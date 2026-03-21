@@ -1,6 +1,8 @@
+"use server";
+
 /**
- * Fetch menu data server-side directly from Square Catalog API
- * This function runs on the server and fetches data from Square
+ * Fetch menu data server-side directly from third party API
+ * This function strictly runs on the server to not expose sensitive credentials
  */
 export async function getMenuData() {
   try {
@@ -107,7 +109,7 @@ function transformCatalog(catalogData) {
       const subcategory = subcategoryAttr?.string_value || inferSubcategory(category, itemName, itemDescription);
 
       // Get images for this item group
-      const imageLinks = (itemData.image_ids || [])
+      const imageItemLinks = (itemData.image_ids || [])
         .map(imageId => images[imageId])
         .filter(Boolean);
 
@@ -118,7 +120,8 @@ function transformCatalog(catalogData) {
 
         const variationData = variation.item_variation_data;
         const priceData = variationData?.price_money;
-
+        const variationImageLinks = (variationData?.image_ids || []);
+        const allImageLinks = [...new Set([...imageItemLinks, ...variationImageLinks.map(id => images[id]).filter(Boolean)])];
         // Only create menu item if variation has a price
         if (!priceData || !priceData.amount) return;
 
@@ -186,7 +189,7 @@ function transformCatalog(catalogData) {
           discountedPrice: null,
           description: finalDescription,
           variationDescription: finalVariationDescription,
-          imageLink: imageLinks.length > 0 ? imageLinks : [],
+          imageLink: allImageLinks.length > 0 ? allImageLinks : [],
           apiData: {
             itemId: obj.id,
             variationId: variation.id,
