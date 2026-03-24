@@ -45,8 +45,8 @@ export async function POST(request) {
     
     console.log("Received Square webhook event:", event.type);
     
-    // Handle payment.completed event
-    if (event.type === "payment.completed") {
+    // Handle payment.updated event
+    if (event.type === "payment.updated") {
       const payment = event.data?.object?.payment;
       
       if (!payment) {
@@ -54,21 +54,24 @@ export async function POST(request) {
         return NextResponse.json({ received: true });
       }
       
-      console.log("Payment completed:", {
-        paymentId: payment.id,
-        orderId: payment.order_id,
-        amount: payment.amount_money,
-        status: payment.status,
-      });
-      
-      // Here you can add order fulfillment logic:
-      // - Send confirmation email to customer
-      // - Notify kitchen/staff
-      // - Update internal database
-      // - Send to third-party integrations
-      
-      // For now, just log it
-      // TODO: Add order fulfillment logic here
+      // Only process completed payments
+      if (payment.status === "COMPLETED") {
+        console.log("Payment completed:", {
+          paymentId: payment.id,
+          orderId: payment.order_id,
+          amount: payment.amount_money,
+          status: payment.status,
+        });
+        
+        // Here you can add order fulfillment logic:
+        // - Send confirmation email to customer
+        // - Notify kitchen/staff
+        // - Update internal database
+        // - Send to third-party integrations
+        
+        // For now, just log it
+        // TODO: Add order fulfillment logic here
+      }
       
       return NextResponse.json({ received: true });
     }

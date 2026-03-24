@@ -23,7 +23,7 @@ The application now supports two payment methods:
 
 1. Customer creation: `POST /api/customers` creates a Square customer and attaches to order
 2. Payment processing: `POST /api/payments` processes the payment with Square
-3. Webhook handling: `POST /api/webhooks/square` receives payment confirmation events
+3. Webhook handling: `POST /api/webhooks/square` receives `payment.updated` events (checks for `COMPLETED` status)
 
 ## Environment Variables
 
@@ -76,7 +76,7 @@ SQUARE_WEBHOOK_SIGNATURE_KEY=your_webhook_signature_key_here
 In the Square Developer Dashboard:
 1. Go to **Webhooks** tab
 2. Add a new webhook endpoint: `https://yourdomain.com/api/webhooks/square`
-3. Subscribe to the `payment.completed` event
+3. Subscribe to the `payment.updated` event
 4. Save the webhook
 
 ### 2. Test Webhook (Local Development)
@@ -147,7 +147,7 @@ Before launching:
 2. Verify order creation
 3. Verify customer creation
 4. Verify payment processing
-5. Verify webhook receives `payment.completed` event
+5. Verify webhook receives `payment.updated` event with status `COMPLETED`
 6. Test Apple Pay (if applicable)
 7. Test Google Pay (if applicable)
 8. Test card declines and error scenarios
@@ -203,7 +203,7 @@ The implementation includes comprehensive error handling:
 
 Monitor webhook events in Square Dashboard:
 - Go to **Webhooks** → **Event Log**
-- Check for `payment.completed` events
+- Check for `payment.updated` events with status `COMPLETED`
 - Verify webhook signature validation
 
 ### Payment Status
@@ -220,14 +220,17 @@ Check payment status in Square Dashboard:
 Add custom logic in `/api/webhooks/square/route.js`:
 
 ```javascript
-if (event.type === "payment.completed") {
+if (event.type === "payment.updated") {
   const payment = event.data?.object?.payment;
   
-  // Add your custom logic here:
-  // - Send confirmation email
-  // - Notify kitchen/staff
-  // - Update database
-  // - Send to third-party integrations
+  // Only process completed payments
+  if (payment.status === "COMPLETED") {
+    // Add your custom logic here:
+    // - Send confirmation email
+    // - Notify kitchen/staff
+    // - Update database
+    // - Send to third-party integrations
+  }
 }
 ```
 
