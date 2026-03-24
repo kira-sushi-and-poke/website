@@ -9,10 +9,11 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@tailwindcss/postcss": "latest",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "@tailwindcss/postcss": "latest",
+    "react-square-web-payments-sdk": "^3.3.0",
     "tailwindcss": "latest"
   },
   "devDependencies": {
