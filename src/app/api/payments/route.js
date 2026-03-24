@@ -87,6 +87,26 @@ export async function POST(request) {
       }
     }
     
+    // Calculate order to move it to OPEN state before payment
+    try {
+      const calculateResponse = await fetch(`${API_ORDERS_URL}/${orderId}/calculate`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+          "Square-Version": "2026-01-22",
+        },
+        body: JSON.stringify({}),
+      });
+      
+      if (!calculateResponse.ok) {
+        console.error("Order calculation failed:", await calculateResponse.text());
+      }
+    } catch (calcError) {
+      console.error("Order calculation error:", calcError);
+      // Continue anyway - order might already be calculated
+    }
+    
     // Process payment with Square
     const paymentResponse = await fetch(API_PAYMENTS_URL, {
       method: "POST",

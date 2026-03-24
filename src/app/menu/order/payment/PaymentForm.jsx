@@ -73,6 +73,7 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
                            digitalWalletContact !== undefined ||
                            token.token.includes('cnon:');
     
+    
     let contactInfo = null;
     
     // For digital wallets (Apple Pay/Google Pay)
@@ -87,12 +88,14 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
       };
     } else if (isWalletPayment) {
       // Digital wallet but no contact provided
-      // Use manual form data if available, otherwise use minimal info
-      contactInfo = {
-        email: contactDetails.email || `applepay-${Date.now()}@placeholder.local`,
-        phone: contactDetails.phone || '+44000000000',
-        name: contactDetails.name || 'Apple Pay Customer',
-      };
+      // Require manual form to be filled
+      if (!contactDetails.email || !contactDetails.name || !contactDetails.phone) {
+        setError("Apple Pay/Google Pay didn't provide your contact details. Please fill in the form below and try again.");
+        setIsProcessing(false);
+        return;
+      }
+      // Use manual form data
+      contactInfo = contactDetails;
     } else {
       // For credit card, validate the manual contact form
       if (!validateContactForm()) {
@@ -139,17 +142,23 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
     }
   };
   
-  const createPaymentRequest = () => ({
-    countryCode: "GB",
-    currencyCode: "GBP",
-    total: {
-      amount: (totalAmount / 100).toFixed(2),
-      label: "Total",
-    },
-    // Request contact information from Apple Pay / Google Pay
-    requestBillingContact: true,
-    requestShippingContact: false,
-  });
+  const createPaymentRequest = () => {
+    const request = {
+      countryCode: "GB",
+      currencyCode: "GBP",
+      total: {
+        amount: (totalAmount / 100).toFixed(2),
+        label: "Kira Sushi & Poke",
+      },
+      // Request contact information from Apple Pay / Google Pay
+      requestBillingContact: true,
+      requestShippingContact: false,
+      // Explicitly request email and phone
+      requiredBillingContactFields: ['email', 'phone', 'name'],
+    };
+    
+    return request;
+  };
   
   if (!appId || !locationId) {
     return (
@@ -185,18 +194,27 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
           {/* Apple Pay - Only in production (requires domain verification) */}
           {isProduction && (
             <div className="mb-3">
-              <ApplePay />
+              <ApplePay 
+                callbacks={{
+                  createPaymentRequest: createPaymentRequest
+                }}
+              />
             </div>
           )}
           
           {/* Google Pay */}
           <div className="mb-3">
-            <GooglePay />
+            <GooglePay 
+              callbacks={{
+                createPaymentRequest: createPaymentRequest
+              }}
+            />
           </div>
           
           <p className="text-xs text-gray-500 text-center">
-            Contact details usually collected automatically.<br />
-            If needed, fill in the form below first.
+            {isProduction 
+              ? "Contact details collected automatically from your wallet."
+              : "In test mode, please fill in the form below first, then use Apple Pay/Google Pay."}
           </p>
         </div>
         
@@ -213,7 +231,11 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
         {/* Contact Form for All Payment Methods */}
         <div className="mb-6">
           <p className="text-sm font-medium mb-3">Your contact details:</p>
-          <p className="text-xs text-gray-500 mb-3">Required for card payments. May be needed as backup for Apple Pay/Google Pay.</p>
+          <p className="text-xs text-gray-500 mb-3">
+            {isProduction 
+              ? "Required for card payments. May be needed for Apple Pay/Google Pay."
+              : "Required for all payment methods in test mode."}
+          </p>
           
           <div className="space-y-4">
             <div>
