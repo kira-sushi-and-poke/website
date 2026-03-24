@@ -61,46 +61,38 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
   const cardTokenizeResponseReceived = async (token, verifiedBuyer) => {
     // Prevent double submission
     if (isProcessing) return;
-    
-    // Debug: Log token structure to find contact details
-    console.log('=== PAYMENT TOKEN DEBUG ===');
-    console.log('Token details:', token.details);
-    console.log('Verified buyer:', verifiedBuyer);
-    
-    // Check all possible locations for contact info
-    if (token.details) {
-      console.log('- details.billing:', token.details.billing);
-    }
-    
-    if (verifiedBuyer) {
-      console.log('- verifiedBuyer.email:', verifiedBuyer.email);
-      console.log('- verifiedBuyer.phone:', verifiedBuyer.phone);
-    }
-    console.log('=== END DEBUG ===');
-    
+
     // Extract contact details from digital wallets (Apple Pay/Google Pay)
     const billing = token.details?.billing;
-    const digitalWalletContact = billing?.contact;
+    const shipping = token.details?.shipping;
+    
+    // Apple Pay puts contact directly in billing/shipping objects
+    // Google Pay may nest it in billing.contact or shipping.contact
+    const digitalWalletContact = billing || shipping?.contact || shipping;
     
     // Check if payment method is a digital wallet
     const paymentMethod = token.details?.method;
-    const isWalletPayment = paymentMethod === 'buy_now_pay_later' || 
+    const isWalletPayment = paymentMethod === 'Apple Pay' ||
+                           paymentMethod === 'Google Pay' ||
+                           paymentMethod === 'buy_now_pay_later' || 
                            paymentMethod === 'afterpay' || 
                            digitalWalletContact !== undefined ||
                            token.token.includes('cnon:');
     
-    
     let contactInfo = null;
     
     // For digital wallets (Apple Pay/Google Pay)
-    if (digitalWalletContact) {
+    if (digitalWalletContact && (digitalWalletContact.email || digitalWalletContact.emailAddress)) {
       // Digital wallet provided contact info
       contactInfo = {
         email: digitalWalletContact.email || digitalWalletContact.emailAddress,
         phone: digitalWalletContact.phone || digitalWalletContact.phoneNumber,
         name: digitalWalletContact.givenName && digitalWalletContact.familyName 
           ? `${digitalWalletContact.givenName} ${digitalWalletContact.familyName}`
-          : digitalWalletContact.name || `${billing?.givenName || ''} ${billing?.familyName || ''}`.trim(),
+          : digitalWalletContact.name || 
+            (digitalWalletContact.givenName || digitalWalletContact.familyName ? 
+              `${digitalWalletContact.givenName || ''} ${digitalWalletContact.familyName || ''}`.trim() : 
+              'Wallet Customer'),
       };
     } else if (isWalletPayment) {
       // Digital wallet but no contact provided
