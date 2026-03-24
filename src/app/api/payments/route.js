@@ -125,7 +125,7 @@ export async function POST(request) {
         if (pickupTime && contactDetails?.name) {
           orderUpdate.fulfillments = [{
             type: "PICKUP",
-            state: "PROPOSED",
+            state: "RESERVED",
             pickup_details: {
               recipient: {
                 display_name: contactDetails.name,

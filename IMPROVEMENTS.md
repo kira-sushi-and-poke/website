@@ -20,12 +20,6 @@
 
 ## Checkout Improvements
 
-- Add clear checkout or basket?
-- Improve delete icon to more user friendly
-- Do not show the we are open sticky on menu/order
-- Maybe not hide the order summary if empty, just show No items in your checkout, add stuff
-- Add basket icon in the navigation?
-- Add a message that will mention you will be redirected to Square's website.
 - how would we know who ordered?
 - add notes?
 - add logo to checkout page

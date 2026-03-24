@@ -300,7 +300,7 @@ export async function checkout(orderId) {
     if (customerInfo?.pickupTime && customerInfo?.name) {
       orderPayload.fulfillments = [{
         type: "PICKUP",
-        state: "PROPOSED",
+        state: "RESERVED",
         pickup_details: {
           recipient: {
             display_name: customerInfo.name,
