@@ -87,13 +87,12 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
       };
     } else if (isWalletPayment) {
       // Digital wallet but no contact provided
-      // Check if manual form has basic contact info
-      if (!contactDetails.email || !contactDetails.name) {
-        setError("Please fill in your contact details below before paying with Apple Pay or Google Pay.");
-        return;
-      }
-      // Use manual form data
-      contactInfo = contactDetails;
+      // Use manual form data if available, otherwise use minimal info
+      contactInfo = {
+        email: contactDetails.email || `applepay-${Date.now()}@placeholder.local`,
+        phone: contactDetails.phone || '+44000000000',
+        name: contactDetails.name || 'Apple Pay Customer',
+      };
     } else {
       // For credit card, validate the manual contact form
       if (!validateContactForm()) {
