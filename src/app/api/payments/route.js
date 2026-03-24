@@ -192,7 +192,7 @@ export async function POST(request) {
         },
         location_id: LOCATION_ID,
         order_id: orderId,
-        autocomplete: false,
+        autocomplete: true,
         ...(verificationToken && {
           verification_token: verificationToken,
         }),
@@ -241,14 +241,12 @@ export async function POST(request) {
     
     const payment = paymentData.payment;
     
-    // Check payment status
-    // APPROVED = authorized but not captured (autocomplete: false)
-    // COMPLETED = authorized and captured (autocomplete: true)
-    if (payment.status !== "APPROVED" && payment.status !== "COMPLETED") {
+    // Check payment status - should be COMPLETED with autocomplete: true
+    if (payment.status !== "COMPLETED") {
       return NextResponse.json(
         { 
           success: false, 
-          error: "Payment was not approved. Please try again.",
+          error: "Payment was not completed. Please try again.",
           status: payment.status,
         },
         { status: 402 }

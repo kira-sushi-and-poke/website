@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 
 const WEBHOOK_SIGNATURE_KEY = process.env.SQUARE_WEBHOOK_SIGNATURE_KEY;
+const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
+const API_ORDERS_URL = process.env.API_ORDERS_URL;
 
 /**
  * Verify Square webhook signature
@@ -63,14 +65,13 @@ export async function POST(request) {
           status: payment.status,
         });
         
-        // Here you can add order fulfillment logic:
-        // - Send confirmation email to customer
-        // - Notify kitchen/staff
-        // - Update internal database
-        // - Send to third-party integrations
+        // Payment is complete - order stays in RESERVED state
+        // Restaurant will mark as PREPARED once food is ready
+        // Restaurant will mark as COMPLETED once customer picks up
         
-        // For now, just log it
-        // TODO: Add order fulfillment logic here
+        // TODO: Send confirmation emails here
+        // - Customer confirmation with order details and pickup time
+        // - Restaurant notification with order details
       }
       
       return NextResponse.json({ received: true });

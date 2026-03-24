@@ -244,7 +244,16 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
   }
   
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="bg-white rounded-lg shadow-md p-6 relative">
+      {/* Loading Overlay */}
+      {isProcessing && (
+        <div className="absolute inset-0 bg-white/90 backdrop-blur-sm rounded-lg flex flex-col items-center justify-center z-50">
+          <div className="w-16 h-16 border-4 border-hot-pink border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-lg font-semibold text-gray-800">Processing Payment...</p>
+          <p className="text-sm text-gray-600 mt-2">Please don't close this page</p>
+        </div>
+      )}
+      
       <h2 className="text-xl font-semibold mb-4">
         Pay £{(totalAmount / 100).toFixed(2)}
       </h2>
