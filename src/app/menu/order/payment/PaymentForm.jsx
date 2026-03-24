@@ -66,10 +66,18 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
     const billing = token.details?.billing;
     const digitalWalletContact = billing?.contact;
     
+    // Check if payment method is a digital wallet
+    const paymentMethod = token.details?.method;
+    const isWalletPayment = paymentMethod === 'buy_now_pay_later' || 
+                           paymentMethod === 'afterpay' || 
+                           digitalWalletContact !== undefined ||
+                           token.token.includes('cnon:');
+    
     let contactInfo = null;
     
     // For digital wallets (Apple Pay/Google Pay)
     if (digitalWalletContact) {
+      // Digital wallet provided contact info
       contactInfo = {
         email: digitalWalletContact.email || digitalWalletContact.emailAddress,
         phone: digitalWalletContact.phone || digitalWalletContact.phoneNumber,
@@ -77,6 +85,15 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
           ? `${digitalWalletContact.givenName} ${digitalWalletContact.familyName}`
           : digitalWalletContact.name || `${billing?.givenName || ''} ${billing?.familyName || ''}`.trim(),
       };
+    } else if (isWalletPayment) {
+      // Digital wallet but no contact provided
+      // Check if manual form has basic contact info
+      if (!contactDetails.email || !contactDetails.name) {
+        setError("Please fill in your contact details below before paying with Apple Pay or Google Pay.");
+        return;
+      }
+      // Use manual form data
+      contactInfo = contactDetails;
     } else {
       // For credit card, validate the manual contact form
       if (!validateContactForm()) {
@@ -179,7 +196,8 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
           </div>
           
           <p className="text-xs text-gray-500 text-center">
-            Contact details collected automatically
+            Contact details usually collected automatically.<br />
+            If needed, fill in the form below first.
           </p>
         </div>
         
@@ -193,9 +211,10 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
           </div>
         </div>
         
-        {/* Contact Form for Credit Card */}
+        {/* Contact Form for All Payment Methods */}
         <div className="mb-6">
-          <p className="text-sm font-medium mb-3">Enter your contact details:</p>
+          <p className="text-sm font-medium mb-3">Your contact details:</p>
+          <p className="text-xs text-gray-500 mb-3">Required for card payments. May be needed as backup for Apple Pay/Google Pay.</p>
           
           <div className="space-y-4">
             <div>
