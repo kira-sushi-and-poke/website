@@ -62,6 +62,22 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
     // Prevent double submission
     if (isProcessing) return;
     
+    // Debug: Log token structure to find contact details
+    console.log('=== PAYMENT TOKEN DEBUG ===');
+    console.log('Token details:', token.details);
+    console.log('Verified buyer:', verifiedBuyer);
+    
+    // Check all possible locations for contact info
+    if (token.details) {
+      console.log('- details.billing:', token.details.billing);
+    }
+    
+    if (verifiedBuyer) {
+      console.log('- verifiedBuyer.email:', verifiedBuyer.email);
+      console.log('- verifiedBuyer.phone:', verifiedBuyer.phone);
+    }
+    console.log('=== END DEBUG ===');
+    
     // Extract contact details from digital wallets (Apple Pay/Google Pay)
     const billing = token.details?.billing;
     const digitalWalletContact = billing?.contact;
