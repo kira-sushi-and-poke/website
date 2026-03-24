@@ -14,7 +14,7 @@ const API_ORDERS_URL = process.env.API_ORDERS_URL;
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { sourceId, orderId, amount, verificationToken, contactDetails } = body;
+    const { sourceId, orderId, amount, verificationToken, contactDetails, pickupTime } = body;
     
     // Validate required fields
     if (!sourceId || !orderId || !amount) {
@@ -111,6 +111,35 @@ export async function POST(request) {
       
       // Only update if order is still in DRAFT state
       if (currentState === "DRAFT") {
+        const orderUpdate = {
+          location_id: LOCATION_ID,
+          state: "OPEN",
+          version: currentVersion,
+          metadata: {
+            placed_at: new Date().toISOString(),
+            payment_method: "Custom Payment Form",
+          },
+        };
+        
+        // Add fulfillment details if pickup time provided
+        if (pickupTime && contactDetails?.name) {
+          orderUpdate.fulfillments = [{
+            type: "PICKUP",
+            state: "PROPOSED",
+            pickup_details: {
+              recipient: {
+                display_name: contactDetails.name,
+                ...(contactDetails.email && { email_address: contactDetails.email }),
+                ...(contactDetails.phone && { phone_number: contactDetails.phone }),
+              },
+              schedule_type: "SCHEDULED",
+              pickup_at: pickupTime,
+              pickup_window_duration: "PT15M",
+              note: "Online order - pickup",
+            },
+          }];
+        }
+        
         const updateResponse = await fetch(`${API_ORDERS_URL}/${orderId}`, {
           method: "PUT",
           headers: {
@@ -119,15 +148,7 @@ export async function POST(request) {
             "Square-Version": "2026-01-22",
           },
           body: JSON.stringify({
-            order: {
-              location_id: LOCATION_ID,
-              state: "OPEN",
-              version: currentVersion,
-              metadata: {
-                placed_at: new Date().toISOString(),
-                payment_method: "Custom Payment Form",
-              },
-            },
+            order: orderUpdate,
           }),
         });
         

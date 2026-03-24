@@ -351,7 +351,6 @@ export default function OrderMenuClient({ menuData }) {
         if (!orderId || isCheckingOut) return;
         
         // Navigate directly to payment page
-        // Apple Pay/Google Pay will collect contact details automatically
         router.push(`/menu/order/payment?orderId=${orderId}`);
     };
 

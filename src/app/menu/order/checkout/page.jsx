@@ -16,9 +16,70 @@ export default function CheckoutPage() {
     name: "",
     email: "",
     phone: "",
+    pickupTime: "",
   });
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pickupTimeOptions, setPickupTimeOptions] = useState([]);
+  
+  // Generate pickup time options (15-min intervals, 30 min from now, 11am-9pm)
+  useEffect(() => {
+    const times = [];
+    const now = new Date();
+    const minTime = new Date(now.getTime() + 30 * 60000); // 30 minutes from now
+    
+    // Start from today at 11 AM
+    const startOfDay = new Date(now);
+    startOfDay.setHours(11, 0, 0, 0);
+    
+    // End at 9 PM
+    const endOfDay = new Date(now);
+    endOfDay.setHours(21, 0, 0, 0);
+    
+    // If current time is past 11 AM, start from minTime instead
+    let currentTime = minTime > startOfDay ? minTime : startOfDay;
+    
+    // Round up to next 15-min interval
+    const minutes = currentTime.getMinutes();
+    const roundedMinutes = Math.ceil(minutes / 15) * 15;
+    currentTime.setMinutes(roundedMinutes, 0, 0);
+    
+    // Generate time slots
+    while (currentTime <= endOfDay) {
+      const timeString = currentTime.toLocaleTimeString('en-GB', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: false 
+      });
+      const isoString = currentTime.toISOString();
+      times.push({ label: timeString, value: isoString });
+      currentTime = new Date(currentTime.getTime() + 15 * 60000); // Add 15 minutes
+    }
+    
+    // If no times today, add times for tomorrow
+    if (times.length === 0) {
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(11, 0, 0, 0);
+      
+      const tomorrowEnd = new Date(tomorrow);
+      tomorrowEnd.setHours(21, 0, 0, 0);
+      
+      let time = tomorrow;
+      while (time <= tomorrowEnd) {
+        const timeString = time.toLocaleTimeString('en-GB', { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          hour12: false 
+        }) + ' (Tomorrow)';
+        const isoString = time.toISOString();
+        times.push({ label: timeString, value: isoString });
+        time = new Date(time.getTime() + 15 * 60000);
+      }
+    }
+    
+    setPickupTimeOptions(times);
+  }, []);
   
   // Load order from localStorage
   useEffect(() => {
@@ -78,6 +139,10 @@ export default function CheckoutPage() {
       errors.phone = "Invalid phone number";
     }
     
+    if (!formData.pickupTime) {
+      errors.pickupTime = "Pickup time is required";
+    }
+    
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -131,7 +196,10 @@ export default function CheckoutPage() {
       }
       
       // Store customer info in sessionStorage
-      sessionStorage.setItem("customerInfo", JSON.stringify(formData));
+      sessionStorage.setItem("customerInfo", JSON.stringify({
+        ...formData,
+        pickupTime: formData.pickupTime,
+      }));
       
       // Redirect to payment page
       router.push(`/menu/order/payment?orderId=${orderId}`);
@@ -174,9 +242,15 @@ export default function CheckoutPage() {
         return;
       }
       
-      // Redirect to existing Square checkout action
+      // Store customer info and pickup time in sessionStorage
+      sessionStorage.setItem("customerInfo", JSON.stringify({
+        ...formData,
+        pickupTime: formData.pickupTime,
+      }));
+      
+      // Redirect to existing Square checkout action with customer info
       const { checkout } = await import("../actions");
-      await checkout(orderId);
+      await checkout(orderId, formData);
     } catch (err) {
       if (err.digest && err.digest.startsWith("NEXT_REDIRECT")) {
         throw err;
@@ -304,6 +378,32 @@ export default function CheckoutPage() {
             />
             {formErrors.phone && (
               <p className="text-red-500 text-sm mt-1">{formErrors.phone}</p>
+            )}
+          </div>
+          
+          <div>
+            <label htmlFor="pickupTime" className="block text-sm font-medium mb-1">
+              Pickup Time *
+            </label>
+            <select
+              id="pickupTime"
+              name="pickupTime"
+              value={formData.pickupTime}
+              onChange={handleInputChange}
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-hot-pink ${
+                formErrors.pickupTime ? "border-red-500" : "border-gray-300"
+              }`}
+              disabled={isSubmitting}
+            >
+              <option value="">Select a pickup time</option>
+              {pickupTimeOptions.map((option, index) => (
+                <option key={index} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            {formErrors.pickupTime && (
+              <p className="text-red-500 text-sm mt-1">{formErrors.pickupTime}</p>
             )}
           </div>
           

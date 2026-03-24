@@ -62,6 +62,20 @@ export default function ConfirmationClient({ orderId, status, order }) {
     const formattedTotal = totalMoney
       ? `£${(totalMoney.amount / 100).toFixed(2)}`
       : "N/A";
+    
+    // Extract pickup time from fulfillments
+    const pickupFulfillment = order.fulfillments?.find(f => f.type === "PICKUP");
+    const pickupTime = pickupFulfillment?.pickup_details?.pickup_at;
+    const formattedPickupTime = pickupTime 
+      ? new Date(pickupTime).toLocaleString('en-GB', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      : null;
 
     return (
       <div className="min-h-screen bg-gray-50 py-12 px-4">
@@ -89,6 +103,12 @@ export default function ConfirmationClient({ orderId, status, order }) {
             <p className="text-gray-600 mb-4">
               Thank you for your order. We&apos;ll start preparing it right away.
             </p>
+            {formattedPickupTime && (
+              <div className="bg-hot-pink/10 border border-hot-pink rounded-lg p-4 mb-4">
+                <p className="text-sm font-semibold text-gray-700 mb-1">Pickup Time</p>
+                <p className="text-lg font-bold text-hot-pink">{formattedPickupTime}</p>
+              </div>
+            )}
             <p className="text-sm text-gray-500">Order ID: {orderId}</p>
           </div>
 

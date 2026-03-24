@@ -287,6 +287,34 @@ export async function checkout(orderId) {
     // Now create the payment link with order details
     const redirectUrl = `${SITE_URL}/menu/order/confirmation?orderId=${orderId}`;
     
+    const orderPayload = {
+      location_id: LOCATION_ID,
+      line_items: sanitizedLineItems,
+      metadata: {
+        placed_at: new Date().toISOString(),
+        payment_method: "Square Checkout",
+      },
+    };
+    
+    // Add fulfillment details if pickup time provided
+    if (customerInfo?.pickupTime && customerInfo?.name) {
+      orderPayload.fulfillments = [{
+        type: "PICKUP",
+        state: "PROPOSED",
+        pickup_details: {
+          recipient: {
+            display_name: customerInfo.name,
+            ...(customerInfo.email && { email_address: customerInfo.email }),
+            ...(customerInfo.phone && { phone_number: customerInfo.phone }),
+          },
+          schedule_type: "SCHEDULED",
+          pickup_at: customerInfo.pickupTime,
+          pickup_window_duration: "PT15M",
+          note: "Online order - pickup",
+        },
+      }];
+    }
+    
     const response = await fetch(API_PAYMENT_LINKS_URL, {
       method: "POST",
       headers: {
@@ -296,14 +324,7 @@ export async function checkout(orderId) {
       },
       body: JSON.stringify({
         idempotency_key: crypto.randomUUID(),
-        order: {
-          location_id: LOCATION_ID,
-          line_items: sanitizedLineItems,
-          metadata: {
-            placed_at: new Date().toISOString(),
-            payment_method: "Square Checkout",
-          },
-        },
+        order: orderPayload,
         checkout_options: {
           redirect_url: redirectUrl,
         },
@@ -314,7 +335,7 @@ export async function checkout(orderId) {
 
     if (!response.ok) {
       console.error("Square Payment Link Error:", data);
-      throw new Error(`Failed to create payment link: ${JSON.stringify(data.errors || data)}`);
+      throw new Error("Failed to create payment link. Please try again.");
     }
 
     if (data.payment_link && data.payment_link.url) {

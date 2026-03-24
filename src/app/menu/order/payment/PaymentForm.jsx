@@ -13,12 +13,73 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
     name: "",
     email: "",
     phone: "",
+    pickupTime: "",
   });
   const [formErrors, setFormErrors] = useState({});
+  const [pickupTimeOptions, setPickupTimeOptions] = useState([]);
   
   const appId = process.env.NEXT_PUBLIC_SQUARE_APP_ID;
   const locationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID;
   const isProduction = process.env.NODE_ENV === 'production';
+  
+  // Generate pickup time options (15-min intervals, 30 min from now, 11am-9pm)
+  React.useEffect(() => {
+    const times = [];
+    const now = new Date();
+    const minTime = new Date(now.getTime() + 30 * 60000); // 30 minutes from now
+    
+    // Start from today at 11 AM
+    const startOfDay = new Date(now);
+    startOfDay.setHours(11, 0, 0, 0);
+    
+    // End at 9 PM
+    const endOfDay = new Date(now);
+    endOfDay.setHours(21, 0, 0, 0);
+    
+    // If current time is past 11 AM, start from minTime instead
+    let currentTime = minTime > startOfDay ? minTime : startOfDay;
+    
+    // Round up to next 15-min interval
+    const minutes = currentTime.getMinutes();
+    const roundedMinutes = Math.ceil(minutes / 15) * 15;
+    currentTime.setMinutes(roundedMinutes, 0, 0);
+    
+    // Generate time slots
+    while (currentTime <= endOfDay) {
+      const timeString = currentTime.toLocaleTimeString('en-GB', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: false 
+      });
+      const isoString = currentTime.toISOString();
+      times.push({ label: timeString, value: isoString });
+      currentTime = new Date(currentTime.getTime() + 15 * 60000); // Add 15 minutes
+    }
+    
+    // If no times today, add times for tomorrow
+    if (times.length === 0) {
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(11, 0, 0, 0);
+      
+      const tomorrowEnd = new Date(tomorrow);
+      tomorrowEnd.setHours(21, 0, 0, 0);
+      
+      let time = tomorrow;
+      while (time <= tomorrowEnd) {
+        const timeString = time.toLocaleTimeString('en-GB', { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          hour12: false 
+        }) + ' (Tomorrow)';
+        const isoString = time.toISOString();
+        times.push({ label: timeString, value: isoString });
+        time = new Date(time.getTime() + 15 * 60000);
+      }
+    }
+    
+    setPickupTimeOptions(times);
+  }, []);
   
   const validateContactForm = () => {
     const errors = {};
@@ -37,6 +98,10 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
       errors.phone = "Phone number is required";
     } else if (!/^[\d\s\+\-\(\)]+$/.test(contactDetails.phone)) {
       errors.phone = "Invalid phone number";
+    }
+    
+    if (!contactDetails.pickupTime) {
+      errors.pickupTime = "Pickup time is required";
     }
     
     setFormErrors(errors);
@@ -127,6 +192,7 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
           amount: totalAmount,
           verificationToken: verifiedBuyer?.token,
           contactDetails: contactInfo,
+          pickupTime: contactInfo.pickupTime,
         }),
       });
       
@@ -195,6 +261,31 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
         cardTokenizeResponseReceived={cardTokenizeResponseReceived}
         createPaymentRequest={createPaymentRequest}
       >
+        {/* Pickup Time Selection */}
+        <div className="mb-6 p-4 bg-hot-pink/5 border border-hot-pink/20 rounded-lg">
+          <h3 className="text-sm font-semibold mb-3 text-gray-800">When would you like to pick up your order?</h3>
+          <select
+            id="pickupTime"
+            name="pickupTime"
+            value={contactDetails.pickupTime}
+            onChange={handleInputChange}
+            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-hot-pink ${
+              formErrors.pickupTime ? "border-red-500" : "border-gray-300"
+            }`}
+            disabled={isProcessing}
+          >
+            <option value="">Select a pickup time</option>
+            {pickupTimeOptions.map((option, index) => (
+              <option key={index} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          {formErrors.pickupTime && (
+            <p className="text-red-500 text-sm mt-1">{formErrors.pickupTime}</p>
+          )}
+        </div>
+        
         {/* Quick checkout with digital wallets */}
         <div className="mb-6">
           <p className="text-sm text-gray-600 mb-3">Quick checkout:</p>
