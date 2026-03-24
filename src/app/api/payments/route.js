@@ -82,29 +82,72 @@ export async function POST(request) {
           }
         }
       } catch (customerError) {
-        console.error("Customer creation failed:", customerError);
         // Continue with payment even if customer creation fails
       }
     }
     
-    // Calculate order to move it to OPEN state before payment
+    // Move order to OPEN state before payment
     try {
-      const calculateResponse = await fetch(`${API_ORDERS_URL}/${orderId}/calculate`, {
-        method: "POST",
+      // First, fetch the current order to get the version
+      const getOrderResponse = await fetch(`${API_ORDERS_URL}/${orderId}`, {
+        method: "GET",
         headers: {
           "Authorization": `Bearer ${ACCESS_TOKEN}`,
           "Content-Type": "application/json",
           "Square-Version": "2026-01-22",
         },
-        body: JSON.stringify({}),
       });
       
-      if (!calculateResponse.ok) {
-        console.error("Order calculation failed:", await calculateResponse.text());
+      if (!getOrderResponse.ok) {
+        return NextResponse.json(
+          { success: false, error: "Order not found. Please try again." },
+          { status: 404 }
+        );
       }
-    } catch (calcError) {
-      console.error("Order calculation error:", calcError);
-      // Continue anyway - order might already be calculated
+      
+      const orderData = await getOrderResponse.json();
+      const currentState = orderData.order?.state;
+      const currentVersion = orderData.order?.version;
+      
+      // Only update if order is still in DRAFT state
+      if (currentState === "DRAFT") {
+        const updateResponse = await fetch(`${API_ORDERS_URL}/${orderId}`, {
+          method: "PUT",
+          headers: {
+            "Authorization": `Bearer ${ACCESS_TOKEN}`,
+            "Content-Type": "application/json",
+            "Square-Version": "2026-01-22",
+          },
+          body: JSON.stringify({
+            order: {
+              location_id: LOCATION_ID,
+              state: "OPEN",
+              version: currentVersion,
+            },
+          }),
+        });
+        
+        const updateData = await updateResponse.json();
+        
+        if (!updateResponse.ok) {
+          return NextResponse.json(
+            { success: false, error: "Failed to prepare order for payment. Please try again." },
+            { status: 500 }
+          );
+        }
+      } else if (currentState === "OPEN") {
+        // Order already in correct state
+      } else {
+        return NextResponse.json(
+          { success: false, error: `Order cannot be paid (state: ${currentState})` },
+          { status: 400 }
+        );
+      }
+    } catch (error) {
+      return NextResponse.json(
+        { success: false, error: "Failed to prepare order for payment. Please try again." },
+        { status: 500 }
+      );
     }
     
     // Process payment with Square
@@ -134,8 +177,6 @@ export async function POST(request) {
     const paymentData = await paymentResponse.json();
     
     if (!paymentResponse.ok) {
-      console.error("Square payment error:", paymentData);
-      
       // Check if it's a card decline
       if (paymentData.errors) {
         const error = paymentData.errors[0];
@@ -194,7 +235,6 @@ export async function POST(request) {
       receiptUrl: payment.receipt_url,
     });
   } catch (error) {
-    console.error("Payment processing error:", error);
     return NextResponse.json(
       { success: false, error: "Payment processing failed. Please try again." },
       { status: 500 }
