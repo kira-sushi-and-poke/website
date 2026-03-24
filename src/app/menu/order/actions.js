@@ -299,6 +299,10 @@ export async function checkout(orderId) {
         order: {
           location_id: LOCATION_ID,
           line_items: sanitizedLineItems,
+          metadata: {
+            placed_at: new Date().toISOString(),
+            payment_method: "Square Checkout",
+          },
         },
         checkout_options: {
           redirect_url: redirectUrl,

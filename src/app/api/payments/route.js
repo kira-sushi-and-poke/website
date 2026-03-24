@@ -123,6 +123,10 @@ export async function POST(request) {
               location_id: LOCATION_ID,
               state: "OPEN",
               version: currentVersion,
+              metadata: {
+                placed_at: new Date().toISOString(),
+                payment_method: "Custom Payment Form",
+              },
             },
           }),
         });
@@ -167,7 +171,7 @@ export async function POST(request) {
         },
         location_id: LOCATION_ID,
         order_id: orderId,
-        autocomplete: true,
+        autocomplete: false,
         ...(verificationToken && {
           verification_token: verificationToken,
         }),
@@ -217,11 +221,13 @@ export async function POST(request) {
     const payment = paymentData.payment;
     
     // Check payment status
-    if (payment.status !== "COMPLETED") {
+    // APPROVED = authorized but not captured (autocomplete: false)
+    // COMPLETED = authorized and captured (autocomplete: true)
+    if (payment.status !== "APPROVED" && payment.status !== "COMPLETED") {
       return NextResponse.json(
         { 
           success: false, 
-          error: "Payment was not completed. Please try again.",
+          error: "Payment was not approved. Please try again.",
           status: payment.status,
         },
         { status: 402 }

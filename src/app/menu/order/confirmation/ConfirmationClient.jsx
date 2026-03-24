@@ -60,7 +60,7 @@ export default function ConfirmationClient({ orderId, status, order }) {
     // Calculate order total
     const totalMoney = order.total_money;
     const formattedTotal = totalMoney
-      ? `$${(totalMoney.amount / 100).toFixed(2)}`
+      ? `£${(totalMoney.amount / 100).toFixed(2)}`
       : "N/A";
 
     return (
@@ -104,7 +104,7 @@ export default function ConfirmationClient({ orderId, status, order }) {
                 {order.line_items.map((item, index) => {
                   const itemTotal = item.total_money;
                   const formattedItemTotal = itemTotal
-                    ? `$${(itemTotal.amount / 100).toFixed(2)}`
+                    ? `£${(itemTotal.amount / 100).toFixed(2)}`
                     : "N/A";
 
                   return (
