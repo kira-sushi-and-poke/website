@@ -34,6 +34,24 @@ const Navigation = () => {
                         </li>
                     );
                 })}
+                
+                {/* Order/Basket Icon - Hidden for testing */}
+                {/* Uncomment when ready to launch ordering feature
+                <li>
+                    <a 
+                        href="/menu/order"
+                        className={`font-bold transition-all duration-200 px-4 py-2 rounded-lg border-2 flex items-center gap-2 ${
+                            pathname?.startsWith('/menu/order')
+                                ? 'bg-yellow text-white border-yellow shadow-md' 
+                                : 'bg-white text-hot-pink border-white hover:bg-yellow hover:text-white hover:border-yellow hover:shadow-md'
+                        }`}
+                        title="Order Online"
+                    >
+                        <i className="fas fa-shopping-basket"></i>
+                        <span>Order</span>
+                    </a>
+                </li>
+                */}
             </ul>
         </nav>
     );

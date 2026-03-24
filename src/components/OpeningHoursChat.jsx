@@ -1,9 +1,18 @@
 "use client";
 import React, { useState } from "react";
+import { usePathname } from "next/navigation";
 
 const OpeningHoursChat = () => {
     const [showModal, setShowModal] = useState(false);
     const [showSign, setShowSign] = useState(true);
+    const pathname = usePathname();
+
+    // Hide on menu/order pages
+    const shouldHide = pathname?.startsWith('/menu/order') || pathname === '/menu/order';
+    
+    if (shouldHide) {
+        return null;
+    }
 
     // Opening hours data
     const openingHours = {

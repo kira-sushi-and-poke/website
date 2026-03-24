@@ -1,7 +1,14 @@
 import React from "react";
 import MenuItem from "./MenuItem";
 
-const MenuList = ({ menuItems }) => {
+const MenuList = ({ 
+  menuItems, 
+  cart = {}, 
+  addItem, 
+  removeItem, 
+  updatingItems = new Set(), 
+  isOrderMode = false 
+}) => {
   // Group items by category
   const categories = {
     platters: menuItems.filter(item => item.category === "platters"),
@@ -128,6 +135,12 @@ const MenuList = ({ menuItems }) => {
                       description={item.description}
                       variationDescription={item.variationDescription}
                       status={item.status}
+                      variationId={item.variationId}
+                      cart={cart}
+                      addItem={addItem}
+                      removeItem={removeItem}
+                      updatingItems={updatingItems}
+                      isOrderMode={isOrderMode}
                     />
                   ))}
                 </div>

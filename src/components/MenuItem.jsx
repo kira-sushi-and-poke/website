@@ -2,10 +2,28 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 
-const MenuItem = ({ name, originalPrice, discountedPrice, image, description, variationDescription, status }) => {
+const MenuItem = ({ 
+    name, 
+    originalPrice, 
+    discountedPrice, 
+    image, 
+    description, 
+    variationDescription, 
+    status,
+    variationId,
+    cart = {},
+    addItem,
+    removeItem,
+    updatingItems = new Set(),
+    isOrderMode = false
+}) => {
     const [showLightbox, setShowLightbox] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    
+    // Get quantity from cart
+    const quantity = cart[variationId] || 0;
+    const isUpdating = updatingItems.has(variationId);
 
     // Convert single image to array for consistent handling
     const rawImages = Array.isArray(image) ? image : [image];
@@ -131,6 +149,45 @@ const MenuItem = ({ name, originalPrice, discountedPrice, image, description, va
                             <span className="text-gray-500 italic ml-2">({variationDescription})</span>
                         )}
                     </p>
+                    
+                    {/* Quantity Controls for Order Mode */}
+                    {isOrderMode && variationId && (
+                        <div className="mt-4 flex flex-col items-center gap-3">
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={() => removeItem(variationId)}
+                                    disabled={isUpdating || quantity === 0}
+                                    className="w-10 h-10 rounded-full bg-gray-200 hover:bg-hot-pink hover:text-white font-bold text-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                                    aria-label="Decrease quantity"
+                                >
+                                    −
+                                </button>
+                                
+                                <div className="min-w-[60px] text-center">
+                                    {isUpdating ? (
+                                        <div className="inline-block w-5 h-5 border-2 border-hot-pink border-t-transparent rounded-full animate-spin"></div>
+                                    ) : (
+                                        <span className="text-lg font-bold">{quantity}</span>
+                                    )}
+                                </div>
+                                
+                                <button
+                                    onClick={() => addItem(variationId)}
+                                    disabled={isUpdating}
+                                    className="w-10 h-10 rounded-full bg-hot-pink text-white hover:bg-opacity-90 font-bold text-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                                    aria-label="Increase quantity"
+                                >
+                                    +
+                                </button>
+                            </div>
+                            
+                            {quantity > 0 && !isUpdating && (
+                                <div className="text-yellow font-bold text-lg">
+                                    £{((discountedPrice || originalPrice) * quantity).toFixed(2)}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
 
