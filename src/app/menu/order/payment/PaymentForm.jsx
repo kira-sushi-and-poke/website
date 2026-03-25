@@ -3,109 +3,38 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PaymentForm, CreditCard, GooglePay, ApplePay } from "react-square-web-payments-sdk";
+import { generatePickupTimes } from "@/lib/generatePickupTimes";
+import { validateContactDetails } from "@/lib/validation";
+import { processPayment } from "../actions";
 
 export default function PaymentFormComponent({ orderId, totalAmount }) {
   const router = useRouter();
   const [error, setError] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showContactForm, setShowContactForm] = useState(false);
   const [contactDetails, setContactDetails] = useState({
     name: "",
     email: "",
     phone: "",
     pickupTime: "",
+    specialInstructions: "",
   });
   const [formErrors, setFormErrors] = useState({});
   const [pickupTimeOptions, setPickupTimeOptions] = useState([]);
   
   const appId = process.env.NEXT_PUBLIC_SQUARE_APP_ID;
   const locationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID;
-  const isProduction = process.env.NODE_ENV === 'production';
+  const isProduction = process.env.NODE_ENV === "production";
   
-  // Generate pickup time options (15-min intervals, 30 min from now, 11am-9pm)
+  // Generate pickup time options (15-min intervals, 30 min from now, 11am-7pm)
   React.useEffect(() => {
-    const times = [];
-    const now = new Date();
-    const minTime = new Date(now.getTime() + 30 * 60000); // 30 minutes from now
-    
-    // Start from today at 11 AM
-    const startOfDay = new Date(now);
-    startOfDay.setHours(11, 0, 0, 0);
-    
-    // End at 9 PM
-    const endOfDay = new Date(now);
-    endOfDay.setHours(21, 0, 0, 0);
-    
-    // If current time is past 11 AM, start from minTime instead
-    let currentTime = minTime > startOfDay ? minTime : startOfDay;
-    
-    // Round up to next 15-min interval
-    const minutes = currentTime.getMinutes();
-    const roundedMinutes = Math.ceil(minutes / 15) * 15;
-    currentTime.setMinutes(roundedMinutes, 0, 0);
-    
-    // Generate time slots
-    while (currentTime <= endOfDay) {
-      const timeString = currentTime.toLocaleTimeString('en-GB', { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: false 
-      });
-      const isoString = currentTime.toISOString();
-      times.push({ label: timeString, value: isoString });
-      currentTime = new Date(currentTime.getTime() + 15 * 60000); // Add 15 minutes
-    }
-    
-    // If no times today, add times for tomorrow
-    if (times.length === 0) {
-      const tomorrow = new Date(now);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(11, 0, 0, 0);
-      
-      const tomorrowEnd = new Date(tomorrow);
-      tomorrowEnd.setHours(21, 0, 0, 0);
-      
-      let time = tomorrow;
-      while (time <= tomorrowEnd) {
-        const timeString = time.toLocaleTimeString('en-GB', { 
-          hour: '2-digit', 
-          minute: '2-digit',
-          hour12: false 
-        }) + ' (Tomorrow)';
-        const isoString = time.toISOString();
-        times.push({ label: timeString, value: isoString });
-        time = new Date(time.getTime() + 15 * 60000);
-      }
-    }
-    
+    const times = generatePickupTimes();
     setPickupTimeOptions(times);
   }, []);
   
   const validateContactForm = () => {
-    const errors = {};
-    
-    if (!contactDetails.name.trim()) {
-      errors.name = "Name is required";
-    }
-    
-    if (!contactDetails.email.trim()) {
-      errors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactDetails.email)) {
-      errors.email = "Invalid email format";
-    }
-    
-    if (!contactDetails.phone.trim()) {
-      errors.phone = "Phone number is required";
-    } else if (!/^[\d\s\+\-\(\)]+$/.test(contactDetails.phone)) {
-      errors.phone = "Invalid phone number";
-    }
-    
-    if (!contactDetails.pickupTime) {
-      errors.pickupTime = "Pickup time is required";
-    }
-    
+    const { isValid, errors } = validateContactDetails(contactDetails);
     setFormErrors(errors);
-    return Object.keys(errors).length === 0;
+    return isValid;
   };
   
   const handleInputChange = (e) => {
@@ -123,91 +52,87 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
     }
   };
   
+  // Extract contact info from digital wallet token
+  const extractWalletContact = (token) => {
+    const billing = token.details?.billing;
+    const shipping = token.details?.shipping;
+    const digitalWalletContact = billing || shipping?.contact || shipping;
+    
+    if (!digitalWalletContact) return null;
+    
+    const email = digitalWalletContact.email || digitalWalletContact.emailAddress;
+    const phone = digitalWalletContact.phone || digitalWalletContact.phoneNumber;
+    const name = digitalWalletContact.givenName && digitalWalletContact.familyName 
+      ? `${digitalWalletContact.givenName} ${digitalWalletContact.familyName}`
+      : digitalWalletContact.name || 
+        (digitalWalletContact.givenName || digitalWalletContact.familyName ? 
+          `${digitalWalletContact.givenName || ""} ${digitalWalletContact.familyName || ""}`.trim() : 
+          null);
+    
+    // Only return if all required fields are present
+    return (email && phone && name) ? { email, phone, name } : null;
+  };
+  
   const cardTokenizeResponseReceived = async (token, verifiedBuyer) => {
     // Prevent double submission
     if (isProcessing) return;
-
-    // Extract contact details from digital wallets (Apple Pay/Google Pay)
-    const billing = token.details?.billing;
-    const shipping = token.details?.shipping;
     
-    // Apple Pay puts contact directly in billing/shipping objects
-    // Google Pay may nest it in billing.contact or shipping.contact
-    const digitalWalletContact = billing || shipping?.contact || shipping;
-    
-    // Check if payment method is a digital wallet
-    const paymentMethod = token.details?.method;
-    const isWalletPayment = paymentMethod === 'Apple Pay' ||
-                           paymentMethod === 'Google Pay' ||
-                           paymentMethod === 'buy_now_pay_later' || 
-                           paymentMethod === 'afterpay' || 
-                           digitalWalletContact !== undefined ||
-                           token.token.includes('cnon:');
-    
-    let contactInfo = null;
-    
-    // For digital wallets (Apple Pay/Google Pay)
-    if (digitalWalletContact && (digitalWalletContact.email || digitalWalletContact.emailAddress)) {
-      // Digital wallet provided contact info
-      contactInfo = {
-        email: digitalWalletContact.email || digitalWalletContact.emailAddress,
-        phone: digitalWalletContact.phone || digitalWalletContact.phoneNumber,
-        name: digitalWalletContact.givenName && digitalWalletContact.familyName 
-          ? `${digitalWalletContact.givenName} ${digitalWalletContact.familyName}`
-          : digitalWalletContact.name || 
-            (digitalWalletContact.givenName || digitalWalletContact.familyName ? 
-              `${digitalWalletContact.givenName || ''} ${digitalWalletContact.familyName || ''}`.trim() : 
-              'Wallet Customer'),
-      };
-    } else if (isWalletPayment) {
-      // Digital wallet but no contact provided
-      // Require manual form to be filled
-      if (!contactDetails.email || !contactDetails.name || !contactDetails.phone) {
-        setError("Apple Pay/Google Pay didn't provide your contact details. Please fill in the form below and try again.");
-        setIsProcessing(false);
-        return;
-      }
-      // Use manual form data
-      contactInfo = contactDetails;
-    } else {
-      // For credit card, validate the manual contact form
-      if (!validateContactForm()) {
-        return;
-      }
-      contactInfo = contactDetails;
-    }
-    
+    // Set loading state
     setIsProcessing(true);
     setError(null);
-    
+
     try {
-      const response = await fetch("/api/payments", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          sourceId: token.token,
-          orderId: orderId,
-          amount: totalAmount,
-          verificationToken: verifiedBuyer?.token,
-          contactDetails: contactInfo,
-          pickupTime: contactInfo.pickupTime,
-        }),
-      });
+      // Determine payment method
+      const paymentMethod = token.details?.method;
+      const isWalletPayment = paymentMethod === "Apple Pay" || 
+                             paymentMethod === "Google Pay" ||
+                             token.token.includes("cnon:");
       
-      const data = await response.json();
+      // Extract contact info
+      let contactInfo = null;
       
-      if (response.ok && data.success) {
-        // Payment successful - redirect to confirmation
-        router.push(`/menu/order/confirmation?orderId=${orderId}&paymentId=${data.paymentId}`);
-      } else if (response.status === 402) {
-        // Payment declined
-        setError(data.error || "Payment was declined. Please try a different payment method.");
-        setIsProcessing(false);
+      if (isWalletPayment) {
+        // Try to get contact from wallet
+        const walletContact = extractWalletContact(token);
+        
+        if (walletContact) {
+          // Wallet provided complete info
+          contactInfo = walletContact;
+        } else {
+          // Wallet didn't provide complete info - use manual form
+          if (!contactDetails.email || !contactDetails.name || !contactDetails.phone) {
+            setIsProcessing(false);
+            setError("Please fill in all contact details below before paying.");
+            return;
+          }
+          contactInfo = contactDetails;
+        }
       } else {
-        // Other error
-        setError(data.error || "Payment failed. Please try again.");
+        // Credit card - validate manual form
+        if (!validateContactForm()) {
+          setIsProcessing(false);
+          return;
+        }
+        contactInfo = contactDetails;
+      }
+      
+      // Process payment
+      const result = await processPayment(
+        token.token,
+        orderId,
+        totalAmount,
+        verifiedBuyer?.token,
+        contactInfo,
+        contactDetails.pickupTime,
+        contactDetails.specialInstructions
+      );
+      
+      if (result.success) {
+        // Payment successful - redirect to confirmation
+        router.push(`/menu/order/confirmation?orderId=${orderId}&paymentId=${result.paymentId}`);
+      } else {
+        // Payment failed
+        setError(result.error || "Payment failed. Please try again.");
         setIsProcessing(false);
       }
     } catch (err) {
@@ -228,7 +153,7 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
       requestBillingContact: true,
       requestShippingContact: false,
       // Explicitly request email and phone
-      requiredBillingContactFields: ['email', 'phone', 'name'],
+      requiredBillingContactFields: ["email", "phone", "name"],
     };
     
     return request;
@@ -254,10 +179,6 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
         </div>
       )}
       
-      <h2 className="text-xl font-semibold mb-4">
-        Pay £{(totalAmount / 100).toFixed(2)}
-      </h2>
-      
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
           {error}
@@ -270,30 +191,62 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
         cardTokenizeResponseReceived={cardTokenizeResponseReceived}
         createPaymentRequest={createPaymentRequest}
       >
-        {/* Pickup Time Selection */}
+        {/* Pickup Details */}
         <div className="mb-6 p-4 bg-hot-pink/5 border border-hot-pink/20 rounded-lg">
-          <h3 className="text-sm font-semibold mb-3 text-gray-800">When would you like to pick up your order?</h3>
-          <select
-            id="pickupTime"
-            name="pickupTime"
-            value={contactDetails.pickupTime}
-            onChange={handleInputChange}
-            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-hot-pink ${
-              formErrors.pickupTime ? "border-red-500" : "border-gray-300"
-            }`}
-            disabled={isProcessing}
-          >
-            <option value="">Select a pickup time</option>
-            {pickupTimeOptions.map((option, index) => (
-              <option key={index} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          {formErrors.pickupTime && (
-            <p className="text-red-500 text-sm mt-1">{formErrors.pickupTime}</p>
-          )}
+          <h3 className="text-sm font-semibold mb-4 text-gray-800">Pickup Details</h3>
+          
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="pickupTime" className="block text-sm font-medium mb-2">
+                Pickup Time *
+              </label>
+              <select
+                id="pickupTime"
+                name="pickupTime"
+                value={contactDetails.pickupTime}
+                onChange={handleInputChange}
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-hot-pink ${
+                  formErrors.pickupTime ? "border-red-500" : "border-gray-300"
+                }`}
+                disabled={isProcessing}
+              >
+                <option value="">Select a pickup time</option>
+                {pickupTimeOptions.map((option, index) => (
+                  <option key={index} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              {formErrors.pickupTime && (
+                <p className="text-red-500 text-sm mt-1">{formErrors.pickupTime}</p>
+              )}
+            </div>
+            
+            <div>
+              <label htmlFor="specialInstructions" className="block text-sm font-medium mb-2">
+                Special Instructions (Optional)
+              </label>
+              <textarea
+                id="specialInstructions"
+                name="specialInstructions"
+                value={contactDetails.specialInstructions}
+                onChange={handleInputChange}
+                rows={3}
+                placeholder="E.g., Please call when you arrive, Extra napkins, etc."
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-hot-pink resize-none"
+                disabled={isProcessing}
+                maxLength={500}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                {contactDetails.specialInstructions.length}/500 characters
+              </p>
+            </div>
+          </div>
         </div>
+        
+        <h2 className="text-xl font-semibold mb-4">
+          Pay £{(totalAmount / 100).toFixed(2)}
+        </h2>
         
         {/* Quick checkout with digital wallets */}
         <div className="mb-6">
@@ -302,21 +255,13 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
           {/* Apple Pay - Only in production (requires domain verification) */}
           {isProduction && (
             <div className="mb-3">
-              <ApplePay 
-                callbacks={{
-                  createPaymentRequest: createPaymentRequest
-                }}
-              />
+              <ApplePay />
             </div>
           )}
           
           {/* Google Pay */}
           <div className="mb-3">
-            <GooglePay 
-              callbacks={{
-                createPaymentRequest: createPaymentRequest
-              }}
-            />
+            <GooglePay />
           </div>
           
           <p className="text-xs text-gray-500 text-center">

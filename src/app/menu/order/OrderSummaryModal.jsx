@@ -61,11 +61,11 @@ export default function OrderSummaryModal({
         const menuItem = menuData.find(item => item.variationId === variationId);
         
         // Get image, handling arrays and empty values
-        let image = '/images/placeholder.svg';
+        let image = "/images/placeholder.svg";
         if (menuItem?.imageLink) {
             if (Array.isArray(menuItem.imageLink) && menuItem.imageLink.length > 0) {
                 image = menuItem.imageLink[0];
-            } else if (typeof menuItem.imageLink === 'string' && menuItem.imageLink) {
+            } else if (typeof menuItem.imageLink === "string" && menuItem.imageLink) {
                 image = menuItem.imageLink;
             }
         }
@@ -73,7 +73,7 @@ export default function OrderSummaryModal({
         return {
             variationId,
             quantity,
-            name: menuItem?.name || 'Unknown Item',
+            name: menuItem?.name || "Unknown Item",
             price: menuItem?.discountedPrice || menuItem?.originalPrice || 0,
             image,
         };
@@ -86,14 +86,14 @@ export default function OrderSummaryModal({
         <>
             {/* Backdrop */}
             <div 
-                className={`fixed inset-0 bg-black z-40 transition-opacity duration-300 ${isClosing ? 'opacity-0' : 'opacity-50'}`}
+                className={`fixed inset-0 bg-black z-40 transition-opacity duration-300 ${isClosing ? "opacity-0" : "opacity-50"}`}
                 onClick={handleClose}
             />
 
             {/* Modal */}
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                 <div 
-                    className={`bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden transition-all duration-300 ${isClosing ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}
+                    className={`bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden transition-all duration-300 ${isClosing ? "opacity-0 scale-95" : "opacity-100 scale-100"}`}
                     onClick={(e) => e.stopPropagation()}
                 >
                     {/* Header */}
@@ -125,7 +125,7 @@ export default function OrderSummaryModal({
                                                 className="w-20 h-20 object-cover rounded"
                                                 onError={(e) => {
                                                     e.target.onerror = null; // Prevent infinite loop
-                                                    e.target.src = '/images/placeholder.svg';
+                                                    e.target.src = "/images/placeholder.svg";
                                                 }}
                                             />
                                             <div className="flex-1">
@@ -192,7 +192,7 @@ export default function OrderSummaryModal({
                             <span className="text-2xl font-bold text-yellow">£{subtotal.toFixed(2)}</span>
                         </div>
                         <div className="text-sm text-gray-600 mb-4">
-                            {itemCount} {itemCount === 1 ? 'item' : 'items'}
+                            {itemCount} {itemCount === 1 ? "item" : "items"}
                         </div>
                         
                         <div className="flex gap-3">
@@ -205,7 +205,7 @@ export default function OrderSummaryModal({
                             <button
                                 onClick={() => {
                                     // TODO: Implement checkout flow (point 7)
-                                    alert('Checkout functionality coming soon!');
+                                    alert("Checkout functionality coming soon!");
                                 }}
                                 disabled={items.length === 0}
                                 className="flex-1 px-6 py-3 bg-hot-pink text-white rounded-lg font-bold hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"

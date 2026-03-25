@@ -112,7 +112,7 @@ const Layout = ({ children }) => {
                     }}
                 />
             </head>
-            <body>
+            <body suppressHydrationWarning>
                 <header className="bg-hot-pink text-white p-5">
                     <div className="flex flex-col items-center gap-4">
                         <div className="flex items-center">

@@ -20,13 +20,13 @@ export default function StickyCartSummary({
     // Lock body scroll when expanded
     useEffect(() => {
         if (isExpanded) {
-            document.body.style.overflow = 'hidden';
+            document.body.style.overflow = "hidden";
         } else {
-            document.body.style.overflow = '';
+            document.body.style.overflow = "";
         }
         
         return () => {
-            document.body.style.overflow = '';
+            document.body.style.overflow = "";
         };
     }, [isExpanded]);
     
@@ -58,11 +58,11 @@ export default function StickyCartSummary({
         const menuItem = menuData.find(item => item.variationId === variationId);
         
         // Get image, handling arrays and empty values
-        let image = '/images/placeholder.svg';
+        let image = "/images/placeholder.svg";
         if (menuItem?.imageLink) {
             if (Array.isArray(menuItem.imageLink) && menuItem.imageLink.length > 0) {
                 image = menuItem.imageLink[0];
-            } else if (typeof menuItem.imageLink === 'string' && menuItem.imageLink) {
+            } else if (typeof menuItem.imageLink === "string" && menuItem.imageLink) {
                 image = menuItem.imageLink;
             }
         }
@@ -70,7 +70,7 @@ export default function StickyCartSummary({
         return {
             variationId,
             quantity,
-            name: menuItem?.name || 'Unknown Item',
+            name: menuItem?.name || "Unknown Item",
             price: menuItem?.discountedPrice || menuItem?.originalPrice || 0,
             image,
         };
@@ -85,15 +85,15 @@ export default function StickyCartSummary({
         <>
             {/* Backdrop - Always in DOM */}
             <div 
-                className={`fixed inset-0 bg-black z-40 transition-all duration-500 ${isExpanded ? 'opacity-50 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+                className={`fixed inset-0 bg-black z-40 transition-all duration-500 ${isExpanded ? "opacity-50 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
                 onClick={() => setIsExpanded(false)}
             />
 
             {/* Cart Summary */}
             <div className={`fixed left-0 right-0 bg-white border-t-2 border-hot-pink shadow-lg z-50 transition-all duration-500 ease-in-out`}
                  style={isExpanded 
-                     ? { height: '90vh', bottom: 0 } 
-                     : { height: '6rem', bottom: 0 }}>
+                     ? { height: "90vh", bottom: 0 } 
+                     : { height: "6rem", bottom: 0 }}>
                 <div className="max-w-7xl mx-auto h-full flex flex-col">
                     {/* Header - Always Visible */}
                     <div className="px-5 md:px-10 py-4 flex-shrink-0">
@@ -103,7 +103,7 @@ export default function StickyCartSummary({
                                 <div className="flex items-center gap-2 text-gray-600 mb-1">
                                     <i className="fas fa-shopping-cart text-hot-pink"></i>
                                     <span className="font-semibold">
-                                        {itemCount} {itemCount === 1 ? 'item' : 'items'}
+                                        {itemCount} {itemCount === 1 ? "item" : "items"}
                                     </span>
                                 </div>
                                 <div className="text-2xl font-bold text-yellow">
@@ -116,8 +116,8 @@ export default function StickyCartSummary({
                                 onClick={() => setIsExpanded(!isExpanded)}
                                 className="px-6 py-3 bg-hot-pink text-white rounded-lg font-bold hover:bg-opacity-90 transition-colors flex items-center gap-2"
                             >
-                                <span>{isExpanded ? 'Hide Details' : 'View Order'}</span>
-                                <i className={`fas fa-chevron-${isExpanded ? 'down' : 'up'} transition-transform`}></i>
+                                <span>{isExpanded ? "Hide Details" : "View Order"}</span>
+                                <i className={`fas fa-chevron-${isExpanded ? "down" : "up"} transition-transform`}></i>
                             </button>
                         </div>
                     </div>
@@ -151,7 +151,7 @@ export default function StickyCartSummary({
                                                 className="w-16 h-16 object-cover rounded"
                                                 onError={(e) => {
                                                     e.target.onerror = null;
-                                                    e.target.src = '/images/placeholder.svg';
+                                                    e.target.src = "/images/placeholder.svg";
                                                 }}
                                             />
                                             <div className="flex-1 min-w-0">
@@ -245,7 +245,7 @@ export default function StickyCartSummary({
                                             <span>Processing...</span>
                                         </>
                                     ) : (
-                                        "Confirm & Pay"
+                                        <>Confirm & Pay</>
                                     )}
                                 </button>
                             </div>
