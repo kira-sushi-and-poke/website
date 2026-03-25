@@ -11,7 +11,7 @@ import { SQUARE_API_VERSION } from "./constants";
  */
 export async function fetchSquare(endpoint, options = {}) {
   // If endpoint is a full URL, use it directly; otherwise prepend base URL
-  const baseUrl = process.env.API_BASE_URL || "https://connect.squareup.com";
+  const baseUrl = process.env.API_BASE_URL;
   const url = endpoint.startsWith("http") ? endpoint : `${baseUrl}${endpoint}`;
   
   const response = await fetch(url, {
