@@ -1,6 +1,5 @@
-import React, { Suspense } from "react";
+import React from "react";
 import ErrorDisplay from "../ErrorDisplay";
-import MenuSkeleton from "../MenuSkeleton";
 import { getMenuData } from "@/lib/getMenuData";
 import OrderMenuClient from "./OrderMenuClient";
 
@@ -22,9 +21,7 @@ export default async function MenuOrderPage() {
             )}
 
             {success && menuData.length > 0 && (
-                <Suspense fallback={<MenuSkeleton />}>
-                    <OrderMenuClient menuData={menuData} />
-                </Suspense>
+                <OrderMenuClient menuData={menuData} />
             )}
         </div>
     );

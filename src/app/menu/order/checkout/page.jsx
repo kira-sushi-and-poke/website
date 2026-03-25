@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getOrder } from "../actions";
+import { getOrder, createCustomer } from "../actions";
+import { generatePickupTimes } from "@/lib/generatePickupTimes";
+import { validateContactDetails } from "@/lib/validation";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -22,62 +24,9 @@ export default function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pickupTimeOptions, setPickupTimeOptions] = useState([]);
   
-  // Generate pickup time options (15-min intervals, 30 min from now, 11am-9pm)
+  // Generate pickup time options (15-min intervals, 30 min from now, 11am-7pm)
   useEffect(() => {
-    const times = [];
-    const now = new Date();
-    const minTime = new Date(now.getTime() + 30 * 60000); // 30 minutes from now
-    
-    // Start from today at 11 AM
-    const startOfDay = new Date(now);
-    startOfDay.setHours(11, 0, 0, 0);
-    
-    // End at 9 PM
-    const endOfDay = new Date(now);
-    endOfDay.setHours(21, 0, 0, 0);
-    
-    // If current time is past 11 AM, start from minTime instead
-    let currentTime = minTime > startOfDay ? minTime : startOfDay;
-    
-    // Round up to next 15-min interval
-    const minutes = currentTime.getMinutes();
-    const roundedMinutes = Math.ceil(minutes / 15) * 15;
-    currentTime.setMinutes(roundedMinutes, 0, 0);
-    
-    // Generate time slots
-    while (currentTime <= endOfDay) {
-      const timeString = currentTime.toLocaleTimeString('en-GB', { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: false 
-      });
-      const isoString = currentTime.toISOString();
-      times.push({ label: timeString, value: isoString });
-      currentTime = new Date(currentTime.getTime() + 15 * 60000); // Add 15 minutes
-    }
-    
-    // If no times today, add times for tomorrow
-    if (times.length === 0) {
-      const tomorrow = new Date(now);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(11, 0, 0, 0);
-      
-      const tomorrowEnd = new Date(tomorrow);
-      tomorrowEnd.setHours(21, 0, 0, 0);
-      
-      let time = tomorrow;
-      while (time <= tomorrowEnd) {
-        const timeString = time.toLocaleTimeString('en-GB', { 
-          hour: '2-digit', 
-          minute: '2-digit',
-          hour12: false 
-        }) + ' (Tomorrow)';
-        const isoString = time.toISOString();
-        times.push({ label: timeString, value: isoString });
-        time = new Date(time.getTime() + 15 * 60000);
-      }
-    }
-    
+    const times = generatePickupTimes();
     setPickupTimeOptions(times);
   }, []);
   
@@ -121,30 +70,30 @@ export default function CheckoutPage() {
   };
   
   const validateForm = () => {
-    const errors = {};
-    
-    if (!formData.name.trim()) {
-      errors.name = "Name is required";
-    }
-    
-    if (!formData.email.trim()) {
-      errors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      errors.email = "Invalid email format";
-    }
-    
-    if (!formData.phone.trim()) {
-      errors.phone = "Phone number is required";
-    } else if (!/^[\d\s\+\-\(\)]+$/.test(formData.phone)) {
-      errors.phone = "Invalid phone number";
-    }
-    
-    if (!formData.pickupTime) {
-      errors.pickupTime = "Pickup time is required";
-    }
-    
+    const { isValid, errors } = validateContactDetails(formData);
     setFormErrors(errors);
-    return Object.keys(errors).length === 0;
+    return isValid;
+  };
+  
+  const createCustomerAndStore = async () => {
+    const result = await createCustomer(
+      orderId,
+      formData.name,
+      formData.email,
+      formData.phone
+    );
+    
+    if (!result.success) {
+      throw new Error(result.error || "Failed to create customer");
+    }
+    
+    // Store customer info in sessionStorage
+    sessionStorage.setItem("customerInfo", JSON.stringify({
+      ...formData,
+      pickupTime: formData.pickupTime,
+    }));
+    
+    return result;
   };
   
   const handleInputChange = (e) => {
@@ -173,38 +122,12 @@ export default function CheckoutPage() {
     setError(null);
     
     try {
-      // Call API to create customer and attach to order
-      const response = await fetch("/api/customers", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          orderId,
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-        }),
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok || !data.success) {
-        setError(data.error || "Something went wrong, please try again");
-        setIsSubmitting(false);
-        return;
-      }
-      
-      // Store customer info in sessionStorage
-      sessionStorage.setItem("customerInfo", JSON.stringify({
-        ...formData,
-        pickupTime: formData.pickupTime,
-      }));
+      await createCustomerAndStore();
       
       // Redirect to payment page
       router.push(`/menu/order/payment?orderId=${orderId}`);
     } catch (err) {
-      setError("Something went wrong, please try again");
+      setError(err.message || "Something went wrong, please try again");
       setIsSubmitting(false);
     }
   };
@@ -220,33 +143,7 @@ export default function CheckoutPage() {
     setError(null);
     
     try {
-      // Create customer first
-      const response = await fetch("/api/customers", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          orderId,
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-        }),
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok || !data.success) {
-        setError(data.error || "Something went wrong, please try again");
-        setIsSubmitting(false);
-        return;
-      }
-      
-      // Store customer info and pickup time in sessionStorage
-      sessionStorage.setItem("customerInfo", JSON.stringify({
-        ...formData,
-        pickupTime: formData.pickupTime,
-      }));
+      await createCustomerAndStore();
       
       // Redirect to existing Square checkout action with customer info
       const { checkout } = await import("../actions");

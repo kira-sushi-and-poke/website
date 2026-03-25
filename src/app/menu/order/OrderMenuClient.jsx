@@ -79,7 +79,7 @@ export default function OrderMenuClient({ menuData }) {
                     const orderState = order.state;
                     
                     if (orderState === "DRAFT" || orderState === "OPEN") {
-                        // Reuse order and rehydrate cart
+                        // Reuse order and rehydrate cart (allows retry after payment failure)
                         setOrderId(order.id);
                         setVersion(order.version);
                         
@@ -93,11 +93,6 @@ export default function OrderMenuClient({ menuData }) {
                             });
                         }
                         setCart(rehydratedCart);
-                        
-                        // Show order summary modal automatically if state is OPEN
-                        if (orderState === "OPEN") {
-                            setShowOrderModal(true);
-                        }
                         
                         setIsInitializing(false);
                         return;
@@ -203,7 +198,6 @@ export default function OrderMenuClient({ menuData }) {
             delete newCart[variationId];
         }
         
-        console.log("Removing item, new cart:", newCart);
         setCart(newCart);
         
         // Mark item as updating
@@ -303,47 +297,27 @@ export default function OrderMenuClient({ menuData }) {
     const clearCart = async () => {
         if (!orderId || Object.keys(cart).length === 0) return;
         
-        // Mark all items as updating
-        const allVariationIds = Object.keys(cart);
-        setUpdatingItems(prev => new Set([...prev, ...allVariationIds]));
-        
         // Optimistically clear cart
-        const emptyCart = {};
-        setCart(emptyCart);
+        setCart({});
         
         try {
-            const result = await updateOrderItems(orderId, version, emptyCart);
+            // Clear localStorage and create new order
+            localStorage.removeItem("order");
             
-            if (result.success) {
-                // Update version in state and localStorage
-                setVersion(result.version);
+            const { success, orderId: newOrderId, version: newVersion, error: createError } = await createOrder();
+            
+            if (success) {
+                setOrderId(newOrderId);
+                setVersion(newVersion);
                 localStorage.setItem("order", JSON.stringify({ 
-                    orderId, 
-                    version: result.version 
+                    orderId: newOrderId, 
+                    version: newVersion 
                 }));
-            } else if (result.isConflict) {
-                // Re-fetch order to sync
-                const { success, order } = await getOrder(orderId);
-                if (success && order) {
-                    setVersion(order.version);
-                    setCart(rehydrateCartFromOrder(order));
-                    localStorage.setItem("order", JSON.stringify({ 
-                        orderId, 
-                        version: order.version 
-                    }));
-                }
             } else {
-                // Revert optimistic update
-                setCart(cart);
-                setError(result.error || "Failed to clear cart");
+                setError(createError || "Failed to create new order after clearing cart");
             }
         } catch (err) {
-            // Revert optimistic update
-            setCart(cart);
             setError("Failed to clear cart");
-        } finally {
-            // Remove all updating states
-            setUpdatingItems(new Set());
         }
     };
 

@@ -1,5 +1,7 @@
 "use server";
 
+import { SQUARE_API_VERSION } from "./constants";
+
 /**
  * Fetch menu data server-side directly from third party API
  * This function strictly runs on the server to not expose sensitive credentials
@@ -14,7 +16,7 @@ export async function getMenuData() {
       {
         method: "GET",
         headers: {
-          "Square-Version": "2024-12-18",
+          "Square-Version": SQUARE_API_VERSION,
           "Authorization": `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },

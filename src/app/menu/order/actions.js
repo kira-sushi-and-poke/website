@@ -2,15 +2,33 @@
 
 import { redirect } from "next/navigation";
 import crypto from "crypto";
+import {
+  SQUARE_API_VERSION,
+  CURRENCY,
+  FULFILLMENT_TYPE_PICKUP,
+  FULFILLMENT_STATE_RESERVED,
+  PICKUP_WINDOW_DURATION,
+  PICKUP_NOTE,
+  ORDER_STATE_DRAFT,
+  ORDER_STATE_OPEN,
+  PAYMENT_METHOD_CUSTOM,
+  PAYMENT_METHOD_SQUARE_CHECKOUT,
+  PAYMENT_STATUS_COMPLETED
+} from "@/lib/constants";
+import { fetchSquare } from "@/lib/squareApi";
+import { splitName } from "@/lib/splitName";
 
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 const LOCATION_ID = process.env.LOCATION_ID;
 const API_ORDERS_URL = process.env.API_ORDERS_URL;
 const API_PAYMENT_LINKS_URL = process.env.API_PAYMENT_LINKS_URL;
+const API_CUSTOMERS_URL = process.env.API_CUSTOMERS_URL;
+const API_PAYMENTS_URL = process.env.API_PAYMENTS_URL;
 const SITE_URL = process.env.SITE_URL;
 
 /**
  * Sanitize order data for client by removing sensitive information
+ * Explicitly removes PII and internal business data
  */
 function sanitizeOrderForClient(order) {
   if (!order) return order;
@@ -22,7 +40,17 @@ function sanitizeOrderForClient(order) {
     line_items: order.line_items,
     created_at: order.created_at,
     updated_at: order.updated_at,
-    // Explicitly exclude location_id and other sensitive fields
+    total_money: order.total_money,
+    total_tax_money: order.total_tax_money,
+    total_discount_money: order.total_discount_money,
+    // Explicitly exclude sensitive fields:
+    // - customer_id: internal customer reference
+    // - location_id: business location identifier
+    // - fulfillments: contains PII (customer name, email, phone)
+    // - tenders: payment method information
+    // - refunds: payment refund data
+    // - metadata: may contain sensitive information
+    // - net_amounts: internal calculated fields
   };
 }
 
@@ -32,31 +60,17 @@ function sanitizeOrderForClient(order) {
  */
 export async function createOrder() {
   try {
-    const response = await fetch(API_ORDERS_URL, {
+    const data = await fetchSquare(API_ORDERS_URL, {
       method: "POST",
-      headers: {
-        "Authorization": `Bearer ${ACCESS_TOKEN}`,
-        "Content-Type": "application/json",
-        "Square-Version": "2026-01-22",
-      },
       body: JSON.stringify({
         order: {
           location_id: LOCATION_ID,
           state: "DRAFT",
-          line_items: [], // Start with empty cart
+          line_items: [],
         },
         idempotency_key: crypto.randomUUID(),
       }),
     });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return {
-        success: false,
-        error: "Failed to create order",
-      };
-    }
 
     if (data.order) {
       return {
@@ -85,23 +99,9 @@ export async function createOrder() {
  */
 export async function getOrder(orderId) {
   try {
-    const response = await fetch(`${API_ORDERS_URL}/${orderId}`, {
+    const data = await fetchSquare(`${API_ORDERS_URL}/${orderId}`, {
       method: "GET",
-      headers: {
-        "Authorization": `Bearer ${ACCESS_TOKEN}`,
-        "Content-Type": "application/json",
-        "Square-Version": "2026-01-22",
-      },
     });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return {
-        success: false,
-        error: "Order not found",
-      };
-    }
 
     if (data.order) {
       return {
@@ -132,24 +132,10 @@ export async function getOrder(orderId) {
 export async function updateOrderItems(orderId, version, cart) {
   try {
     // First, fetch the current order to get existing line items with UIDs
-    const getResponse = await fetch(`${API_ORDERS_URL}/${orderId}`, {
+    const currentOrderData = await fetchSquare(`${API_ORDERS_URL}/${orderId}`, {
       method: "GET",
-      headers: {
-        "Authorization": `Bearer ${ACCESS_TOKEN}`,
-        "Content-Type": "application/json",
-        "Square-Version": "2026-01-22",
-      },
     });
 
-    if (!getResponse.ok) {
-      return {
-        success: false,
-        error: "Failed to fetch current order",
-        isConflict: false,
-      };
-    }
-
-    const currentOrderData = await getResponse.json();
     const existingLineItems = currentOrderData.order.line_items || [];
 
     // Build map of catalog_object_id -> line item UID from existing order
@@ -177,9 +163,6 @@ export async function updateOrderItems(orderId, version, cart) {
       })
       .map(item => item.uid);
 
-    console.log("Updating order - desired items:", desiredItems);
-    console.log("Items to remove:", itemsToRemove);
-
     const requestBody = {
       order: {
         location_id: LOCATION_ID,
@@ -193,22 +176,28 @@ export async function updateOrderItems(orderId, version, cart) {
       requestBody.fields_to_clear = itemsToRemove.map(uid => `line_items[${uid}]`);
     }
 
-    const response = await fetch(`${API_ORDERS_URL}/${orderId}`, {
-      method: "PUT",
-      headers: {
-        "Authorization": `Bearer ${ACCESS_TOKEN}`,
-        "Content-Type": "application/json",
-        "Square-Version": "2026-01-22",
-      },
-      body: JSON.stringify(requestBody),
-    });
+    try {
+      const data = await fetchSquare(`${API_ORDERS_URL}/${orderId}`, {
+        method: "PUT",
+        body: JSON.stringify(requestBody),
+      });
 
-    const data = await response.json();
+      if (data.order) {
+        return {
+          success: true,
+          version: data.order.version,
+          order: sanitizeOrderForClient(data.order),
+        };
+      }
 
-    if (!response.ok) {
-      console.error("Square update order error:", data);
+      return {
+        success: false,
+        error: "Failed to update order",
+      };
+    } catch (error) {
+      console.error("Square update order error:", error.message);
       // Check if it's a 409 conflict error
-      if (response.status === 409 || data.errors?.[0]?.code === "VERSION_MISMATCH") {
+      if (error.response?.status === 409 || error.data?.errors?.[0]?.code === "VERSION_MISMATCH") {
         return {
           success: false,
           error: "Version conflict - order was modified",
@@ -222,19 +211,6 @@ export async function updateOrderItems(orderId, version, cart) {
         isConflict: false,
       };
     }
-
-    if (data.order) {
-      return {
-        success: true,
-        version: data.order.version,
-        order: sanitizeOrderForClient(data.order),
-      };
-    }
-
-    return {
-      success: false,
-      error: "Failed to update order",
-    };
   } catch (error) {
     return {
       success: false,
@@ -252,20 +228,10 @@ export async function updateOrderItems(orderId, version, cart) {
 export async function checkout(orderId) {
   try {
     // First, get the current order to get its line_items
-    const getResponse = await fetch(`${API_ORDERS_URL}/${orderId}`, {
+    const orderData = await fetchSquare(`${API_ORDERS_URL}/${orderId}`, {
       method: "GET",
-      headers: {
-        "Authorization": `Bearer ${ACCESS_TOKEN}`,
-        "Content-Type": "application/json",
-        "Square-Version": "2026-01-22",
-      },
     });
 
-    if (!getResponse.ok) {
-      throw new Error("Failed to fetch order");
-    }
-
-    const orderData = await getResponse.json();
     const order = orderData.order;
 
     // Validate that order has line items
@@ -315,13 +281,8 @@ export async function checkout(orderId) {
       }];
     }
     
-    const response = await fetch(API_PAYMENT_LINKS_URL, {
+    const data = await fetchSquare(API_PAYMENT_LINKS_URL, {
       method: "POST",
-      headers: {
-        "Authorization": `Bearer ${ACCESS_TOKEN}`,
-        "Content-Type": "application/json",
-        "Square-Version": "2026-01-22",
-      },
       body: JSON.stringify({
         idempotency_key: crypto.randomUUID(),
         order: orderPayload,
@@ -330,13 +291,6 @@ export async function checkout(orderId) {
         },
       }),
     });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error("Square Payment Link Error:", data);
-      throw new Error("Failed to create payment link. Please try again.");
-    }
 
     if (data.payment_link && data.payment_link.url) {
       // Redirect to Square's hosted checkout page
@@ -353,5 +307,305 @@ export async function checkout(orderId) {
     
     console.error("Checkout error:", error);
     throw new Error("Failed to initiate checkout. Please try again.");
+  }
+}
+
+/**
+ * Creates a customer in Square and attaches them to an order
+ * @param {string} orderId - The Square order ID
+ * @param {string} name - Customer's full name
+ * @param {string} email - Customer's email address
+ * @param {string} phone - Customer's phone number
+ * @returns {Promise<{success: boolean, version?: number, error?: string}>}
+ */
+export async function createCustomer(orderId, name, email, phone) {
+  try {
+    // Validate required fields
+    if (!orderId || !name || !email || !phone) {
+      return {
+        success: false,
+        error: "Missing required fields",
+      };
+    }
+    
+    // Create customer in Square
+    const { firstName, lastName } = splitName(name);
+    const customerData = await fetchSquare(API_CUSTOMERS_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        idempotency_key: crypto.randomUUID(),
+        given_name: firstName,
+        family_name: lastName,
+        email_address: email,
+        phone_number: phone,
+      }),
+    });
+    
+    const customerId = customerData.customer?.id;
+    
+    if (!customerId) {
+      return {
+        success: false,
+        error: "Failed to create customer. Please try again.",
+      };
+    }
+    
+    // Fetch the current order to get its version
+    const orderData = await fetchSquare(`${API_ORDERS_URL}/${orderId}`, {
+      method: "GET",
+    });
+    
+    const currentVersion = orderData.order?.version;
+    
+    // Update order with customer_id
+    const updatedOrderData = await fetchSquare(`${API_ORDERS_URL}/${orderId}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        order: {
+          location_id: LOCATION_ID,
+          version: currentVersion,
+          customer_id: customerId,
+        },
+      }),
+    });
+    
+    return {
+      success: true,
+      version: updatedOrderData.order?.version,
+    };
+  } catch (error) {
+    console.error("Square API error:", error.message);
+    return {
+      success: false,
+      error: "Failed to create customer or update order. Please try again.",
+    };
+  }
+}
+
+/**
+ * Process a payment with Square
+ * @param {string} sourceId - Square payment source token
+ * @param {string} orderId - The Square order ID  
+ * @param {number} amount - Payment amount in cents
+ * @param {string} verificationToken - Card verification token (optional)
+ * @param {object} contactDetails - Customer contact details (name, email, phone)
+ * @param {string} pickupTime - ISO string pickup time
+ * @param {string} specialInstructions - Optional special instructions from customer
+ * @returns {Promise<{success: boolean, paymentId?: string, status?: string, receiptUrl?: string, error?: string, declineReason?: string}>}
+ */
+export async function processPayment(sourceId, orderId, amount, verificationToken, contactDetails, pickupTime, specialInstructions = "") {
+  try {
+    // Validate required fields
+    if (!sourceId || !orderId || !amount) {
+      return {
+        success: false,
+        error: "Missing required fields",
+      };
+    }
+    
+    // Validate pickup time is provided
+    if (!pickupTime) {
+      return {
+        success: false,
+        error: "Pickup time is required",
+      };
+    }
+    
+    // Validate contact details are provided
+    if (!contactDetails || !contactDetails.name || !contactDetails.email || !contactDetails.phone) {
+      return {
+        success: false,
+        error: "Contact details are required",
+      };
+    }
+    
+    // Fetch current order once to get version and state
+    let orderData;
+    try {
+      orderData = await fetchSquare(`${API_ORDERS_URL}/${orderId}`, {
+        method: "GET",
+      });
+    } catch (error) {
+      if (error.response?.status === 404) {
+        return {
+          success: false,
+          error: "Order not found. Please try again.",
+        };
+      }
+      return {
+        success: false,
+        error: "Failed to retrieve order. Please try again.",
+      };
+    }
+    
+    const currentState = orderData.order?.state;
+    const currentVersion = orderData.order?.version;
+    
+    // Check if order can be paid
+    if (currentState !== ORDER_STATE_DRAFT && currentState !== ORDER_STATE_OPEN) {
+      return {
+        success: false,
+        error: `Order cannot be paid (state: ${currentState})`,
+      };
+    }
+    
+    // Create customer and prepare order update in parallel (when possible)
+    let customerId = null;
+    
+    // Create customer in background - don't block payment on this
+    if (contactDetails.email && contactDetails.name) {
+      try {
+        const { firstName, lastName } = splitName(contactDetails.name);
+        const customerData = await fetchSquare(API_CUSTOMERS_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            idempotency_key: crypto.randomUUID(),
+            given_name: firstName,
+            family_name: lastName,
+            email_address: contactDetails.email,
+            ...(contactDetails.phone && { phone_number: contactDetails.phone }),
+          }),
+        });
+        
+        customerId = customerData.customer?.id;
+      } catch (customerError) {
+        // Continue with payment even if customer creation fails
+      }
+    }
+    
+    // Update order if DRAFT (needs state change) or OPEN (allow retry with updated details)
+    if (currentState === ORDER_STATE_DRAFT || currentState === ORDER_STATE_OPEN) {
+      try {
+        const orderUpdate = {
+          location_id: LOCATION_ID,
+          version: currentVersion,
+        };
+        
+        // Add customer_id if we created a customer
+        if (customerId) {
+          orderUpdate.customer_id = customerId;
+        }
+        
+        // Update state if transitioning from DRAFT to OPEN
+        if (currentState === ORDER_STATE_DRAFT) {
+          orderUpdate.state = ORDER_STATE_OPEN;
+          orderUpdate.metadata = {
+            placed_at: new Date().toISOString(),
+            payment_method: PAYMENT_METHOD_CUSTOM,
+          };
+        }
+        
+        // Build fulfillment object (for both DRAFT and OPEN)
+        const fulfillmentNote = specialInstructions || "No special instructions";
+        const fulfillment = {
+          type: FULFILLMENT_TYPE_PICKUP,
+          state: FULFILLMENT_STATE_RESERVED,
+          pickup_details: {
+            recipient: {
+              display_name: contactDetails.name,
+              email_address: contactDetails.email,
+              phone_number: contactDetails.phone,
+            },
+            schedule_type: "SCHEDULED",
+            pickup_at: pickupTime,
+            pickup_window_duration: PICKUP_WINDOW_DURATION,
+            note: fulfillmentNote,
+          },
+        };
+        
+        // If updating existing OPEN order, include fulfillment UID
+        if (currentState === ORDER_STATE_OPEN && orderData.order?.fulfillments?.[0]?.uid) {
+          fulfillment.uid = orderData.order.fulfillments[0].uid;
+        }
+        
+        orderUpdate.fulfillments = [fulfillment];
+        
+        await fetchSquare(`${API_ORDERS_URL}/${orderId}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            order: orderUpdate,
+          }),
+        });
+      } catch (error) {
+        return {
+          success: false,
+          error: "Failed to prepare order for payment. Please try again.",
+        };
+      }
+    }
+    
+    // Process payment with Square
+    try {
+      const paymentData = await fetchSquare(API_PAYMENTS_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          idempotency_key: crypto.randomUUID(),
+          source_id: sourceId,
+          amount_money: {
+            amount: amount,
+            currency: CURRENCY,
+          },
+          location_id: LOCATION_ID,
+          order_id: orderId,
+          autocomplete: true,
+          ...(verificationToken && {
+            verification_token: verificationToken,
+          }),
+        }),
+      });
+      
+      const payment = paymentData.payment;
+      
+      if (payment.status !== PAYMENT_STATUS_COMPLETED) {
+        return {
+          success: false,
+          error: "Payment was not completed. Please try again.",
+          status: payment.status,
+        };
+      }
+      
+      return {
+        success: true,
+        paymentId: payment.id,
+        status: payment.status,
+        receiptUrl: payment.receipt_url,
+      };
+    } catch (error) {
+      // Check if it's a payment error with specific error codes
+      if (error.data?.errors) {
+        const squareError = error.data.errors[0];
+        
+        if (squareError.category === "PAYMENT_METHOD_ERROR" || 
+            squareError.code === "CARD_DECLINED" ||
+            squareError.code === "CVV_FAILURE" ||
+            squareError.code === "VERIFY_CVV_FAILURE" ||
+            squareError.code === "VERIFY_AVS_FAILURE") {
+          return {
+            success: false,
+            error: "Card declined. Please check your card details or try a different payment method.",
+            declineReason: squareError.code, // Only return error code, not detail
+          };
+        }
+        
+        if (squareError.code === "INSUFFICIENT_FUNDS") {
+          return {
+            success: false,
+            error: "Insufficient funds. Please try a different payment method.",
+          };
+        }
+      }
+      
+      // Generic error
+      return {
+        success: false,
+        error: "Payment processing failed. Please try again.",
+      };
+    }
+  } catch (error) {
+    console.error("Payment processing error:", error.message);
+    return {
+      success: false,
+      error: "Payment processing failed. Please try again.",
+    };
   }
 }
