@@ -65,13 +65,22 @@ export async function POST(request) {
           status: payment.status,
         });
         
-        // Payment is complete - order stays in RESERVED state
+        // Payment is complete - order stays in OPEN/RESERVED state
         // Restaurant will mark as PREPARED once food is ready
         // Restaurant will mark as COMPLETED once customer picks up
         
         // TODO: Send confirmation emails here
-        // - Customer confirmation with order details and pickup time
-        // - Restaurant notification with order details
+        // Implementation steps:
+        // 1. Fetch order details from Square API using payment.order_id
+        //    - Get fulfillments for pickup time and customer contact (email, phone, name)
+        //    - Get line_items for order details
+        // 2. Send customer confirmation email:
+        //    - Order ID, items, total, pickup time
+        //    - Customer name, phone (from fulfillments.pickup_details.recipient)
+        // 3. Send restaurant notification email/SMS:
+        //    - New order alert with same details
+        // 4. Consider using: Resend, SendGrid, or Nodemailer
+        // 5. Add environment variables: EMAIL_SERVICE_API_KEY, RESTAURANT_EMAIL
       }
       
       return NextResponse.json({ received: true });

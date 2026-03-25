@@ -7,6 +7,8 @@ import CategoryNavigation from "../CategoryNavigation";
 import AllergenNotice from "../AllergenNotice";
 import { createOrder, getOrder, updateOrderItems } from "./actions";
 import StickyCartSummary from "./StickyCartSummary";
+import LocalStorageModal from "@/components/LocalStorageModal";
+import { getOrderFromStorage, saveOrderToStorage, clearOrderFromStorage } from "@/lib/storage";
 
 export default function OrderMenuClient({ menuData }) {
     const router = useRouter();
@@ -18,6 +20,7 @@ export default function OrderMenuClient({ menuData }) {
     const [updatingItems, setUpdatingItems] = useState(new Set());
     const [isInitializing, setIsInitializing] = useState(true);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
+    const [isPaidOrder, setIsPaidOrder] = useState(false); // Flag for already paid orders
 
     // Initialize order on mount
     useEffect(() => {
@@ -67,19 +70,20 @@ export default function OrderMenuClient({ menuData }) {
     const initializeOrder = async () => {
         try {
             // Check localStorage for existing order
-            const storedOrder = localStorage.getItem("order");
+            const storedOrder = getOrderFromStorage();
             
             if (storedOrder) {
-                const { orderId: existingOrderId, version: existingVersion } = JSON.parse(storedOrder);
+                const { orderId: existingOrderId, version: existingVersion } = storedOrder;
                 
                 // Fetch order from Square to check current state
                 const { success, order, error: fetchError } = await getOrder(existingOrderId);
                 
                 if (success && order) {
                     const orderState = order.state;
+                    const hasPaid = order.has_payment; // Safe flag from sanitizeOrderForClient
                     
-                    if (orderState === "DRAFT" || orderState === "OPEN") {
-                        // Reuse order and rehydrate cart (allows retry after payment failure)
+                    if (orderState === "DRAFT") {
+                        // Reuse draft order and rehydrate cart
                         setOrderId(order.id);
                         setVersion(order.version);
                         
@@ -96,9 +100,48 @@ export default function OrderMenuClient({ menuData }) {
                         
                         setIsInitializing(false);
                         return;
-                    } else if (orderState === "COMPLETED" || orderState === "CANCELED") {
-                        // Clear localStorage and create fresh draft
-                        localStorage.removeItem("order");
+                    } else if (orderState === "OPEN") {
+                        if (!hasPaid) {
+                            // OPEN without payment - allow retry (payment failed)
+                            setOrderId(order.id);
+                            setVersion(order.version);
+                            
+                            // Rehydrate cart from line items
+                            const rehydratedCart = {};
+                            if (order.line_items) {
+                                order.line_items.forEach(item => {
+                                    if (item.catalog_object_id) {
+                                        rehydratedCart[item.catalog_object_id] = parseInt(item.quantity);
+                                    }
+                                });
+                            }
+                            setCart(rehydratedCart);
+                            
+                            setIsInitializing(false);
+                            return;
+                        } else {
+                            // OPEN with payment - show order details with paid banner
+                            setOrderId(order.id);
+                            setVersion(order.version);
+                            setIsPaidOrder(true); // Flag as paid order (read-only)
+                            
+                            // Rehydrate cart from line items (read-only display)
+                            const rehydratedCart = {};
+                            if (order.line_items) {
+                                order.line_items.forEach(item => {
+                                    if (item.catalog_object_id) {
+                                        rehydratedCart[item.catalog_object_id] = parseInt(item.quantity);
+                                    }
+                                });
+                            }
+                            setCart(rehydratedCart);
+                            
+                            setIsInitializing(false);
+                            return;
+                        }
+                    } else {
+                        // COMPLETED, CANCELED, or unexpected state - clear and start fresh
+                        clearOrderFromStorage();
                     }
                 }
             }
@@ -109,10 +152,7 @@ export default function OrderMenuClient({ menuData }) {
             if (success) {
                 setOrderId(newOrderId);
                 setVersion(newVersion);
-                localStorage.setItem("order", JSON.stringify({ 
-                    orderId: newOrderId, 
-                    version: newVersion 
-                }));
+                saveOrderToStorage(newOrderId, newVersion);
             } else {
                 setOrderInitError(createError || "Failed to initialize order. Please refresh the page.");
             }
@@ -152,20 +192,14 @@ export default function OrderMenuClient({ menuData }) {
             if (result.success) {
                 // Update version in state and localStorage
                 setVersion(result.version);
-                localStorage.setItem("order", JSON.stringify({ 
-                    orderId, 
-                    version: result.version 
-                }));
+                saveOrderToStorage(orderId, result.version);
             } else if (result.isConflict) {
                 // Re-fetch order to sync
                 const { success, order } = await getOrder(orderId);
                 if (success && order) {
                     setVersion(order.version);
                     setCart(rehydrateCartFromOrder(order));
-                    localStorage.setItem("order", JSON.stringify({ 
-                        orderId, 
-                        version: order.version 
-                    }));
+                    saveOrderToStorage(orderId, order.version);
                 }
             } else {
                 // Revert optimistic update
@@ -209,20 +243,14 @@ export default function OrderMenuClient({ menuData }) {
             if (result.success) {
                 // Update version in state and localStorage
                 setVersion(result.version);
-                localStorage.setItem("order", JSON.stringify({ 
-                    orderId, 
-                    version: result.version 
-                }));
+                saveOrderToStorage(orderId, result.version);
             } else if (result.isConflict) {
                 // Re-fetch order to sync
                 const { success, order } = await getOrder(orderId);
                 if (success && order) {
                     setVersion(order.version);
                     setCart(rehydrateCartFromOrder(order));
-                    localStorage.setItem("order", JSON.stringify({ 
-                        orderId, 
-                        version: order.version 
-                    }));
+                    saveOrderToStorage(orderId, order.version);
                 }
             } else {
                 // Revert optimistic update
@@ -260,20 +288,14 @@ export default function OrderMenuClient({ menuData }) {
             if (result.success) {
                 // Update version in state and localStorage
                 setVersion(result.version);
-                localStorage.setItem("order", JSON.stringify({ 
-                    orderId, 
-                    version: result.version 
-                }));
+                saveOrderToStorage(orderId, result.version);
             } else if (result.isConflict) {
                 // Re-fetch order to sync
                 const { success, order } = await getOrder(orderId);
                 if (success && order) {
                     setVersion(order.version);
                     setCart(rehydrateCartFromOrder(order));
-                    localStorage.setItem("order", JSON.stringify({ 
-                        orderId, 
-                        version: order.version 
-                    }));
+                    saveOrderToStorage(orderId, order.version);
                 }
             } else {
                 // Revert optimistic update
@@ -297,22 +319,20 @@ export default function OrderMenuClient({ menuData }) {
     const clearCart = async () => {
         if (!orderId || Object.keys(cart).length === 0) return;
         
-        // Optimistically clear cart
+        // Optimistically clear cart and paid order flag
         setCart({});
+        setIsPaidOrder(false);
         
         try {
             // Clear localStorage and create new order
-            localStorage.removeItem("order");
+            clearOrderFromStorage();
             
             const { success, orderId: newOrderId, version: newVersion, error: createError } = await createOrder();
             
             if (success) {
                 setOrderId(newOrderId);
                 setVersion(newVersion);
-                localStorage.setItem("order", JSON.stringify({ 
-                    orderId: newOrderId, 
-                    version: newVersion 
-                }));
+                saveOrderToStorage(newOrderId, newVersion);
             } else {
                 setError(createError || "Failed to create new order after clearing cart");
             }
@@ -347,9 +367,54 @@ export default function OrderMenuClient({ menuData }) {
 
     return (
         <>
+            <LocalStorageModal />
+            
             {error && (
                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
                     {error}
+                </div>
+            )}
+
+            {/* Paid Order Banner */}
+            {isPaidOrder && (
+                <div className="bg-green-100 border-2 border-green-500 rounded-lg p-6 mb-6">
+                    <div className="flex items-start gap-4">
+                        <svg
+                            className="h-8 w-8 text-green-600 flex-shrink-0 mt-1"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                        </svg>
+                        <div className="flex-1">
+                            <h3 className="text-lg font-bold text-green-900 mb-2">
+                                Order Already Paid
+                            </h3>
+                            <p className="text-green-800 mb-3">
+                                You&apos;ve already completed payment for this order. The items below are for reference only.
+                            </p>
+                            <div className="flex flex-wrap gap-3">
+                                <a
+                                    href="/menu/order/track"
+                                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors inline-block"
+                                >
+                                    View Order Status
+                                </a>
+                                <button
+                                    onClick={clearCart}
+                                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                                >
+                                    Start New Order
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
 
@@ -360,25 +425,27 @@ export default function OrderMenuClient({ menuData }) {
                 <MenuList 
                     menuItems={menuData} 
                     cart={cart}
-                    addItem={addItem}
-                    removeItem={removeItem}
+                    addItem={isPaidOrder ? () => {} : addItem}
+                    removeItem={isPaidOrder ? () => {} : removeItem}
                     updatingItems={updatingItems}
                     isOrderMode={true}
                 />
             </div>
 
             {/* Sticky Cart Summary */}
-            <StickyCartSummary 
-                cart={cart}
-                menuData={menuData}
-                addItem={addItem}
-                removeItem={removeItem}
-                removeItemCompletely={removeItemCompletely}
-                clearCart={clearCart}
-                updatingItems={updatingItems}
-                onCheckout={handleCheckout}
-                isCheckingOut={isCheckingOut}
-            />
+            {!isPaidOrder && (
+                <StickyCartSummary 
+                    cart={cart}
+                    menuData={menuData}
+                    addItem={addItem}
+                    removeItem={removeItem}
+                    removeItemCompletely={removeItemCompletely}
+                    clearCart={clearCart}
+                    updatingItems={updatingItems}
+                    onCheckout={handleCheckout}
+                    isCheckingOut={isCheckingOut}
+                />
+            )}
         </>
     );
 }

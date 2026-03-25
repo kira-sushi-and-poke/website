@@ -6,6 +6,7 @@ import {
   SQUARE_API_VERSION,
   CURRENCY,
   FULFILLMENT_TYPE_PICKUP,
+  FULFILLMENT_STATE_PROPOSED,
   FULFILLMENT_STATE_RESERVED,
   PICKUP_WINDOW_DURATION,
   PICKUP_NOTE,
@@ -43,11 +44,12 @@ function sanitizeOrderForClient(order) {
     total_money: order.total_money,
     total_tax_money: order.total_tax_money,
     total_discount_money: order.total_discount_money,
+    has_payment: !!(order.tenders && order.tenders.length > 0), // Safe flag for client
     // Explicitly exclude sensitive fields:
     // - customer_id: internal customer reference
     // - location_id: business location identifier
     // - fulfillments: contains PII (customer name, email, phone)
-    // - tenders: payment method information
+    // - tenders: payment method details (but we expose has_payment flag)
     // - refunds: payment refund data
     // - metadata: may contain sensitive information
     // - net_amounts: internal calculated fields
@@ -499,7 +501,7 @@ export async function processPayment(sourceId, orderId, amount, verificationToke
         const fulfillmentNote = specialInstructions || "No special instructions";
         const fulfillment = {
           type: FULFILLMENT_TYPE_PICKUP,
-          state: FULFILLMENT_STATE_RESERVED,
+          state: FULFILLMENT_STATE_PROPOSED,
           pickup_details: {
             recipient: {
               display_name: contactDetails.name,

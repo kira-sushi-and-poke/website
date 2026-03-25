@@ -75,9 +75,24 @@ export default async function ConfirmationPage({ searchParams }) {
   // Handle different order states
   const orderState = order.state;
 
-  // OPEN - user abandoned payment
+  // OPEN with payment - show as completed
   if (orderState === "OPEN") {
-    redirect("/menu/order");
+    // Check if order has completed payment
+    const hasPaid = order.has_payment; // Safe flag from sanitizeOrderForClient
+    
+    if (hasPaid) {
+      // Payment completed - show confirmation (order awaiting fulfillment)
+      return (
+        <ConfirmationClient
+          orderId={orderId}
+          status="completed"
+          order={order}
+        />
+      );
+    } else {
+      // No payment - user abandoned checkout
+      redirect("/menu/order");
+    }
   }
 
   // CANCELED - order was cancelled

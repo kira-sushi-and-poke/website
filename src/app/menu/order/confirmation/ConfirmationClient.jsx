@@ -1,16 +1,9 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import Link from "next/link";
 
 export default function ConfirmationClient({ orderId, status, order }) {
-  // Clear localStorage on mount for completed or canceled orders
-  useEffect(() => {
-    if (status === "completed" || status === "canceled") {
-      localStorage.removeItem("order");
-    }
-  }, [status]);
-
   if (status === "canceled") {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -169,6 +162,18 @@ export default function ConfirmationClient({ orderId, status, order }) {
 
           {/* Actions */}
           <div className="space-y-3">
+            {/* Track Order Link */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm font-semibold text-gray-700 mb-2">Track Your Order</p>
+              <p className="text-xs text-gray-600 mb-2">Bookmark this link to check your order status:</p>
+              <a
+                href="/menu/order/track"
+                className="text-sm text-blue-600 hover:text-blue-800 break-all font-mono"
+              >
+                {typeof window !== "undefined" ? `${window.location.origin}/menu/order/track` : `/menu/order/track`}
+              </a>
+            </div>
+            
             <Link
               href="/menu/order"
               className="block w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors text-center"

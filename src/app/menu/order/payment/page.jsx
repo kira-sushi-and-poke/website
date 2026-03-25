@@ -31,6 +31,11 @@ export default async function PaymentPage({ searchParams }) {
     redirect("/menu/order?error=order-canceled");
   }
   
+  // Check if already paid (OPEN with payment)
+  if (order.state === "OPEN" && order.has_payment) {
+    redirect(`/menu/order/confirmation?orderId=${orderId}`);
+  }
+  
   // Calculate total
   const total = order.line_items.reduce((sum, item) => {
     const itemTotal = parseFloat(item.base_price_money?.amount || 0) * parseInt(item.quantity);
