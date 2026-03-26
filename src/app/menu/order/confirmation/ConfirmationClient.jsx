@@ -71,7 +71,7 @@ export default function ConfirmationClient({ orderId, status, order }) {
               Payment Successful!
             </h1>
             <p className="text-base text-gray-600 mb-2">
-              Thank you! Your order has been received and we&apos;re preparing your delicious meal.
+              Thank you! Your order has been received and we&apos;ll start preparing your delicious meal shortly.
             </p>
             <p className="text-sm text-gray-500 mb-4">
               You can track your order status <Link href={`/menu/order/track?orderId=${orderId}`} className="text-hot-pink font-semibold underline">here</Link>.

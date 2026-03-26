@@ -94,19 +94,12 @@ export default function TrackOrderClient({ initialData }) {
   const orderState = order.state;
   const hasPaid = order.has_payment;
 
-    useEffect(() => {
-    // If order is not found or has no items, redirect back to order page with error
-      if (!hasPaid || orderState === "DRAFT") {
-        router.push("/menu/order");
-      }
-    }, [orderState, hasPaid, router]);
-
-  // Redirect unpaid/draft orders back to ordering page
-  // (User should complete their order before tracking)
-  // if (!hasPaid || orderState === "DRAFT") {
-  //   router.push("/menu/order");
-  //   return null;
-  // }
+  useEffect(() => {
+  // If order is not found or has no items, redirect back to order page with error
+    if (!hasPaid || orderState === "DRAFT") {
+      router.push("/menu/order");
+    }
+  }, [orderState, hasPaid, router]);
 
   // Extract fulfillment status
   const fulfillmentState = order.fulfillment_status || "PROPOSED";

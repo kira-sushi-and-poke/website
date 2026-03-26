@@ -28,46 +28,6 @@ export default function OrderMenuClient({ menuData }) {
         initializeOrder();
     }, []);
 
-    // Navigation protection - Desktop (beforeunload)
-    useEffect(() => {
-        const hasItems = Object.keys(cart).length > 0;
-        
-        if (!hasItems) return;
-
-        const handleBeforeUnload = (e) => {
-            e.preventDefault();
-            e.returnValue = ""; // Required for Chrome
-            return ""; // Required for some browsers
-        };
-
-        window.addEventListener("beforeunload", handleBeforeUnload);
-
-        return () => {
-            window.removeEventListener("beforeunload", handleBeforeUnload);
-        };
-    }, [cart]);
-
-    // Navigation protection - Mobile Safari (visibilitychange)
-    useEffect(() => {
-        const hasItems = Object.keys(cart).length > 0;
-        
-        if (!hasItems) return;
-
-        const handleVisibilityChange = () => {
-            if (document.hidden && hasItems) {
-                // Note: On mobile, this fires for tab switches, backgrounding, and screen lock
-                // The order persists in Square, so data loss risk is low
-                // User can resume order when they return to /menu/order
-            }
-        };
-
-        document.addEventListener("visibilitychange", handleVisibilityChange);
-
-        return () => {
-            document.removeEventListener("visibilitychange", handleVisibilityChange);
-        };
-    }, [cart]);
-
     const initializeOrder = async () => {
         try {
             // Check localStorage for existing order
