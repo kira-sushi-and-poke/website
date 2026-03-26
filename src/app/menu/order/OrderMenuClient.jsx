@@ -20,7 +20,6 @@ export default function OrderMenuClient({ menuData }) {
     const [orderInitError, setOrderInitError] = useState(null);
     const [updatingItems, setUpdatingItems] = useState(new Set());
     const [isInitializing, setIsInitializing] = useState(true);
-    const [isCheckingOut, setIsCheckingOut] = useState(false);
     const [isPaidOrder, setIsPaidOrder] = useState(false); // Flag for already paid orders
 
     // Initialize order on mount
@@ -243,7 +242,7 @@ export default function OrderMenuClient({ menuData }) {
     };
 
     const handleCheckout = () => {
-        if (!orderId || isCheckingOut) return;
+        if (!orderId) return;
         
         // Navigate directly to payment page
         router.push(`/menu/order/payment?orderId=${orderId}`);
@@ -362,7 +361,6 @@ export default function OrderMenuClient({ menuData }) {
                     clearCart={clearCart}
                     updatingItems={updatingItems}
                     onCheckout={handleCheckout}
-                    isCheckingOut={isCheckingOut}
                 />
             )}
         </>

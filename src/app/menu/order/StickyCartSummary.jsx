@@ -10,8 +10,7 @@ export default function StickyCartSummary({
     removeItemCompletely,
     clearCart,
     updatingItems,
-    onCheckout,
-    isCheckingOut = false
+    onCheckout
 }) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [confirmRemove, setConfirmRemove] = useState(null); // { variationId, name }
@@ -236,17 +235,10 @@ export default function StickyCartSummary({
                                 {/* Confirm & Pay Button */}
                                 <button
                                     onClick={onCheckout}
-                                    disabled={isEmpty || isCheckingOut}
+                                    disabled={isEmpty}
                                     className="flex-1 px-6 py-3 bg-hot-pink text-white rounded-lg font-bold hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                                 >
-                                    {isCheckingOut ? (
-                                        <>
-                                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                            <span>Processing...</span>
-                                        </>
-                                    ) : (
-                                        <>Confirm & Pay</>
-                                    )}
+                                    Confirm & Pay
                                 </button>
                             </div>
                         </div>
