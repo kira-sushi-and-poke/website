@@ -4,7 +4,7 @@ import React from "react";
 
 export default function MenuError({ error, reset }) {
     React.useEffect(() => {
-        console.error("Menu page error:", error);
+        // Error tracking would go here
     }, [error]);
 
     return (

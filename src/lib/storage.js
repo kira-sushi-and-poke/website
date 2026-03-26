@@ -27,7 +27,6 @@ export function getOrderFromStorage() {
     if (!storedOrder) return null;
     return JSON.parse(storedOrder);
   } catch (error) {
-    console.error("Failed to read order from localStorage:", error);
     return null;
   }
 }
@@ -43,7 +42,6 @@ export function saveOrderToStorage(orderId, version) {
     localStorage.setItem("order", JSON.stringify({ orderId, version }));
     return true;
   } catch (error) {
-    console.error("Failed to save order to localStorage:", error);
     return false;
   }
 }
@@ -57,7 +55,6 @@ export function clearOrderFromStorage() {
     localStorage.removeItem("order");
     return true;
   } catch (error) {
-    console.error("Failed to clear order from localStorage:", error);
     return false;
   }
 }

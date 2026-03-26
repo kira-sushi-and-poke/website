@@ -129,7 +129,7 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
       
       if (result.success) {
         // Payment successful - redirect to confirmation
-        router.push(`/menu/order/confirmation?orderId=${orderId}&paymentId=${result.paymentId}`);
+        router.push(`/menu/order/confirmation?orderId=${orderId}`);
       } else {
         // Payment failed
         setError(result.error || "Payment failed. Please try again.");
@@ -161,27 +161,47 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
   
   if (!appId || !locationId) {
     return (
-      <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
-        <p className="font-bold">Payment Configuration Required</p>
-        <p>Please add your Square App ID to the .env.local file.</p>
+      <div className="bg-yellow-50 border-l-4 border-yellow-500 rounded-lg p-5">
+        <div className="flex items-start">
+          <div className="flex-shrink-0">
+            <i className="fas fa-exclamation-triangle text-yellow-500 text-2xl"></i>
+          </div>
+          <div className="ml-3">
+            <p className="text-sm font-semibold text-yellow-800 mb-1">Payment Configuration Required</p>
+            <p className="text-sm text-yellow-700">Please add your Square App ID to the .env.local file.</p>
+          </div>
+        </div>
       </div>
     );
   }
   
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 relative">
+    <div className="bg-white rounded-lg shadow-lg p-8 border-t-4 border-hot-pink relative">
       {/* Loading Overlay */}
       {isProcessing && (
-        <div className="absolute inset-0 bg-white/90 backdrop-blur-sm rounded-lg flex flex-col items-center justify-center z-50">
+        <div className="absolute inset-0 bg-white/95 backdrop-blur-sm rounded-lg flex flex-col items-center justify-center z-50">
+          <div className="mb-6">
+            <div className="mx-auto h-20 w-20 bg-gradient-to-br from-hot-pink/20 to-yellow/20 rounded-full flex items-center justify-center animate-pulse">
+              <i className="fas fa-credit-card text-hot-pink text-4xl"></i>
+            </div>
+          </div>
           <div className="w-16 h-16 border-4 border-hot-pink border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="text-lg font-semibold text-gray-800">Processing Payment...</p>
+          <p className="text-xl font-bold text-hot-pink">Processing Payment...</p>
           <p className="text-sm text-gray-600 mt-2">Please don't close this page</p>
         </div>
       )}
       
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
+        <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-5 mb-6">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <i className="fas fa-exclamation-circle text-red-500 text-2xl"></i>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-semibold text-red-800 mb-1">Payment Error</p>
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          </div>
         </div>
       )}
       
@@ -192,8 +212,11 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
         createPaymentRequest={createPaymentRequest}
       >
         {/* Pickup Details */}
-        <div className="mb-6 p-4 bg-hot-pink/5 border border-hot-pink/20 rounded-lg">
-          <h3 className="text-sm font-semibold mb-4 text-gray-800">Pickup Details</h3>
+        <div className="mb-6 p-5 bg-hot-pink/5 border-2 border-hot-pink/20 rounded-lg">
+          <h3 className="text-lg font-bold mb-4 text-hot-pink flex items-center">
+            <i className="fas fa-clock mr-2"></i>
+            Pickup Details
+          </h3>
           
           <div className="space-y-4">
             <div>
@@ -244,13 +267,21 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
           </div>
         </div>
         
-        <h2 className="text-xl font-semibold mb-4">
-          Pay £{(totalAmount / 100).toFixed(2)}
+        <h2 className="text-2xl font-bold text-hot-pink mb-6 flex items-center">
+          <i className="fas fa-credit-card mr-2"></i>
+          Payment Method
         </h2>
+        
+        <p className="text-gray-700 mb-4">
+          Total: <span className="text-2xl font-bold text-hot-pink">£{(totalAmount / 100).toFixed(2)}</span>
+        </p>
         
         {/* Quick checkout with digital wallets */}
         <div className="mb-6">
-          <p className="text-sm text-gray-600 mb-3">Quick checkout:</p>
+          <h3 className="text-base font-semibold text-gray-700 mb-3 flex items-center">
+            <i className="fas fa-mobile-alt mr-2"></i>
+            Quick Checkout
+          </h3>
           
           {/* Apple Pay - Only in production (requires domain verification) */}
           {isProduction && (
@@ -265,9 +296,7 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
           </div>
           
           <p className="text-xs text-gray-500 text-center">
-            {isProduction 
-              ? "Contact details collected automatically from your wallet."
-              : "In test mode, please fill in the form below first, then use Apple Pay/Google Pay."}
+            Contact details collected automatically from your wallet.
           </p>
         </div>
         
@@ -283,11 +312,12 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
         
         {/* Contact Form for All Payment Methods */}
         <div className="mb-6">
-          <p className="text-sm font-medium mb-3">Your contact details:</p>
-          <p className="text-xs text-gray-500 mb-3">
-            {isProduction 
-              ? "Required for card payments. May be needed for Apple Pay/Google Pay."
-              : "Required for all payment methods in test mode."}
+          <h3 className="text-lg font-bold mb-3 text-hot-pink flex items-center">
+            <i className="fas fa-user mr-2"></i>
+            Contact Information
+          </h3>
+          <p className="text-xs text-gray-500 mb-4">
+            Required for card payments. May be auto-filled from digital wallets.
           </p>
           
           <div className="space-y-4">
@@ -374,7 +404,8 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
         />
       </PaymentForm>
       
-      <p className="text-xs text-gray-500 mt-4 text-center">
+      <p className="text-xs text-green-500 mt-4 text-center flex items-center justify-center">
+        <i className="fas fa-lock mr-2"></i>
         Payments are securely processed by Square
       </p>
     </div>

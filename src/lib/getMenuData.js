@@ -26,7 +26,6 @@ export async function getMenuData() {
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('Square API Error:', errorData);
       return {
         success: false,
         error: 'Failed to fetch menu from Square',
@@ -52,7 +51,6 @@ export async function getMenuData() {
     };
 
   } catch (error) {
-    console.error('Failed to fetch menu:', error);
     return {
       success: false,
       error: 'Unable to connect to Square. Please try again later.',

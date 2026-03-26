@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import MenuList from "@/components/MenuList";
 import CategoryNavigation from "../CategoryNavigation";
 import AllergenNotice from "../AllergenNotice";
@@ -80,65 +81,21 @@ export default function OrderMenuClient({ menuData }) {
                 
                 if (success && order) {
                     const orderState = order.state;
-                    const hasPaid = order.has_payment; // Safe flag from sanitizeOrderForClient
+                    const hasPaid = order.has_payment;
                     
-                    if (orderState === "DRAFT") {
-                        // Reuse draft order and rehydrate cart
+                    // Rehydrate DRAFT orders or OPEN orders (paid or unpaid)
+                    if (orderState === "DRAFT" || orderState === "OPEN") {
                         setOrderId(order.id);
                         setVersion(order.version);
+                        setCart(rehydrateCartFromOrder(order));
                         
-                        // Rehydrate cart from line items
-                        const rehydratedCart = {};
-                        if (order.line_items) {
-                            order.line_items.forEach(item => {
-                                if (item.catalog_object_id) {
-                                    rehydratedCart[item.catalog_object_id] = parseInt(item.quantity);
-                                }
-                            });
+                        // Flag paid OPEN orders as read-only
+                        if (orderState === "OPEN" && hasPaid) {
+                            setIsPaidOrder(true);
                         }
-                        setCart(rehydratedCart);
                         
                         setIsInitializing(false);
                         return;
-                    } else if (orderState === "OPEN") {
-                        if (!hasPaid) {
-                            // OPEN without payment - allow retry (payment failed)
-                            setOrderId(order.id);
-                            setVersion(order.version);
-                            
-                            // Rehydrate cart from line items
-                            const rehydratedCart = {};
-                            if (order.line_items) {
-                                order.line_items.forEach(item => {
-                                    if (item.catalog_object_id) {
-                                        rehydratedCart[item.catalog_object_id] = parseInt(item.quantity);
-                                    }
-                                });
-                            }
-                            setCart(rehydratedCart);
-                            
-                            setIsInitializing(false);
-                            return;
-                        } else {
-                            // OPEN with payment - show order details with paid banner
-                            setOrderId(order.id);
-                            setVersion(order.version);
-                            setIsPaidOrder(true); // Flag as paid order (read-only)
-                            
-                            // Rehydrate cart from line items (read-only display)
-                            const rehydratedCart = {};
-                            if (order.line_items) {
-                                order.line_items.forEach(item => {
-                                    if (item.catalog_object_id) {
-                                        rehydratedCart[item.catalog_object_id] = parseInt(item.quantity);
-                                    }
-                                });
-                            }
-                            setCart(rehydratedCart);
-                            
-                            setIsInitializing(false);
-                            return;
-                        }
                     } else {
                         // COMPLETED, CANCELED, or unexpected state - clear and start fresh
                         clearOrderFromStorage();
@@ -163,17 +120,13 @@ export default function OrderMenuClient({ menuData }) {
         }
     };
 
-    const rehydrateCartFromOrder = (order) => {
-        const rehydratedCart = {};
-        if (order.line_items) {
-            order.line_items.forEach(item => {
-                if (item.catalog_object_id) {
-                    rehydratedCart[item.catalog_object_id] = parseInt(item.quantity);
-                }
-            });
-        }
-        return rehydratedCart;
-    };
+    const rehydrateCartFromOrder = (order) => 
+        order.line_items?.reduce((cart, item) => {
+            if (item.catalog_object_id) {
+                cart[item.catalog_object_id] = parseInt(item.quantity);
+            }
+            return cart;
+        }, {}) ?? {};
 
     const addItem = async (variationId) => {
         if (!orderId || updatingItems.has(variationId)) return;
@@ -194,13 +147,9 @@ export default function OrderMenuClient({ menuData }) {
                 setVersion(result.version);
                 saveOrderToStorage(orderId, result.version);
             } else if (result.isConflict) {
-                // Re-fetch order to sync
-                const { success, order } = await getOrder(orderId);
-                if (success && order) {
-                    setVersion(order.version);
-                    setCart(rehydrateCartFromOrder(order));
-                    saveOrderToStorage(orderId, order.version);
-                }
+                // Conflict detected - revert optimistic update
+                setCart(cart);
+                setError("Cart was modified elsewhere. Please refresh to see the latest.");
             } else {
                 // Revert optimistic update
                 setCart(cart);
@@ -245,13 +194,9 @@ export default function OrderMenuClient({ menuData }) {
                 setVersion(result.version);
                 saveOrderToStorage(orderId, result.version);
             } else if (result.isConflict) {
-                // Re-fetch order to sync
-                const { success, order } = await getOrder(orderId);
-                if (success && order) {
-                    setVersion(order.version);
-                    setCart(rehydrateCartFromOrder(order));
-                    saveOrderToStorage(orderId, order.version);
-                }
+                // Conflict detected - revert optimistic update
+                setCart(cart);
+                setError("Cart was modified elsewhere. Please refresh to see the latest.");
             } else {
                 // Revert optimistic update
                 setCart(cart);
@@ -290,13 +235,9 @@ export default function OrderMenuClient({ menuData }) {
                 setVersion(result.version);
                 saveOrderToStorage(orderId, result.version);
             } else if (result.isConflict) {
-                // Re-fetch order to sync
-                const { success, order } = await getOrder(orderId);
-                if (success && order) {
-                    setVersion(order.version);
-                    setCart(rehydrateCartFromOrder(order));
-                    saveOrderToStorage(orderId, order.version);
-                }
+                // Conflict detected - revert optimistic update
+                setCart(cart);
+                setError("Cart was modified elsewhere. Please refresh to see the latest.");
             } else {
                 // Revert optimistic update
                 setCart(cart);
@@ -369,18 +310,38 @@ export default function OrderMenuClient({ menuData }) {
         <>
             <LocalStorageModal />
             
+            {/* Conflict Error Modal */}
             {error && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                    {error}
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 border-t-4 border-red-500">
+                        <div className="mb-4 flex justify-center">
+                            <i className="fas fa-exclamation-triangle text-red-500 text-7xl"></i>
+                        </div>
+                        <h2 className="text-2xl font-bold text-gray-900 mb-3 text-center">
+                            Cart Updated Elsewhere
+                        </h2>
+                        <p className="text-gray-600 mb-6 text-center">
+                            {error}
+                        </p>
+                        <div className="space-y-3">
+                            <button
+                                onClick={() => window.location.reload()}
+                                className="w-full bg-hot-pink text-white py-3 px-4 rounded-lg hover:bg-hot-pink/90 transition-colors font-bold text-lg flex items-center justify-center gap-2"
+                            >
+                                <i className="fas fa-sync-alt"></i>
+                                Refresh Page
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 
             {/* Paid Order Banner */}
             {isPaidOrder && (
                 <div className="bg-green-100 border-2 border-green-500 rounded-lg p-6 mb-6">
-                    <div className="flex items-start gap-4">
+                    <div className="flex items-center gap-3 mb-3">
                         <svg
-                            className="h-8 w-8 text-green-600 flex-shrink-0 mt-1"
+                            className="h-8 w-8 text-green-600 flex-shrink-0"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -392,28 +353,26 @@ export default function OrderMenuClient({ menuData }) {
                                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                             />
                         </svg>
-                        <div className="flex-1">
-                            <h3 className="text-lg font-bold text-green-900 mb-2">
-                                Order Already Paid
-                            </h3>
-                            <p className="text-green-800 mb-3">
-                                You&apos;ve already completed payment for this order. The items below are for reference only.
-                            </p>
-                            <div className="flex flex-wrap gap-3">
-                                <a
-                                    href="/menu/order/track"
-                                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors inline-block"
-                                >
-                                    View Order Status
-                                </a>
-                                <button
-                                    onClick={clearCart}
-                                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                                >
-                                    Start New Order
-                                </button>
-                            </div>
-                        </div>
+                        <h3 className="text-lg font-bold text-green-900">
+                            Order In Progress
+                        </h3>
+                    </div>
+                    <p className="text-green-800 mb-3">
+                        You have an order that is currently in progress. Track your order status below or start a new order.
+                    </p>
+                    <div className="flex flex-wrap gap-3">
+                        <Link
+                            href={`/menu/order/track?orderId=${orderId}`}
+                            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors inline-block"
+                        >
+                            View Order Status
+                        </Link>
+                        <button
+                            onClick={clearCart}
+                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                            Start New Order
+                        </button>
                     </div>
                 </div>
             )}

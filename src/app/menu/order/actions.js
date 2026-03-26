@@ -34,6 +34,18 @@ const SITE_URL = process.env.SITE_URL;
 function sanitizeOrderForClient(order) {
   if (!order) return order;
   
+  // Extract fulfillment status and pickup time without PII
+  const fulfillment = order.fulfillments?.[0];
+  const fulfillmentStatus = fulfillment?.state || "PROPOSED";
+  const pickupTime = fulfillment?.pickup_details?.pickup_at || null;
+  
+  // Check if order has successful payment
+  // With autocomplete:true, successful payments create tenders with CARD type
+  // Failed payments still attach tenders to the order
+  const hasSuccessfulPayment = order.tenders?.some(
+    tender => tender.type === "CARD" && tender.card_details?.status === "CAPTURED"
+  ) ?? false;
+  
   return {
     id: order.id,
     version: order.version,
@@ -44,7 +56,9 @@ function sanitizeOrderForClient(order) {
     total_money: order.total_money,
     total_tax_money: order.total_tax_money,
     total_discount_money: order.total_discount_money,
-    has_payment: !!(order.tenders && order.tenders.length > 0), // Safe flag for client
+    has_payment: hasSuccessfulPayment, // Only true if payment captured
+    fulfillment_status: fulfillmentStatus, // Safe: just the state, no PII
+    pickup_time: pickupTime, // Safe: just the timestamp
     // Explicitly exclude sensitive fields:
     // - customer_id: internal customer reference
     // - location_id: business location identifier
@@ -168,7 +182,7 @@ export async function updateOrderItems(orderId, version, cart) {
     const requestBody = {
       order: {
         location_id: LOCATION_ID,
-        version: currentOrderData.order.version, // Use latest version
+        version: version, // Use version from client state for conflict detection
         line_items: desiredItems,
       },
     };
@@ -197,7 +211,6 @@ export async function updateOrderItems(orderId, version, cart) {
         error: "Failed to update order",
       };
     } catch (error) {
-      console.error("Square update order error:", error.message);
       // Check if it's a 409 conflict error
       if (error.response?.status === 409 || error.data?.errors?.[0]?.code === "VERSION_MISMATCH") {
         return {
@@ -264,25 +277,6 @@ export async function checkout(orderId) {
       },
     };
     
-    // Add fulfillment details if pickup time provided
-    if (customerInfo?.pickupTime && customerInfo?.name) {
-      orderPayload.fulfillments = [{
-        type: "PICKUP",
-        state: "RESERVED",
-        pickup_details: {
-          recipient: {
-            display_name: customerInfo.name,
-            ...(customerInfo.email && { email_address: customerInfo.email }),
-            ...(customerInfo.phone && { phone_number: customerInfo.phone }),
-          },
-          schedule_type: "SCHEDULED",
-          pickup_at: customerInfo.pickupTime,
-          pickup_window_duration: "PT15M",
-          note: "Online order - pickup",
-        },
-      }];
-    }
-    
     const data = await fetchSquare(API_PAYMENT_LINKS_URL, {
       method: "POST",
       body: JSON.stringify({
@@ -307,7 +301,6 @@ export async function checkout(orderId) {
       throw error;
     }
     
-    console.error("Checkout error:", error);
     throw new Error("Failed to initiate checkout. Please try again.");
   }
 }
@@ -376,7 +369,6 @@ export async function createCustomer(orderId, name, email, phone) {
       version: updatedOrderData.order?.version,
     };
   } catch (error) {
-    console.error("Square API error:", error.message);
     return {
       success: false,
       error: "Failed to create customer or update order. Please try again.",
@@ -604,7 +596,6 @@ export async function processPayment(sourceId, orderId, amount, verificationToke
       };
     }
   } catch (error) {
-    console.error("Payment processing error:", error.message);
     return {
       success: false,
       error: "Payment processing failed. Please try again.",
