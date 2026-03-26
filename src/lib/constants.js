@@ -26,6 +26,7 @@ export const ORDER_STATE_OPEN = "OPEN";
 /**
  * Fulfillment States
  */
+export const FULFILLMENT_STATE_PROPOSED = "PROPOSED";
 export const FULFILLMENT_STATE_RESERVED = "RESERVED";
 
 /**

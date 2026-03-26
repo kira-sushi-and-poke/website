@@ -4,9 +4,6 @@ import React from "react";
 
 export default function Error({ error, reset }) {
     React.useEffect(() => {
-        // Log error to console in development
-        console.error("Application error:", error);
-
         // In production, you'd send this to an error tracking service like Sentry
         // Example: Sentry.captureException(error);
     }, [error]);

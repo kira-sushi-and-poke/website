@@ -195,6 +195,13 @@ export default function OrderSummaryModal({
                             {itemCount} {itemCount === 1 ? "item" : "items"}
                         </div>
                         
+                        <div className="bg-yellow/10 border border-yellow rounded-lg p-3 mb-4 flex items-start gap-2">
+                            <i className="fas fa-shopping-bag text-yellow text-sm mt-0.5"></i>
+                            <p className="text-xs text-gray-700">
+                                <strong>Pickup only:</strong> We currently only offer pickup orders. Delivery is not available at this time.
+                            </p>
+                        </div>
+                        
                         <div className="flex gap-3">
                             <button
                                 onClick={handleClose}

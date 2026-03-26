@@ -4,7 +4,7 @@ import React from "react";
 
 export default function ReviewsError({ error, reset }) {
     React.useEffect(() => {
-        console.error("Reviews page error:", error);
+        // Error tracking would go here
     }, [error]);
 
     return (

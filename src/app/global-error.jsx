@@ -4,9 +4,6 @@ import React from "react";
 
 export default function GlobalError({ error, reset }) {
     React.useEffect(() => {
-        // Log critical errors
-        console.error("Global application error:", error);
-
         // In production, send to error tracking service
         // Example: Sentry.captureException(error, { level: "fatal" });
     }, [error]);

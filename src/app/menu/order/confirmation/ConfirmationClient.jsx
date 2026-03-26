@@ -1,52 +1,33 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import Link from "next/link";
 
 export default function ConfirmationClient({ orderId, status, order }) {
-  // Clear localStorage on mount for completed or canceled orders
-  useEffect(() => {
-    if (status === "completed" || status === "canceled") {
-      localStorage.removeItem("order");
-    }
-  }, [status]);
-
   if (status === "canceled") {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
+      <div className="min-h-screen bg-[#fffef9] flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center border-t-4 border-yellow">
           <div className="mb-4">
-            <svg
-              className="mx-auto h-16 w-16 text-yellow-500"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+            <i className="fas fa-exclamation-triangle text-yellow text-6xl"></i>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-4">
             Order Cancelled
           </h1>
           <p className="text-gray-600 mb-6">
-            Your order has been cancelled. If you didn&apos;t cancel this order, please contact support.
+            This order has been cancelled and no charges were made. If you need assistance, please contact us.
           </p>
           <div className="space-y-3">
             <p className="text-sm text-gray-500">Order ID: {orderId}</p>
             <Link
               href="/menu/order"
-              className="block w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+              className="block w-full bg-hot-pink text-white py-3 px-4 rounded-lg hover:bg-hot-pink/90 transition-colors font-semibold"
             >
               Start New Order
             </Link>
             <Link
               href="/contact"
-              className="block w-full bg-gray-200 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors"
+              className="block w-full border-2 border-hot-pink text-hot-pink py-3 px-4 rounded-lg hover:bg-hot-pink hover:text-white transition-colors font-semibold"
             >
               Contact Support
             </Link>
@@ -63,9 +44,8 @@ export default function ConfirmationClient({ orderId, status, order }) {
       ? `£${(totalMoney.amount / 100).toFixed(2)}`
       : "N/A";
     
-    // Extract pickup time from fulfillments
-    const pickupFulfillment = order.fulfillments?.find(f => f.type === "PICKUP");
-    const pickupTime = pickupFulfillment?.pickup_details?.pickup_at;
+    // Extract pickup time from sanitized order
+    const pickupTime = order.pickup_time;
     const formattedPickupTime = pickupTime 
       ? new Date(pickupTime).toLocaleString('en-GB', {
           weekday: 'long',
@@ -78,44 +58,42 @@ export default function ConfirmationClient({ orderId, status, order }) {
       : null;
 
     return (
-      <div className="min-h-screen bg-gray-50 py-12 px-4">
+      <div className="min-h-screen bg-[#fffef9] py-12 px-4">
         <div className="max-w-3xl mx-auto">
           {/* Success Header */}
-          <div className="bg-white rounded-lg shadow-lg p-8 mb-6 text-center">
+          <div className="bg-white rounded-lg shadow-lg p-8 mb-6 text-center border-t-4 border-hot-pink">
             <div className="mb-4">
-              <svg
-                className="mx-auto h-20 w-20 text-green-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
+              <div className="mx-auto h-20 w-20 bg-gradient-to-br from-hot-pink/20 to-yellow/20 rounded-full flex items-center justify-center animate-pulse">
+                <i className="fas fa-check-circle text-hot-pink text-5xl"></i>
+              </div>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Order Confirmed!
+            <h1 className="text-3xl font-bold text-hot-pink mb-3">
+              Payment Successful!
             </h1>
-            <p className="text-gray-600 mb-4">
-              Thank you for your order. We&apos;ll start preparing it right away.
+            <p className="text-base text-gray-600 mb-2">
+              Thank you! Your order has been received and we&apos;ll start preparing your delicious meal shortly.
             </p>
+            <p className="text-sm text-gray-500 mb-4">
+              You can track your order status <Link href={`/menu/order/track?orderId=${orderId}`} className="text-hot-pink font-semibold underline">here</Link>.
+            </p>
+
             {formattedPickupTime && (
-              <div className="bg-hot-pink/10 border border-hot-pink rounded-lg p-4 mb-4">
-                <p className="text-sm font-semibold text-gray-700 mb-1">Pickup Time</p>
-                <p className="text-lg font-bold text-hot-pink">{formattedPickupTime}</p>
+              <div className="bg-gradient-to-r from-hot-pink/10 to-yellow/10 border border-hot-pink rounded-lg p-4 mb-4">
+                <p className="text-xs font-semibold text-gray-700 mb-1 flex items-center justify-center">
+                  <i className="fas fa-clock mr-2"></i>
+                  Expected Pickup Time
+                </p>
+                <p className="text-base font-bold text-hot-pink">{formattedPickupTime}</p>
               </div>
             )}
-            <p className="text-sm text-gray-500">Order ID: {orderId}</p>
+            <p className="text-sm text-gray-500 bg-gray-50 px-4 py-2 rounded-full inline-block">Order ID: {orderId}</p>
           </div>
 
           {/* Order Summary */}
-          <div className="bg-white rounded-lg shadow-lg p-8 mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              Order Summary
+          <div className="bg-white rounded-lg shadow-lg p-8 mb-6 border-l-4 border-yellow">
+            <h2 className="text-2xl font-bold text-hot-pink mb-6 flex items-center">
+              <i className="fas fa-shopping-cart mr-2"></i>
+              Your Order
             </h2>
 
             {/* Line Items */}
@@ -157,10 +135,10 @@ export default function ConfirmationClient({ orderId, status, order }) {
             )}
 
             {/* Total */}
-            <div className="pt-4 border-t-2 border-gray-300">
+            <div className="pt-4 border-t-2 border-hot-pink">
               <div className="flex justify-between items-center">
                 <p className="text-xl font-bold text-gray-900">Total</p>
-                <p className="text-xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-hot-pink">
                   {formattedTotal}
                 </p>
               </div>
@@ -169,15 +147,24 @@ export default function ConfirmationClient({ orderId, status, order }) {
 
           {/* Actions */}
           <div className="space-y-3">
+            {/* Track Order Link */}
+            <Link
+              href={`/menu/order/track?orderId=${orderId}`}
+              className="block w-full bg-gradient-to-r from-hot-pink to-yellow text-white py-4 px-4 rounded-lg hover:opacity-90 transition-opacity text-center font-bold text-lg"
+            >
+              <i className="fas fa-search mr-2"></i>
+              Track Order Status
+            </Link>
+            
             <Link
               href="/menu/order"
-              className="block w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors text-center"
+              className="block w-full bg-hot-pink text-white py-4 px-4 rounded-lg hover:bg-hot-pink/90 transition-colors text-center font-bold text-lg"
             >
-              Order Again
+              Place Another Order
             </Link>
             <Link
               href="/"
-              className="block w-full bg-gray-200 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors text-center"
+              className="block w-full border-2 border-hot-pink text-hot-pink py-3 px-4 rounded-lg hover:bg-hot-pink hover:text-white transition-colors text-center font-semibold"
             >
               Back to Home
             </Link>
