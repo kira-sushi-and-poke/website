@@ -28,7 +28,7 @@ export async function getMenuData() {
       const errorData = await response.json();
       return {
         success: false,
-        error: 'Failed to fetch menu from Square',
+        error: "Failed to fetch menu from Square",
         data: []
       };
     }
@@ -39,7 +39,7 @@ export async function getMenuData() {
     if (transformedMenu.length === 0) {
       return {
         success: false,
-        error: 'No menu items found in catalog',
+        error: "No menu items found in catalog",
         data: []
       };
     }
@@ -53,7 +53,7 @@ export async function getMenuData() {
   } catch (error) {
     return {
       success: false,
-      error: 'Unable to connect to Square. Please try again later.',
+      error: "Unable to connect to Square. Please try again later.",
       data: []
     };
   }
@@ -214,7 +214,7 @@ function mapCategory(apiCategoryName, itemName) {
       return "sushi";
     }
     if (itemLower.includes("poke")) return "poke";
-    if (itemLower.includes("curry") || itemLower.includes("teriyaki") || itemLower.includes("katsu")) {
+    if (itemLower.includes("curry") || itemLower.includes("teriyaki") || itemLower.includes("katsu") || itemLower.includes("crispy rice")) {
       return "hot";
     }
     if (itemLower.includes("dessert") || itemLower.includes("dorayaki")) return "desserts";
@@ -307,20 +307,20 @@ function inferSubcategory(category, itemName, description) {
   const itemLower = itemName.toLowerCase();
 
   // Handle sushi subcategories
-  if (category === 'sushi') {
+  if (category === "sushi") {
     // Check if item name contains parentheses - likely a subcategory descriptor
-    if (itemName.includes('(') && itemName.includes(')')) {
+    if (itemName.includes("(") && itemName.includes(")")) {
       return itemName;
     }
 
     // Exact matches for known subcategory names
     const subcategoryMap = {
-      'makizushi': 'Makizushi (Sushi Rolls)',
-      'inarizushi': 'Inarizushi',
-      'sashimi': 'Sashimi',
-      'onigiri': 'Onigiri',
-      'nigiri': 'Nigiri',
-      'hosomaki': 'Hosomaki',
+      "makizushi": "Makizushi (Sushi Rolls)",
+      "inarizushi": "Inarizushi",
+      "sashimi": "Sashimi",
+      "onigiri": "Onigiri",
+      "nigiri": "Nigiri",
+      "hosomaki": "Hosomaki",
     };
 
     // Check for exact match
@@ -334,17 +334,20 @@ function inferSubcategory(category, itemName, description) {
   }
 
   // Handle hot dishes subcategories
-  if (category === 'hot') {
+  if (category === "hot") {
     // Check if item name contains parentheses
-    if (itemName.includes('(') && itemName.includes(')')) {
+    if (itemName.includes("(") && itemName.includes(")")) {
       return itemName;
     }
 
-    if (itemLower.includes('curry')) {
-      return 'Japanese Curry';
+    if (itemLower.includes("curry")) {
+      return "Japanese Curry";
     }
-    if (itemLower.includes('teriyaki')) {
-      return 'Teriyaki';
+    if (itemLower.includes("teriyaki")) {
+      return "Teriyaki";
+    }
+    if (itemLower.includes("crispy rice")) {
+      return "Crispy Rice";
     }
 
     return null;

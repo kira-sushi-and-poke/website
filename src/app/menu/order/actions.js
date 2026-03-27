@@ -56,6 +56,8 @@ function sanitizeOrderForClient(order) {
     total_money: order.total_money,
     total_tax_money: order.total_tax_money,
     total_discount_money: order.total_discount_money,
+    total_service_charge_money: order.total_service_charge_money,
+    service_charges: order.service_charges,
     has_payment: hasSuccessfulPayment, // Only true if payment captured
     fulfillment_status: fulfillmentStatus, // Safe: just the state, no PII
     pickup_time: pickupTime, // Safe: just the timestamp
@@ -308,8 +310,8 @@ export async function checkout(orderId) {
 /**
  * Creates a customer in Square and attaches them to an order
  * @param {string} orderId - The Square order ID
- * @param {string} name - Customer's full name
- * @param {string} email - Customer's email address
+ * @param {string} name - Customer"s full name
+ * @param {string} email - Customer"s email address
  * @param {string} phone - Customer's phone number
  * @returns {Promise<{success: boolean, version?: number, error?: string}>}
  */
@@ -380,14 +382,15 @@ export async function createCustomer(orderId, name, email, phone) {
  * Process a payment with Square
  * @param {string} sourceId - Square payment source token
  * @param {string} orderId - The Square order ID  
- * @param {number} amount - Payment amount in cents
+ * @param {number} amount - Base order amount in cents (before tip)
  * @param {string} verificationToken - Card verification token (optional)
  * @param {object} contactDetails - Customer contact details (name, email, phone)
  * @param {string} pickupTime - ISO string pickup time
  * @param {string} specialInstructions - Optional special instructions from customer
+ * @param {number} tipAmount - Tip amount in cents (optional, defaults to 0) - added to order as service charge
  * @returns {Promise<{success: boolean, paymentId?: string, status?: string, receiptUrl?: string, error?: string, declineReason?: string}>}
  */
-export async function processPayment(sourceId, orderId, amount, verificationToken, contactDetails, pickupTime, specialInstructions = "") {
+export async function processPayment(sourceId, orderId, amount, verificationToken, contactDetails, pickupTime, specialInstructions = "", tipAmount = 0) {
   try {
     // Validate required fields
     if (!sourceId || !orderId || !amount) {
@@ -489,8 +492,22 @@ export async function processPayment(sourceId, orderId, amount, verificationToke
           };
         }
         
+        // Add tip as a service charge if provided
+        if (tipAmount > 0) {
+          orderUpdate.service_charges = [
+            {
+              name: "Tip",
+              amount_money: {
+                amount: tipAmount,
+                currency: CURRENCY,
+              },
+              calculation_phase: "TOTAL_PHASE",
+            }
+          ];
+        }
+        
         // Build fulfillment object (for both DRAFT and OPEN)
-        const fulfillmentNote = specialInstructions || "No special instructions";
+        const fulfillmentNote = specialInstructions?.trim() || "No special instructions";
         const fulfillment = {
           type: FULFILLMENT_TYPE_PICKUP,
           state: FULFILLMENT_STATE_PROPOSED,
@@ -514,12 +531,16 @@ export async function processPayment(sourceId, orderId, amount, verificationToke
         
         orderUpdate.fulfillments = [fulfillment];
         
-        await fetchSquare(`${API_ORDERS_URL}/${orderId}`, {
+        // Update the order and get the new total
+        const updatedOrderData = await fetchSquare(`${API_ORDERS_URL}/${orderId}`, {
           method: "PUT",
           body: JSON.stringify({
             order: orderUpdate,
           }),
         });
+        
+        // Use the actual order total from Square (includes tip)
+        orderData = updatedOrderData;
       } catch (error) {
         return {
           success: false,
@@ -530,13 +551,23 @@ export async function processPayment(sourceId, orderId, amount, verificationToke
     
     // Process payment with Square
     try {
+      // Use the order's actual total (which now includes the tip as a service charge)
+      const orderTotal = orderData.order?.total_money?.amount;
+      
+      if (!orderTotal) {
+        return {
+          success: false,
+          error: "Unable to determine order total. Please try again.",
+        };
+      }
+      
       const paymentData = await fetchSquare(API_PAYMENTS_URL, {
         method: "POST",
         body: JSON.stringify({
           idempotency_key: crypto.randomUUID(),
           source_id: sourceId,
           amount_money: {
-            amount: amount,
+            amount: orderTotal,
             currency: CURRENCY,
           },
           location_id: LOCATION_ID,

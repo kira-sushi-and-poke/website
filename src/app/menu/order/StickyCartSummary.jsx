@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, { useState, useEffect } from "react";
 
@@ -95,7 +95,7 @@ export default function StickyCartSummary({
                      : { height: "6rem", bottom: 0 }}>
                 <div className="max-w-7xl mx-auto h-full flex flex-col">
                     {/* Header - Always Visible */}
-                    <div className="px-5 md:px-10 py-4 flex-shrink-0">
+                    <div className="px-5 md:px-10 py-4 shrink-0">
                         <div className="flex items-center justify-between gap-4">
                             {/* Cart Summary */}
                             <div className="flex-1">
@@ -208,13 +208,17 @@ export default function StickyCartSummary({
                         </div>
 
                         {/* Footer - Checkout Button */}
-                        <div className="border-t border-gray-200 px-5 md:px-10 py-4 bg-gray-50 flex-shrink-0">
+                        <div className="border-t border-gray-200 px-5 md:px-10 py-4 bg-gray-50 shrink-0">
+                            {/* Pickup Only Notice */}
                             {!isEmpty && (
-                                <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-2">
-                                    <i className="fas fa-info-circle text-blue-600 mt-0.5"></i>
-                                    <p className="text-sm text-gray-700">
-                                        You'll be redirected to Square's secure checkout page to complete your payment.
-                                    </p>
+                                <div className="bg-yellow/10 border border-yellow rounded-lg p-3 md:p-4 mb-4 md:mb-6 flex items-start gap-2 md:gap-3">
+                                    <i className="fas fa-shopping-bag text-yellow text-lg mt-0.5"></i>
+                                    <div>
+                                        <p className="text-sm font-semibold text-gray-800 mb-1">Pickup Only</p>
+                                        <p className="text-xs text-gray-700">
+                                            We don"t offer delivery at the moment, but we"re hoping to add it soon! For now, you can collect your order from our location at 148 Front Street, Chester-le-Street.
+                                        </p>
+                                    </div>
                                 </div>
                             )}
                             

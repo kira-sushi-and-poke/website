@@ -49,11 +49,14 @@ export default function OrderIdValidator({ currentPath, children }) {
   // Show loading state while validating
   if (validationState === "validating") {
     return (
-      <div className="min-h-screen bg-[#fffef9] flex items-center justify-center p-4">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-20 w-20 border-4 border-hot-pink border-t-transparent mb-6"></div>
-          <p className="text-xl font-semibold text-gray-700">Validating order...</p>
+      <div className="fixed inset-0 bg-[#fffef9] flex flex-col items-center justify-center z-50">
+        <div className="mb-6">
+          <div className="mx-auto h-20 w-20 bg-gradient-to-br from-hot-pink/20 to-yellow/20 rounded-full flex items-center justify-center animate-pulse">
+            <i className="fas fa-receipt text-hot-pink text-4xl"></i>
+          </div>
         </div>
+        <div className="w-16 h-16 border-4 border-hot-pink border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-xl font-bold text-hot-pink">Validating order...</p>
       </div>
     );
   }

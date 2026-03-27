@@ -67,9 +67,9 @@ const MenuItem = ({
 
     return (
         <>
-            <div className="border-2 border-hot-pink relative overflow-hidden bg-white rounded-lg my-2.5 transition-shadow duration-300 hover:shadow-md">
+            <div className="border-2 border-hot-pink relative overflow-hidden bg-white rounded-lg my-1.5 md:my-2 transition-shadow duration-300 hover:shadow-md">
                 <div
-                    className={`bg-hot-pink w-full h-48 flex items-center justify-center rounded-t-lg overflow-hidden ${hasImages ? "cursor-pointer group" : ""} relative`}
+                    className={`bg-hot-pink w-full h-36 md:h-44 flex items-center justify-center rounded-t-lg overflow-hidden ${hasImages ? "cursor-pointer group" : ""} relative`}
                     onClick={() => hasImages && openLightbox(0)}
                 >
                     {!imageLoaded && (
@@ -125,25 +125,25 @@ const MenuItem = ({
                         </div>
                     )}
                 </div>
-                <div className="p-4">
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-hot-pink font-bold text-xl">{name}</h3>
+                <div className="p-2.5 md:p-3">
+                    <div className="flex justify-between items-center mb-2 md:mb-3">
+                        <h3 className="text-hot-pink font-bold text-md md:text-base">{name}</h3>
                         <div>
                             {originalPrice !== null && originalPrice !== undefined ? (
                                 <>
-                                    <span className={discountedPrice ? "text-gray-400 line-through" : "text-yellow font-bold text-xl"}>
+                                    <span className={discountedPrice ? "text-gray-400 line-through text-xs md:text-sm" : "text-yellow font-bold text-base md:text-lg"}>
                                         £{originalPrice.toFixed(2)}
                                     </span>
                                     {discountedPrice && (
-                                        <span className="text-yellow font-bold ml-2.5 text-xl">£{discountedPrice.toFixed(2)}</span>
+                                        <span className="text-yellow font-bold ml-2 md:ml-2.5 text-base md:text-lg">£{discountedPrice.toFixed(2)}</span>
                                     )}
                                 </>
                             ) : (
-                                <span className="text-gray-500 text-sm italic">Price not available</span>
+                                <span className="text-gray-500 text-xs md:text-sm italic">Price not available</span>
                             )}
                         </div>
                     </div>
-                    <p className="text-gray-700 text-sm">
+                    <p className="text-gray-700 text-xs md:text-sm">
                         {description}
                         {variationDescription && (
                             <span className="text-gray-500 italic ml-2">({variationDescription})</span>
@@ -152,29 +152,29 @@ const MenuItem = ({
                     
                     {/* Quantity Controls for Order Mode */}
                     {isOrderMode && variationId && (
-                        <div className="mt-4 flex flex-col items-center gap-3">
-                            <div className="flex items-center gap-3">
+                        <div className="mt-2 md:mt-3 flex flex-col items-center gap-1.5 md:gap-2">
+                            <div className="flex items-center gap-2 md:gap-3">
                                 <button
                                     onClick={() => removeItem(variationId)}
                                     disabled={isUpdating || quantity === 0}
-                                    className="w-10 h-10 rounded-full bg-gray-200 hover:bg-hot-pink hover:text-white font-bold text-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                                    className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-gray-200 hover:bg-hot-pink hover:text-white font-bold text-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                                     aria-label="Decrease quantity"
                                 >
                                     −
                                 </button>
                                 
-                                <div className="min-w-[60px] text-center">
+                                <div className="min-w-[50px] md:min-w-[60px] text-center">
                                     {isUpdating ? (
-                                        <div className="inline-block w-5 h-5 border-2 border-hot-pink border-t-transparent rounded-full animate-spin"></div>
+                                        <div className="inline-block w-4 h-4 md:w-5 md:h-5 border-2 border-hot-pink border-t-transparent rounded-full animate-spin"></div>
                                     ) : (
-                                        <span className="text-lg font-bold">{quantity}</span>
+                                        <span className="text-base md:text-lg font-bold">{quantity}</span>
                                     )}
                                 </div>
                                 
                                 <button
                                     onClick={() => addItem(variationId)}
                                     disabled={isUpdating}
-                                    className="w-10 h-10 rounded-full bg-hot-pink text-white hover:bg-opacity-90 font-bold text-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                                    className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-hot-pink text-white hover:bg-opacity-90 font-bold text-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                                     aria-label="Increase quantity"
                                 >
                                     +
@@ -182,7 +182,7 @@ const MenuItem = ({
                             </div>
                             
                             {quantity > 0 && !isUpdating && (
-                                <div className="text-yellow font-bold text-lg">
+                                <div className="text-yellow font-bold text-sm md:text-base">
                                     £{((discountedPrice || originalPrice) * quantity).toFixed(2)}
                                 </div>
                             )}
@@ -194,7 +194,7 @@ const MenuItem = ({
             {/* Lightbox Modal */}
             {showLightbox && hasImages && (
                 <div 
-                    className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4"
+                    className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] p-4"
                     onClick={() => setShowLightbox(false)}
                 >
                     <button

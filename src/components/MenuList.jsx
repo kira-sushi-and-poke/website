@@ -60,7 +60,8 @@ const MenuList = ({
   // Define subcategory order for hot dishes
   const hotSubcategoryOrder = [
     "Japanese Curry",
-    "Teriyaki"
+    "Teriyaki",
+    "Crispy Rice"
   ];
 
   // Sort subcategories for sushi and hot categories
@@ -101,7 +102,7 @@ const MenuList = ({
   };
 
   return (
-    <div className="menu-list space-y-10 md:space-y-12">
+    <div className="menu-list space-y-6 md:space-y-10">
       {Object.entries(categories).map(([category, items]) => {
         if (items.length === 0) return null;
 
@@ -110,20 +111,20 @@ const MenuList = ({
 
         return (
           <div key={category} id={category} className="category-section scroll-mt-32">
-            <h2 className="text-2xl md:text-3xl font-bold text-hot-pink mb-6 md:mb-8 border-b-2 border-yellow pb-2">
+            <h2 className="text-xl md:text-3xl font-bold text-hot-pink mb-3 md:mb-6 border-b-2 border-yellow pb-1.5 md:pb-2">
               {categoryTitles[category]}
             </h2>
 
             {sortedSubcategories.map(([subcategory, subcategoryItems]) => (
-              <div key={subcategory} className="subcategory-section mb-8">
+              <div key={subcategory} className="subcategory-section mb-4 md:mb-6">
                 {subcategory !== "null" && subcategory && (
-                  <h3 className="text-xl md:text-2xl font-semibold text-gray-800 mb-4 flex items-center">
+                  <h3 className="text-lg md:text-2xl font-semibold text-gray-800 mb-2 md:mb-3 flex items-center">
                     <span className="bg-hot-pink/10 text-hot-pink px-3 py-1 rounded-full text-base md:text-lg">
                       {subcategory}
                     </span>
                   </h3>
                 )}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 md:gap-4">
                   {subcategoryItems.map((item, index) => (
                     <MenuItem
                       key={item.variationId || `${item.id}-${item.name}-${index}`}

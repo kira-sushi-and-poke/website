@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import toast, { Toaster } from "react-hot-toast";
 import MenuList from "@/components/MenuList";
 import CategoryNavigation from "../CategoryNavigation";
 import AllergenNotice from "../AllergenNotice";
@@ -13,7 +14,6 @@ import { getOrderFromStorage, saveOrderToStorage, clearOrderFromStorage } from "
 
 export default function OrderMenuClient({ menuData }) {
     const router = useRouter();
-    const [error, setError] = useState(null);
     const [cart, setCart] = useState({}); // { variationId: quantity }
     const [orderId, setOrderId] = useState(null);
     const [version, setVersion] = useState(null);
@@ -21,11 +21,18 @@ export default function OrderMenuClient({ menuData }) {
     const [updatingItems, setUpdatingItems] = useState(new Set());
     const [isInitializing, setIsInitializing] = useState(true);
     const [isPaidOrder, setIsPaidOrder] = useState(false); // Flag for already paid orders
+    const [isMounted, setIsMounted] = useState(false);
 
-    // Initialize order on mount
+    // Set mounted state to prevent hydration mismatch
     useEffect(() => {
-        initializeOrder();
+        setIsMounted(true);
     }, []);
+
+    // Initialize order after mount to avoid hydration issues with localStorage
+    useEffect(() => {
+        if (!isMounted) return;
+        initializeOrder();
+    }, [isMounted]);
 
     const initializeOrder = async () => {
         try {
@@ -70,10 +77,12 @@ export default function OrderMenuClient({ menuData }) {
                 setVersion(newVersion);
                 saveOrderToStorage(newOrderId, newVersion);
             } else {
-                setOrderInitError(createError || "Failed to initialize order. Please refresh the page.");
+                toast.error(createError || "Failed to initialize order. Please refresh the page.");
+                setOrderInitError(createError || "Failed to initialize order.");
             }
         } catch (err) {
-            setOrderInitError("Failed to initialize order. Please refresh the page.");
+            toast.error("Failed to initialize order. Please refresh the page.");
+            setOrderInitError("Failed to initialize order.");
         } finally {
             setIsInitializing(false);
         }
@@ -105,19 +114,20 @@ export default function OrderMenuClient({ menuData }) {
                 // Update version in state and localStorage
                 setVersion(result.version);
                 saveOrderToStorage(orderId, result.version);
+                toast.success("Item added to the cart");
             } else if (result.isConflict) {
                 // Conflict detected - revert optimistic update
                 setCart(cart);
-                setError("Cart was modified elsewhere. Please refresh to see the latest.");
+                toast.error("Cart was modified elsewhere. Please refresh the page to see the latest.");
             } else {
                 // Revert optimistic update
                 setCart(cart);
-                setError(result.error || "Failed to update cart");
+                toast.error(result.error || "Failed to update cart", { duration: 10000 });
             }
         } catch (err) {
             // Revert optimistic update
             setCart(cart);
-            setError("Failed to update cart");
+            toast.error("Failed to update cart", { duration: 10000 });
         } finally {
             // Remove updating state
             setUpdatingItems(prev => {
@@ -152,19 +162,20 @@ export default function OrderMenuClient({ menuData }) {
                 // Update version in state and localStorage
                 setVersion(result.version);
                 saveOrderToStorage(orderId, result.version);
+                toast.success("Item removed from the cart");
             } else if (result.isConflict) {
                 // Conflict detected - revert optimistic update
                 setCart(cart);
-                setError("Cart was modified elsewhere. Please refresh to see the latest.");
+                toast.error("Cart was modified elsewhere. Please refresh the page to see the latest.");
             } else {
                 // Revert optimistic update
                 setCart(cart);
-                setError(result.error || "Failed to update cart");
+                toast.error(result.error || "Failed to update cart", { duration: 10000 });
             }
         } catch (err) {
             // Revert optimistic update
             setCart(cart);
-            setError("Failed to update cart");
+            toast.error("Failed to update cart", { duration: 10000 });
         } finally {
             // Remove updating state
             setUpdatingItems(prev => {
@@ -193,19 +204,20 @@ export default function OrderMenuClient({ menuData }) {
                 // Update version in state and localStorage
                 setVersion(result.version);
                 saveOrderToStorage(orderId, result.version);
+                toast.success("Item removed from the cart");
             } else if (result.isConflict) {
                 // Conflict detected - revert optimistic update
                 setCart(cart);
-                setError("Cart was modified elsewhere. Please refresh to see the latest.");
+                toast.error("Cart was modified elsewhere. Please refresh the page to see the latest.");
             } else {
                 // Revert optimistic update
                 setCart(cart);
-                setError(result.error || "Failed to update cart");
+                toast.error(result.error || "Failed to update cart", { duration: 10000 });
             }
         } catch (err) {
             // Revert optimistic update
             setCart(cart);
-            setError("Failed to update cart");
+            toast.error("Failed to update cart", { duration: 10000 });
         } finally {
             // Remove updating state
             setUpdatingItems(prev => {
@@ -233,11 +245,12 @@ export default function OrderMenuClient({ menuData }) {
                 setOrderId(newOrderId);
                 setVersion(newVersion);
                 saveOrderToStorage(newOrderId, newVersion);
+                toast.success("Cart cleared. Starting fresh order.");
             } else {
-                setError(createError || "Failed to create new order after clearing cart");
+                toast.error(createError || "Failed to create new order", { duration: 10000 });
             }
         } catch (err) {
-            setError("Failed to clear cart");
+            toast.error("Failed to clear cart", { duration: 10000 });
         }
     };
 
@@ -268,39 +281,13 @@ export default function OrderMenuClient({ menuData }) {
     return (
         <>
             <LocalStorageModal />
-            
-            {/* Conflict Error Modal */}
-            {error && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 border-t-4 border-red-500">
-                        <div className="mb-4 flex justify-center">
-                            <i className="fas fa-exclamation-triangle text-red-500 text-7xl"></i>
-                        </div>
-                        <h2 className="text-2xl font-bold text-gray-900 mb-3 text-center">
-                            Cart Updated Elsewhere
-                        </h2>
-                        <p className="text-gray-600 mb-6 text-center">
-                            {error}
-                        </p>
-                        <div className="space-y-3">
-                            <button
-                                onClick={() => window.location.reload()}
-                                className="w-full bg-hot-pink text-white py-3 px-4 rounded-lg hover:bg-hot-pink/90 transition-colors font-bold text-lg flex items-center justify-center gap-2"
-                            >
-                                <i className="fas fa-sync-alt"></i>
-                                Refresh Page
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* Paid Order Banner */}
             {isPaidOrder && (
-                <div className="bg-green-100 border-2 border-green-500 rounded-lg p-6 mb-6">
-                    <div className="flex items-center gap-3 mb-3">
+                <div className="bg-green-100 border-2 border-green-500 rounded-lg p-4 md:p-6 mb-4 md:mb-6">
+                    <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-3">
                         <svg
-                            className="h-8 w-8 text-green-600 flex-shrink-0"
+                            className="h-6 w-6 md:h-8 md:w-8 text-green-600 shrink-0"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -312,23 +299,23 @@ export default function OrderMenuClient({ menuData }) {
                                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                             />
                         </svg>
-                        <h3 className="text-lg font-bold text-green-900">
+                        <h3 className="text-base md:text-lg font-bold text-green-900">
                             Order In Progress
                         </h3>
                     </div>
-                    <p className="text-green-800 mb-3">
+                    <p className="text-sm md:text-base text-green-800 mb-2 md:mb-3">
                         You have an order that is currently in progress. Track your order status below or start a new order.
                     </p>
-                    <div className="flex flex-wrap gap-3">
+                    <div className="flex flex-wrap gap-2 md:gap-3">
                         <Link
                             href={`/menu/order/track?orderId=${orderId}`}
-                            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors inline-block"
+                            className="bg-green-600 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-lg hover:bg-green-700 transition-colors inline-block text-sm md:text-base"
                         >
                             View Order Status
                         </Link>
                         <button
                             onClick={clearCart}
-                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                            className="bg-blue-600 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm md:text-base"
                         >
                             Start New Order
                         </button>
@@ -337,7 +324,7 @@ export default function OrderMenuClient({ menuData }) {
             )}
 
             {/* Add padding to bottom if cart has items - extra space for collapsed cart */}
-            <div className={Object.keys(cart).length > 0 ? "pb-28" : ""}>
+            <div className={Object.keys(cart).length > 0 ? "pb-24 md:pb-28" : ""}>
                 <AllergenNotice />
                 <CategoryNavigation />
                 <MenuList 
@@ -363,6 +350,43 @@ export default function OrderMenuClient({ menuData }) {
                     onCheckout={handleCheckout}
                 />
             )}
+            
+            <Toaster 
+                position="top-center"
+                toastOptions={{
+                    duration: 3000,
+                    style: {
+                        marginTop: "100px",
+                        fontSize: "14px",
+                    },
+                    success: {
+                        duration: 3000,
+                        style: {
+                            background: "#D1FAE5",
+                            color: "#065F46",
+                            border: "1px solid #A7F3D0",
+                            fontSize: "14px",
+                        },
+                        iconTheme: {
+                            primary: "#10B981",
+                            secondary: "#fff",
+                        },
+                    },
+                    error: {
+                        duration: Infinity,
+                        style: {
+                            background: "#FEE2E2",
+                            color: "#991B1B",
+                            border: "1px solid #FECACA",
+                            fontSize: "14px",
+                        },
+                        iconTheme: {
+                            primary: "#EF4444",
+                            secondary: "#fff",
+                        },
+                    },
+                }}
+            />
         </>
     );
 }

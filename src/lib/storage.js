@@ -8,8 +8,8 @@
  */
 export function isLocalStorageAvailable() {
   try {
-    const testKey = '__storage_test__';
-    localStorage.setItem(testKey, 'test');
+    const testKey = "__storage_test__";
+    localStorage.setItem(testKey, "test");
     localStorage.removeItem(testKey);
     return true;
   } catch (e) {

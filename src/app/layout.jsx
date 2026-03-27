@@ -12,11 +12,16 @@ export const metadata = {
         default: "Kira Sushi and Poke | Fresh Japanese Sushi & Poke Bowls in Chester-le-Street",
         template: "%s | Kira Sushi and Poke"
     },
-    description: "Authentic Japanese sushi and poke bowls made fresh daily with premium ingredients. Order online for delivery or pickup in Chester-le-Street.",
+    description: "Authentic Japanese sushi and poke bowls made fresh daily with premium ingredients. Order online for pickup in Chester-le-Street.",
     keywords: restaurantInfo.keywords.join(", "),
     authors: [{ name: "Kira Sushi and Poke" }],
     icons: {
-        icon: "/kira-logo.jpg",
+        icon: [
+            { url: "/favicon.ico", sizes: "any" },
+            { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+        ],
+        apple: "/apple-touch-icon.png",
+        shortcut: "/favicon.ico",
     },
     metadataBase: new URL(restaurantInfo.url),
     openGraph: {
@@ -47,9 +52,9 @@ export const metadata = {
         googleBot: {
             index: true,
             follow: true,
-            'max-video-preview': -1,
-            'max-image-preview': 'large',
-            'max-snippet': -1,
+            "max-video-preview": -1,
+            "max-image-preview": "large",
+            "max-snippet": -1,
         }
     }
 };
@@ -74,9 +79,9 @@ const Layout = ({ children }) => {
         },
         "openingHoursSpecification": restaurantInfo.openingHours.map(hours => ({
             "@type": "OpeningHoursSpecification",
-            "dayOfWeek": hours.split(' ')[0],
-            "opens": hours.split(' ')[1].split('-')[0],
-            "closes": hours.split(' ')[1].split('-')[1]
+            "dayOfWeek": hours.split(" ")[0],
+            "opens": hours.split(" ")[1].split("-")[0],
+            "closes": hours.split(" ")[1].split("-")[1]
         })),
         "url": restaurantInfo.url,
         "logo": restaurantInfo.logo,
@@ -119,10 +124,9 @@ const Layout = ({ children }) => {
                             <Image 
                                 src={KiraLogo} 
                                 alt="Kira Sushi and Poke Logo"
-                                className="h-25 w-auto"
-                                width={339}
-                                height={100}
+                                className="w-auto"
                                 priority
+                                loading="eager"
                             />
                         </div>
                         <Navigation />

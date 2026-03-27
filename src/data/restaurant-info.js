@@ -37,6 +37,7 @@ export const restaurantInfo = {
     "fresh sushi",
     "sushi",
     "sushi chester-le-street",
+    "sushi durham",
     "poke chester-le-street",
     "japanese restaurant",
     "sushi county durham",

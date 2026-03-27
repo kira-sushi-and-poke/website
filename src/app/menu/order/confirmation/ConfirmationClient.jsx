@@ -47,13 +47,13 @@ export default function ConfirmationClient({ orderId, status, order }) {
     // Extract pickup time from sanitized order
     const pickupTime = order.pickup_time;
     const formattedPickupTime = pickupTime 
-      ? new Date(pickupTime).toLocaleString('en-GB', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
+      ? new Date(pickupTime).toLocaleString("en-GB", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
         })
       : null;
 
@@ -108,7 +108,7 @@ export default function ConfirmationClient({ orderId, status, order }) {
                   return (
                     <div
                       key={index}
-                      className="flex justify-between items-start pb-4 border-b border-gray-200 last:border-0"
+                      className="flex justify-between items-start border-b border-gray-200 last:border-0"
                     >
                       <div className="flex-1">
                         <p className="font-medium text-gray-900">
@@ -136,6 +136,30 @@ export default function ConfirmationClient({ orderId, status, order }) {
 
             {/* Total */}
             <div className="pt-4 border-t-2 border-hot-pink">
+              {/* Subtotal (before service charges) */}
+              {order.service_charges && order.service_charges.length > 0 && (
+                <>
+                  <div className="flex justify-between items-center mb-2">
+                    <p className="text-base text-gray-700">Subtotal</p>
+                    <p className="text-base text-gray-700">
+                      £{((totalMoney.amount - (order.total_service_charge_money?.amount || 0)) / 100).toFixed(2)}
+                    </p>
+                  </div>
+                  
+                  {/* Service Charges (Tip) */}
+                  {order.service_charges.map((charge, index) => (
+                    <div key={index} className="flex justify-between items-center mb-2">
+                      <p className="text-base text-gray-700">
+                        {charge.name || "Service Charge"}
+                      </p>
+                      <p className="text-base text-gray-700">
+                        £{(charge.amount_money?.amount / 100).toFixed(2)}
+                      </p>
+                    </div>
+                  ))}
+                </>
+              )}
+              
               <div className="flex justify-between items-center">
                 <p className="text-xl font-bold text-gray-900">Total</p>
                 <p className="text-2xl font-bold text-hot-pink">
