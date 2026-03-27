@@ -77,12 +77,12 @@ export default function OrderMenuClient({ menuData }) {
                 setVersion(newVersion);
                 saveOrderToStorage(newOrderId, newVersion);
             } else {
-                toast.error(createError || 'Failed to initialize order. Please refresh the page.');
-                setOrderInitError(createError || 'Failed to initialize order.');
+                toast.error(createError || "Failed to initialize order. Please refresh the page.");
+                setOrderInitError(createError || "Failed to initialize order.");
             }
         } catch (err) {
-            toast.error('Failed to initialize order. Please refresh the page.');
-            setOrderInitError('Failed to initialize order.');
+            toast.error("Failed to initialize order. Please refresh the page.");
+            setOrderInitError("Failed to initialize order.");
         } finally {
             setIsInitializing(false);
         }
@@ -114,20 +114,20 @@ export default function OrderMenuClient({ menuData }) {
                 // Update version in state and localStorage
                 setVersion(result.version);
                 saveOrderToStorage(orderId, result.version);
-                toast.success('Item added to the cart');
+                toast.success("Item added to the cart");
             } else if (result.isConflict) {
                 // Conflict detected - revert optimistic update
                 setCart(cart);
-                toast.error('Cart was modified elsewhere. Please refresh the page to see the latest.');
+                toast.error("Cart was modified elsewhere. Please refresh the page to see the latest.");
             } else {
                 // Revert optimistic update
                 setCart(cart);
-                toast.error(result.error || 'Failed to update cart', { duration: 10000 });
+                toast.error(result.error || "Failed to update cart", { duration: 10000 });
             }
         } catch (err) {
             // Revert optimistic update
             setCart(cart);
-            toast.error('Failed to update cart', { duration: 10000 });
+            toast.error("Failed to update cart", { duration: 10000 });
         } finally {
             // Remove updating state
             setUpdatingItems(prev => {
@@ -162,20 +162,20 @@ export default function OrderMenuClient({ menuData }) {
                 // Update version in state and localStorage
                 setVersion(result.version);
                 saveOrderToStorage(orderId, result.version);
-                toast.success('Item removed from the cart');
+                toast.success("Item removed from the cart");
             } else if (result.isConflict) {
                 // Conflict detected - revert optimistic update
                 setCart(cart);
-                toast.error('Cart was modified elsewhere. Please refresh the page to see the latest.');
+                toast.error("Cart was modified elsewhere. Please refresh the page to see the latest.");
             } else {
                 // Revert optimistic update
                 setCart(cart);
-                toast.error(result.error || 'Failed to update cart', { duration: 10000 });
+                toast.error(result.error || "Failed to update cart", { duration: 10000 });
             }
         } catch (err) {
             // Revert optimistic update
             setCart(cart);
-            toast.error('Failed to update cart', { duration: 10000 });
+            toast.error("Failed to update cart", { duration: 10000 });
         } finally {
             // Remove updating state
             setUpdatingItems(prev => {
@@ -204,20 +204,20 @@ export default function OrderMenuClient({ menuData }) {
                 // Update version in state and localStorage
                 setVersion(result.version);
                 saveOrderToStorage(orderId, result.version);
-                toast.success('Item removed from the cart');
+                toast.success("Item removed from the cart");
             } else if (result.isConflict) {
                 // Conflict detected - revert optimistic update
                 setCart(cart);
-                toast.error('Cart was modified elsewhere. Please refresh the page to see the latest.');
+                toast.error("Cart was modified elsewhere. Please refresh the page to see the latest.");
             } else {
                 // Revert optimistic update
                 setCart(cart);
-                toast.error(result.error || 'Failed to update cart', { duration: 10000 });
+                toast.error(result.error || "Failed to update cart", { duration: 10000 });
             }
         } catch (err) {
             // Revert optimistic update
             setCart(cart);
-            toast.error('Failed to update cart', { duration: 10000 });
+            toast.error("Failed to update cart", { duration: 10000 });
         } finally {
             // Remove updating state
             setUpdatingItems(prev => {
@@ -245,12 +245,12 @@ export default function OrderMenuClient({ menuData }) {
                 setOrderId(newOrderId);
                 setVersion(newVersion);
                 saveOrderToStorage(newOrderId, newVersion);
-                toast.success('Cart cleared. Starting fresh order.');
+                toast.success("Cart cleared. Starting fresh order.");
             } else {
-                toast.error(createError || 'Failed to create new order', { duration: 10000 });
+                toast.error(createError || "Failed to create new order", { duration: 10000 });
             }
         } catch (err) {
-            toast.error('Failed to clear cart', { duration: 10000 });
+            toast.error("Failed to clear cart", { duration: 10000 });
         }
     };
 
@@ -356,33 +356,33 @@ export default function OrderMenuClient({ menuData }) {
                 toastOptions={{
                     duration: 3000,
                     style: {
-                        marginTop: '100px',
-                        fontSize: '14px',
+                        marginTop: "100px",
+                        fontSize: "14px",
                     },
                     success: {
                         duration: 3000,
                         style: {
-                            background: '#D1FAE5',
-                            color: '#065F46',
-                            border: '1px solid #A7F3D0',
-                            fontSize: '14px',
+                            background: "#D1FAE5",
+                            color: "#065F46",
+                            border: "1px solid #A7F3D0",
+                            fontSize: "14px",
                         },
                         iconTheme: {
-                            primary: '#10B981',
-                            secondary: '#fff',
+                            primary: "#10B981",
+                            secondary: "#fff",
                         },
                     },
                     error: {
                         duration: Infinity,
                         style: {
-                            background: '#FEE2E2',
-                            color: '#991B1B',
-                            border: '1px solid #FECACA',
-                            fontSize: '14px',
+                            background: "#FEE2E2",
+                            color: "#991B1B",
+                            border: "1px solid #FECACA",
+                            fontSize: "14px",
                         },
                         iconTheme: {
-                            primary: '#EF4444',
-                            secondary: '#fff',
+                            primary: "#EF4444",
+                            secondary: "#fff",
                         },
                     },
                 }}

@@ -22,7 +22,7 @@ const FAQAccordion = ({ faqs }) => {
                         <span className="font-bold text-hot-pink pr-4">
                             {faq.question}
                         </span>
-                        <i className={`fas fa-chevron-${openIndex === index ? 'up' : 'down'} text-yellow flex-shrink-0`}></i>
+                        <i className={`fas fa-chevron-${openIndex === index ? "up" : "down"} text-yellow flex-shrink-0`}></i>
                     </button>
 
                     {openIndex === index && (

@@ -69,10 +69,10 @@ const CategoryNavigation = () => {
             setActiveCategory(currentSection);
         };
 
-        window.addEventListener('scroll', handleScroll);
+        window.addEventListener("scroll", handleScroll);
         handleScroll(); // Check on mount
 
-        return () => window.removeEventListener('scroll', handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
     // Scroll active category into view when it changes
@@ -81,9 +81,9 @@ const CategoryNavigation = () => {
             const activeButton = navRef.current.querySelector(`[data-category="${activeCategory}"]`);
             if (activeButton) {
                 activeButton.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'nearest',
-                    inline: 'center'
+                    behavior: "smooth",
+                    block: "nearest",
+                    inline: "center"
                 });
             }
         }
@@ -93,8 +93,8 @@ const CategoryNavigation = () => {
         if (navRef.current) {
             const scrollAmount = 200;
             navRef.current.scrollBy({
-                left: direction === 'left' ? -scrollAmount : scrollAmount,
-                behavior: 'smooth'
+                left: direction === "left" ? -scrollAmount : scrollAmount,
+                behavior: "smooth"
             });
         }
     };
@@ -104,8 +104,8 @@ const CategoryNavigation = () => {
             {/* Left Arrow - Mobile Only */}
             {showLeftArrow && (
                 <button
-                    onClick={() => scroll('left')}
-                    className="md:hidden absolute left-0 top-1/2 -translate-y-1/2 z-50 bg-hot-pink text-white w-8 h-8 md:w-10 md:h-10 rounded-full shadow-xl hover:bg-yellow transition-colors flex items-center justify-center -ml-4 md:-ml-5"
+                    onClick={() => scroll("left")}
+                    className="md:hidden absolute left-0 top-1/2 -translate-y-1/2 z-50 bg-hot-pink text-white w-10 h-10 rounded-full shadow-xl hover:bg-yellow transition-colors flex items-center justify-center -ml-5"
                     aria-label="Scroll left"
                 >
                     <i className="fas fa-chevron-left text-sm"></i>
@@ -115,7 +115,7 @@ const CategoryNavigation = () => {
             {/* Right Arrow - Mobile Only */}
             {showRightArrow && (
                 <button
-                    onClick={() => scroll('right')}
+                    onClick={() => scroll("right")}
                     className="md:hidden absolute right-0 top-1/2 -translate-y-1/2 z-50 bg-hot-pink text-white w-8 h-8 md:w-10 md:h-10 rounded-full shadow-xl hover:bg-yellow transition-colors flex items-center justify-center -mr-4 md:-mr-5"
                     aria-label="Scroll right"
                 >
@@ -131,19 +131,19 @@ const CategoryNavigation = () => {
                         data-category={item.id}
                         className={`shrink-0 flex flex-col items-center px-2 py-2 md:px-2 md:py-2 text-center transition-colors duration-200 border-r border-hot-pink/20 last:border-r-0 min-w-[80px] md:min-w-0 flex-1 group ${
                             activeCategory === item.id
-                                ? 'bg-hot-pink text-white'
-                                : 'hover:bg-hot-pink hover:text-white'
+                                ? "bg-hot-pink text-white"
+                                : "hover:bg-hot-pink hover:text-white"
                         }`}
                     >
                         <i className={`fas ${item.icon} text-sm md:text-sm mb-1 md:mb-1.5 transition-colors ${
                             activeCategory === item.id
-                                ? 'text-white'
-                                : 'text-hot-pink group-hover:text-white'
+                                ? "text-white"
+                                : "text-hot-pink group-hover:text-white"
                         }`}></i>
                         <span className={`text-[10px] md:text-xs font-semibold leading-tight max-w-[75px] md:max-w-[85px] min-h-[1.75rem] md:min-h-[1.75rem] flex items-center justify-center ${
                             activeCategory === item.id
-                                ? 'text-white'
-                                : 'text-gray-700 group-hover:text-white'
+                                ? "text-white"
+                                : "text-gray-700 group-hover:text-white"
                         }`}>
                             {item.label}
                         </span>

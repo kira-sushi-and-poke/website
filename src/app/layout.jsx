@@ -52,9 +52,9 @@ export const metadata = {
         googleBot: {
             index: true,
             follow: true,
-            'max-video-preview': -1,
-            'max-image-preview': 'large',
-            'max-snippet': -1,
+            "max-video-preview": -1,
+            "max-image-preview": "large",
+            "max-snippet": -1,
         }
     }
 };
@@ -79,9 +79,9 @@ const Layout = ({ children }) => {
         },
         "openingHoursSpecification": restaurantInfo.openingHours.map(hours => ({
             "@type": "OpeningHoursSpecification",
-            "dayOfWeek": hours.split(' ')[0],
-            "opens": hours.split(' ')[1].split('-')[0],
-            "closes": hours.split(' ')[1].split('-')[1]
+            "dayOfWeek": hours.split(" ")[0],
+            "opens": hours.split(" ")[1].split("-")[0],
+            "closes": hours.split(" ")[1].split("-")[1]
         })),
         "url": restaurantInfo.url,
         "logo": restaurantInfo.logo,

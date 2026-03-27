@@ -18,7 +18,7 @@ export default function PickupDetails({
       setIsExpanded(true);
       // Scroll to this section
       setTimeout(() => {
-        containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        containerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       }, 100);
     }
   }, [formErrors.pickupTime]);
@@ -33,7 +33,7 @@ export default function PickupDetails({
         <h3 className="text-xl font-bold text-hot-pink">
           <i className="fas fa-clock mr-2"></i>Pickup Details <small className="text-red-500">(required)</small>
         </h3>
-        <i className={`fas fa-chevron-${isExpanded ? 'up' : 'down'} text-hot-pink transition-transform`}></i>
+        <i className={`fas fa-chevron-${isExpanded ? "up" : "down"} text-hot-pink transition-transform`}></i>
       </button>
         
         {isExpanded && (

@@ -4,7 +4,7 @@ import { SQUARE_API_VERSION } from "./constants";
 
 /**
  * Make authenticated request to Square API
- * @param {string} endpoint - API endpoint path (e.g., '/v2/payments') or full URL
+ * @param {string} endpoint - API endpoint path (e.g., "/v2/payments") or full URL
  * @param {object} options - Fetch options (method, body, etc.)
  * @returns {Promise<object>} Parsed JSON response
  * @throws {Error} When the API request fails

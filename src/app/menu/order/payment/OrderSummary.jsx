@@ -15,7 +15,7 @@ export default function OrderSummary({ lineItems, total }) {
         <h2 className="text-xl font-bold text-hot-pink">
           <i className="fas fa-receipt mr-2"></i>Order Details
         </h2>
-        <i className={`fas fa-chevron-${isExpanded ? 'up' : 'down'} text-hot-pink transition-transform`}></i>
+        <i className={`fas fa-chevron-${isExpanded ? "up" : "down"} text-hot-pink transition-transform`}></i>
       </button>
       
       {isExpanded && (

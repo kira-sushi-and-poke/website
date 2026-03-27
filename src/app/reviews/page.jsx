@@ -87,11 +87,11 @@ const ReviewsPage = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
                         <div className="flex justify-center">
                             <div className="w-full max-w-lg">
-                                <div className="relative w-full" style={{paddingBottom: '135%'}}>
+                                <div className="relative w-full" style={{paddingBottom: "135%"}}>
                                     <iframe 
                                         src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2Fsabrinacorrinx%2Fposts%2Fpfbid0J6P2EVsLCEAL5Wb21DRyZD7ib7wGVJF79mEBuobuPVikZmgnD1sWVakY8BgBLgQRl&show_text=true&width=500" 
                                         className="absolute top-0 left-0 w-full h-full"
-                                        style={{border: 'none', overflow: 'hidden'}} 
+                                        style={{border: "none", overflow: "hidden"}} 
                                         scrolling="no" 
                                         frameBorder="0" 
                                         allowFullScreen={true} 
@@ -103,11 +103,11 @@ const ReviewsPage = () => {
 
                         <div className="flex justify-center">
                             <div className="w-full max-w-lg">
-                                <div className="relative w-full" style={{paddingBottom: '85%'}}>
+                                <div className="relative w-full" style={{paddingBottom: "85%"}}>
                                     <iframe 
                                         src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2Frachel.s.brown.94%2Fposts%2Fpfbid036MtZbzgCpaWZJZrtZsAoTSJ9L3wiyi9npNDBV3AMbP2w1Rb1Md317RxgKfCSdZusl&show_text=true&width=500" 
                                         className="absolute top-0 left-0 w-full h-full"
-                                        style={{border: 'none', overflow: 'hidden'}} 
+                                        style={{border: "none", overflow: "hidden"}} 
                                         scrolling="no" 
                                         frameBorder="0" 
                                         allowFullScreen={true} 
@@ -119,11 +119,11 @@ const ReviewsPage = () => {
                         
                         <div className="flex justify-center">
                             <div className="w-full max-w-lg">
-                                <div className="relative w-full" style={{paddingBottom: '139%'}}>
+                                <div className="relative w-full" style={{paddingBottom: "139%"}}>
                                     <iframe 
-                                        src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2Fmelhunter83%2Fposts%2Fpfbid09ynzHy5N1XSjyqEUsCrvb9BFerBV7aDQNcJvta7SXaY2hHx3PEkY8nZyUfm4T4d8l&show_text=true&width=500" 
+                                        src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2Fmelhunter83%2Fposts%2Fpfbid09ynzHy5N1XSjyqEUsCrvb9BFerBV7aDQNcJvta7SXaY8nZyUfm4T4d8l&show_text=true&width=500" 
                                         className="absolute top-0 left-0 w-full h-full"
-                                        style={{border: 'none', overflow: 'hidden'}} 
+                                        style={{border: "none", overflow: "hidden"}} 
                                         scrolling="no" 
                                         frameBorder="0" 
                                         allowFullScreen={true} 
@@ -135,11 +135,11 @@ const ReviewsPage = () => {
 
                         <div className="flex justify-center">
                             <div className="w-full max-w-lg">
-                                <div className="relative w-full" style={{paddingBottom: '140%'}}>
+                                <div className="relative w-full" style={{paddingBottom: "140%"}}>
                                     <iframe 
                                         src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2Fpermalink.php%3Fstory_fbid%3Dpfbid02S4EDD86xzkfLiAg2DGvAJLsgY4PmqLQtVutaTvgEiaux5ggznabmmkPHdnk3sEaGl%26id%3D1539407347&show_text=true&width=500" 
                                         className="absolute top-0 left-0 w-full h-full"
-                                        style={{border: 'none', overflow: 'hidden'}} 
+                                        style={{border: "none", overflow: "hidden"}} 
                                         scrolling="no" 
                                         frameBorder="0" 
                                         allowFullScreen={true} 
@@ -197,8 +197,8 @@ const ReviewsPage = () => {
 
                         let enhancedComment = comment;
                         Object.entries(linkMap).forEach(([text, link]) => {
-                            const regex = new RegExp(`(${text})`, 'gi');
-                            if (regex.test(enhancedComment) && !enhancedComment.includes('</Link>')) {
+                            const regex = new RegExp(`(${text})`, "gi");
+                            if (regex.test(enhancedComment) && !enhancedComment.includes("</Link>")) {
                                 enhancedComment = enhancedComment.replace(
                                     regex,
                                     `<Link href="${link}" className="text-hot-pink font-semibold hover:underline">$1</Link>`

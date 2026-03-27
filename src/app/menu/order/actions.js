@@ -308,8 +308,8 @@ export async function checkout(orderId) {
 /**
  * Creates a customer in Square and attaches them to an order
  * @param {string} orderId - The Square order ID
- * @param {string} name - Customer's full name
- * @param {string} email - Customer's email address
+ * @param {string} name - Customer"s full name
+ * @param {string} email - Customer"s email address
  * @param {string} phone - Customer's phone number
  * @returns {Promise<{success: boolean, version?: number, error?: string}>}
  */

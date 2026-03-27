@@ -25,8 +25,8 @@ const Navigation = () => {
                                 href={item.href} 
                                 className={`font-bold transition-all duration-200 px-4 py-2 rounded-lg border-2 ${
                                     isActive 
-                                        ? 'bg-yellow text-white border-yellow shadow-md' 
-                                        : 'bg-white text-hot-pink border-white hover:bg-yellow hover:text-white hover:border-yellow hover:shadow-md'
+                                        ? "bg-yellow text-white border-yellow shadow-md" 
+                                        : "bg-white text-hot-pink border-white hover:bg-yellow hover:text-white hover:border-yellow hover:shadow-md"
                                 }`}
                             >
                                 {item.label}
@@ -41,9 +41,9 @@ const Navigation = () => {
                     <a 
                         href="/menu/order"
                         className={`font-bold transition-all duration-200 px-4 py-2 rounded-lg border-2 flex items-center gap-2 ${
-                            pathname?.startsWith('/menu/order')
-                                ? 'bg-yellow text-white border-yellow shadow-md' 
-                                : 'bg-white text-hot-pink border-white hover:bg-yellow hover:text-white hover:border-yellow hover:shadow-md'
+                            pathname?.startsWith("/menu/order")
+                                ? "bg-yellow text-white border-yellow shadow-md" 
+                                : "bg-white text-hot-pink border-white hover:bg-yellow hover:text-white hover:border-yellow hover:shadow-md"
                         }`}
                         title="Order Online"
                     >

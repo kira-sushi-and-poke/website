@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, { useState, useEffect } from "react";
 
@@ -216,7 +216,7 @@ export default function StickyCartSummary({
                                     <div>
                                         <p className="text-sm font-semibold text-gray-800 mb-1">Pickup Only</p>
                                         <p className="text-xs text-gray-700">
-                                            We don't offer delivery at the moment, but we're hoping to add it soon! For now, you can collect your order from our location at 148 Front Street, Chester-le-Street.
+                                            We don"t offer delivery at the moment, but we"re hoping to add it soon! For now, you can collect your order from our location at 148 Front Street, Chester-le-Street.
                                         </p>
                                     </div>
                                 </div>

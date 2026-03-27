@@ -8,7 +8,7 @@ const OpeningHoursChat = () => {
     const pathname = usePathname();
 
     // Hide on menu/order pages
-    const shouldHide = pathname?.startsWith('/menu/order') || pathname === '/menu/order';
+    const shouldHide = pathname?.startsWith("/menu/order") || pathname === "/menu/order";
     
     if (shouldHide) {
         return null;
@@ -83,8 +83,8 @@ const OpeningHoursChat = () => {
                             transition-all duration-300 hover:scale-105
                             bg-white block cursor-pointer
                             ${restaurantOpen 
-                                ? 'shadow-[0_0_20px_rgba(236,72,153,0.6),0_0_40px_rgba(236,72,153,0.4),0_0_60px_rgba(236,72,153,0.2)] border-4 border-hot-pink' 
-                                : 'shadow-[0_0_20px_rgba(255,215,0,0.6),0_0_40px_rgba(255,215,0,0.4),0_0_60px_rgba(255,215,0,0.2)] border-4 border-yellow'
+                                ? "shadow-[0_0_20px_rgba(236,72,153,0.6),0_0_40px_rgba(236,72,153,0.4),0_0_60px_rgba(236,72,153,0.2)] border-4 border-hot-pink" 
+                                : "shadow-[0_0_20px_rgba(255,215,0,0.6),0_0_40px_rgba(255,215,0,0.4),0_0_60px_rgba(255,215,0,0.2)] border-4 border-yellow"
                             }
                         `}
                     >
@@ -137,7 +137,7 @@ const OpeningHoursChat = () => {
                             Opening Hours
                         </h2>
                         <div className="flex items-center gap-2 mb-6 p-3 bg-hot-pink/10 rounded">
-                            <span className={`inline-block w-3 h-3 rounded-full ${restaurantOpen ? 'bg-yellow' : 'bg-hot-pink'} animate-pulse`}></span>
+                            <span className={`inline-block w-3 h-3 rounded-full ${restaurantOpen ? "bg-yellow" : "bg-hot-pink"} animate-pulse`}></span>
                             <div className="flex flex-col">
                                 <span className="text-lg font-semibold text-hot-pink">
                                     {restaurantOpen ? "We're Open Now!" : "Currently Closed"}

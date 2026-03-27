@@ -29,7 +29,7 @@ export default function ErrorDisplay({ error }) {
             </p>
 
             <p className="text-gray-600 mb-6">
-                You can reach us via{' '}
+                You can reach us via{" "}
                 <a
                     href="https://www.facebook.com/people/Kira-Sushi-Poke/61583413766423/"
                     target="_blank"
@@ -38,7 +38,7 @@ export default function ErrorDisplay({ error }) {
                 >
                     Facebook
                 </a>
-                {' '}or{' '}
+                {" "}or{" "}
                 <a
                     href="https://www.instagram.com/kira_sushi_and_poke"
                     target="_blank"
@@ -47,7 +47,7 @@ export default function ErrorDisplay({ error }) {
                 >
                     Instagram
                 </a>
-                {' '}to place your order.
+                {" "}to place your order.
             </p>
 
             <div className="flex gap-3 justify-center flex-wrap">

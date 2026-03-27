@@ -47,13 +47,13 @@ export default function ConfirmationClient({ orderId, status, order }) {
     // Extract pickup time from sanitized order
     const pickupTime = order.pickup_time;
     const formattedPickupTime = pickupTime 
-      ? new Date(pickupTime).toLocaleString('en-GB', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
+      ? new Date(pickupTime).toLocaleString("en-GB", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
         })
       : null;
 

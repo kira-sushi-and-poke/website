@@ -101,10 +101,10 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
           // Wallet provided complete info
           contactInfo = walletContact;
         } else {
-          // Wallet didn't provide complete info - use manual form
+          // Wallet didn"t provide complete info - use manual form
           if (!contactDetails.email || !contactDetails.name || !contactDetails.phone) {
             setIsProcessing(false);
-            toast.error('Please fill in all contact details below before paying.', { duration: 10000 });
+            toast.error("Please fill in all contact details below before paying.", { duration: 10000 });
             return;
           }
           contactInfo = contactDetails;
@@ -117,14 +117,14 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
             ...prev,
             pickupTime: "Pickup time is required"
           }));
-          toast.error('Please select a pickup time', { duration: 10000 });
+          toast.error("Please select a pickup time", { duration: 10000 });
           return;
         }
       } else {
         // Credit card - validate manual form
         if (!validateContactForm()) {
           setIsProcessing(false);
-          toast.error('Please check all required fields', { duration: 10000 });
+          toast.error("Please check all required fields", { duration: 10000 });
           return;
         }
         contactInfo = contactDetails;
@@ -144,15 +144,15 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
       
       if (result.success) {
         // Payment successful - redirect to confirmation
-        toast.success('Payment successful! Redirecting...');
+        toast.success("Payment successful! Redirecting...");
         router.push(`/menu/order/confirmation?orderId=${orderId}`);
       } else {
         // Payment failed
-        toast.error(result.error || 'Payment failed. Please try again.', { duration: 10000 });
+        toast.error(result.error || "Payment failed. Please try again.", { duration: 10000 });
         setIsProcessing(false);
       }
     } catch (err) {
-      toast.error('Payment failed. Please try again.', { duration: 10000 });
+      toast.error("Payment failed. Please try again.", { duration: 10000 });
       setIsProcessing(false);
     }
   };
@@ -252,8 +252,8 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
                   disabled={isProcessing}
                   className={`py-1 px-2 rounded-lg border-2 transition-all text-xs ${
                     tipPercentage === percent
-                      ? 'bg-hot-pink text-white border-hot-pink'
-                      : 'bg-white border-gray-300 hover:border-hot-pink disabled:opacity-50'
+                      ? "bg-hot-pink text-white border-hot-pink"
+                      : "bg-white border-gray-300 hover:border-hot-pink disabled:opacity-50"
                   }`}
                 >
                   <div>{percent}%</div>
@@ -417,33 +417,33 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
         toastOptions={{
           duration: 3000,
           style: {
-            marginTop: '100px',
-            fontSize: '14px',
+            marginTop: "100px",
+            fontSize: "14px",
           },
           success: {
             duration: 3000,
             style: {
-              background: '#D1FAE5',
-              color: '#065F46',
-              border: '1px solid #A7F3D0',
-              fontSize: '14px',
+              background: "#D1FAE5",
+              color: "#065F46",
+              border: "1px solid #A7F3D0",
+              fontSize: "14px",
             },
             iconTheme: {
-              primary: '#10B981',
-              secondary: '#fff',
+              primary: "#10B981",
+              secondary: "#fff",
             },
           },
           error: {
             duration: Infinity,
             style: {
-              background: '#FEE2E2',
-              color: '#991B1B',
-              border: '1px solid #FECACA',
-              fontSize: '14px',
+              background: "#FEE2E2",
+              color: "#991B1B",
+              border: "1px solid #FECACA",
+              fontSize: "14px",
             },
             iconTheme: {
-              primary: '#EF4444',
-              secondary: '#fff',
+              primary: "#EF4444",
+              secondary: "#fff",
             },
           },
         }}

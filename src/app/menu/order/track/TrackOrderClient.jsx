@@ -106,12 +106,12 @@ export default function TrackOrderClient({ initialData }) {
   const pickupTime = order.pickup_time;
   
   const formattedPickupTime = pickupTime 
-    ? new Date(pickupTime).toLocaleString('en-GB', {
-        weekday: 'long',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
+    ? new Date(pickupTime).toLocaleString("en-GB", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       })
     : null;
 
