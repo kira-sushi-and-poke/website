@@ -56,6 +56,8 @@ function sanitizeOrderForClient(order) {
     total_money: order.total_money,
     total_tax_money: order.total_tax_money,
     total_discount_money: order.total_discount_money,
+    total_service_charge_money: order.total_service_charge_money,
+    service_charges: order.service_charges,
     has_payment: hasSuccessfulPayment, // Only true if payment captured
     fulfillment_status: fulfillmentStatus, // Safe: just the state, no PII
     pickup_time: pickupTime, // Safe: just the timestamp
@@ -505,7 +507,7 @@ export async function processPayment(sourceId, orderId, amount, verificationToke
         }
         
         // Build fulfillment object (for both DRAFT and OPEN)
-        const fulfillmentNote = specialInstructions || "No special instructions";
+        const fulfillmentNote = specialInstructions?.trim() || "No special instructions";
         const fulfillment = {
           type: FULFILLMENT_TYPE_PICKUP,
           state: FULFILLMENT_STATE_PROPOSED,

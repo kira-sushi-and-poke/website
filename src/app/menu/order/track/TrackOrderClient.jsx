@@ -119,7 +119,7 @@ export default function TrackOrderClient({ initialData }) {
   let statusConfig = {
     icon: "fa-clock",
     title: "Order Submitted",
-    message: "Your order has been submitted. We will let you know when it is being prepared.",
+    message: "Your order has been submitted! We'll start preparing your meal shortly. Stay on this page to track your order status in real-time.",
     color: "yellow",
     showPickupTime: true,
   };
@@ -128,7 +128,7 @@ export default function TrackOrderClient({ initialData }) {
     statusConfig = {
       icon: "fa-fire",
       title: "Preparing Your Order",
-      message: "Our chef is carefully crafting your delicious meal!",
+      message: "Our chef is carefully crafting your delicious meal! Stay on this page to track your order status in real-time.",
       color: "yellow",
       showPickupTime: true,
     };
@@ -171,7 +171,7 @@ export default function TrackOrderClient({ initialData }) {
           <h1 className="text-3xl font-bold text-hot-pink mb-3">
             {statusConfig.title}
           </h1>
-          <p className="text-lg text-gray-600 mb-4">
+          <p className="text-md text-gray-600 mb-4">
             {statusConfig.message}
           </p>
           
