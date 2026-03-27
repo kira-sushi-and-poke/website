@@ -6,15 +6,15 @@ import OrderMenuClient from "./OrderMenuClient";
 // Generate metadata for SEO
 export const metadata = {
     title: "Order Online | Kira Sushi & Poke",
-    description: "Order fresh sushi rolls, poke bowls, and Japanese dishes online for pickup or delivery.",
+    description: "Order fresh sushi rolls, poke bowls, and Japanese dishes online for pickup.",
 };
 
 export default async function MenuOrderPage() {
     const { success, error, data: menuData } = await getMenuData();
 
     return (
-        <div className="py-8 md:py-12 px-5 md:px-10 max-w-7xl mx-auto overflow-visible">
-            <h1 className="text-2xl md:text-4xl font-bold mb-4 md:mb-6 text-hot-pink">Order Menu</h1>
+        <div className="py-6 md:py-12 px-3 md:px-10 max-w-7xl mx-auto overflow-visible">
+            <h1 className="text-xl md:text-4xl font-bold mb-3 md:mb-6 text-hot-pink">Order Menu</h1>
 
             {!success && error && (
                 <ErrorDisplay error={error} />

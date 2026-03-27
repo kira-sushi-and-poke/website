@@ -2,14 +2,15 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import toast, { Toaster } from "react-hot-toast";
 import { PaymentForm, CreditCard, GooglePay, ApplePay } from "react-square-web-payments-sdk";
 import { generatePickupTimes } from "@/lib/generatePickupTimes";
 import { validateContactDetails } from "@/lib/validation";
 import { processPayment } from "../actions";
+import PickupDetails from "./PickupDetails";
 
 export default function PaymentFormComponent({ orderId, totalAmount }) {
   const router = useRouter();
-  const [error, setError] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [contactDetails, setContactDetails] = useState({
     name: "",
@@ -20,6 +21,8 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
   });
   const [formErrors, setFormErrors] = useState({});
   const [pickupTimeOptions, setPickupTimeOptions] = useState([]);
+  const [tipAmount, setTipAmount] = useState(0);
+  const [tipPercentage, setTipPercentage] = useState(null);
   
   const appId = process.env.NEXT_PUBLIC_SQUARE_APP_ID;
   const locationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID;
@@ -79,7 +82,6 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
     
     // Set loading state
     setIsProcessing(true);
-    setError(null);
 
     try {
       // Determine payment method
@@ -102,15 +104,27 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
           // Wallet didn't provide complete info - use manual form
           if (!contactDetails.email || !contactDetails.name || !contactDetails.phone) {
             setIsProcessing(false);
-            setError("Please fill in all contact details below before paying.");
+            toast.error('Please fill in all contact details below before paying.', { duration: 10000 });
             return;
           }
           contactInfo = contactDetails;
+        }
+        
+        // Always validate pickup time for all payments
+        if (!contactDetails.pickupTime) {
+          setIsProcessing(false);
+          setFormErrors(prev => ({
+            ...prev,
+            pickupTime: "Pickup time is required"
+          }));
+          toast.error('Please select a pickup time', { duration: 10000 });
+          return;
         }
       } else {
         // Credit card - validate manual form
         if (!validateContactForm()) {
           setIsProcessing(false);
+          toast.error('Please check all required fields', { duration: 10000 });
           return;
         }
         contactInfo = contactDetails;
@@ -124,29 +138,33 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
         verifiedBuyer?.token,
         contactInfo,
         contactDetails.pickupTime,
-        contactDetails.specialInstructions
+        contactDetails.specialInstructions,
+        tipAmount
       );
       
       if (result.success) {
         // Payment successful - redirect to confirmation
+        toast.success('Payment successful! Redirecting...');
         router.push(`/menu/order/confirmation?orderId=${orderId}`);
       } else {
         // Payment failed
-        setError(result.error || "Payment failed. Please try again.");
+        toast.error(result.error || 'Payment failed. Please try again.', { duration: 10000 });
         setIsProcessing(false);
       }
     } catch (err) {
-      setError("Payment failed. Please try again.");
+      toast.error('Payment failed. Please try again.', { duration: 10000 });
       setIsProcessing(false);
     }
   };
   
   const createPaymentRequest = () => {
+    const finalTotal = totalAmount + tipAmount;
+    
     const request = {
       countryCode: "GB",
       currencyCode: "GBP",
       total: {
-        amount: (totalAmount / 100).toFixed(2),
+        amount: (finalTotal / 100).toFixed(2),
         label: "Kira Sushi & Poke",
       },
       // Request contact information from Apple Pay / Google Pay
@@ -163,7 +181,7 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
     return (
       <div className="bg-yellow-50 border-l-4 border-yellow-500 rounded-lg p-5">
         <div className="flex items-start">
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <i className="fas fa-exclamation-triangle text-yellow-500 text-2xl"></i>
           </div>
           <div className="ml-3">
@@ -176,108 +194,93 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
   }
   
   return (
-    <div className="bg-white rounded-lg shadow-lg p-8 border-t-4 border-hot-pink relative">
-      {/* Loading Overlay */}
-      {isProcessing && (
-        <div className="absolute inset-0 bg-white/95 backdrop-blur-sm rounded-lg flex flex-col items-center justify-center z-50">
-          <div className="mb-6">
-            <div className="mx-auto h-20 w-20 bg-gradient-to-br from-hot-pink/20 to-yellow/20 rounded-full flex items-center justify-center animate-pulse">
-              <i className="fas fa-credit-card text-hot-pink text-4xl"></i>
-            </div>
-          </div>
-          <div className="w-16 h-16 border-4 border-hot-pink border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="text-xl font-bold text-hot-pink">Processing Payment...</p>
-          <p className="text-sm text-gray-600 mt-2">Please don't close this page</p>
-        </div>
-      )}
-      
-      {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-5 mb-6">
-          <div className="flex items-start">
-            <div className="flex-shrink-0">
-              <i className="fas fa-exclamation-circle text-red-500 text-2xl"></i>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-semibold text-red-800 mb-1">Payment Error</p>
-              <p className="text-sm text-red-700">{error}</p>
-            </div>
+    <>
+    {/* Loading Overlay */}
+    {isProcessing && (
+      <div className="fixed inset-0 bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center z-50">
+        <div className="mb-6">
+          <div className="mx-auto h-20 w-20 bg-gradient-to-br from-hot-pink/20 to-yellow/20 rounded-full flex items-center justify-center animate-pulse">
+            <i className="fas fa-credit-card text-hot-pink text-4xl"></i>
           </div>
         </div>
-      )}
-      
+        <div className="w-16 h-16 border-4 border-hot-pink border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-xl font-bold text-hot-pink">Processing Payment...</p>
+        <p className="text-sm text-gray-600 mt-2">Please don't close this page</p>
+      </div>
+    )}
+    
+    <PickupDetails
+      contactDetails={contactDetails}
+      handleInputChange={handleInputChange}
+      formErrors={formErrors}
+      isProcessing={isProcessing}
+      pickupTimeOptions={pickupTimeOptions}
+    />
+    
+    <div className="bg-white rounded-lg shadow-lg p-8 border-t-4 border-hot-pink">
       <PaymentForm
         applicationId={appId}
         locationId={locationId}
         cardTokenizeResponseReceived={cardTokenizeResponseReceived}
         createPaymentRequest={createPaymentRequest}
       >
-        {/* Pickup Details */}
-        <div className="mb-6 p-5 bg-hot-pink/5 border-2 border-hot-pink/20 rounded-lg">
-          <h3 className="text-lg font-bold mb-4 text-hot-pink flex items-center">
-            <i className="fas fa-clock mr-2"></i>
-            Pickup Details
+        <h1 className="text-xl font-bold text-hot-pink mb-4">
+          <i className="fas fa-credit-card mr-2"></i>Payment
+        </h1>
+        
+        {/* Tip Section */}
+        <div className="mb-5">
+          <h3 className="text-sm font-bold mb-1 text-hot-pink">
+            <i className="fas fa-heart mr-2"></i>Add a Tip (Optional)
           </h3>
+          <p className="text-xs text-gray-600 mb-2">
+            Show your appreciation for our service
+          </p>
           
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="pickupTime" className="block text-sm font-medium mb-2">
-                Pickup Time *
-              </label>
-              <select
-                id="pickupTime"
-                name="pickupTime"
-                value={contactDetails.pickupTime}
-                onChange={handleInputChange}
-                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-hot-pink ${
-                  formErrors.pickupTime ? "border-red-500" : "border-gray-300"
-                }`}
-                disabled={isProcessing}
-              >
-                <option value="">Select a pickup time</option>
-                {pickupTimeOptions.map((option, index) => (
-                  <option key={index} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              {formErrors.pickupTime && (
-                <p className="text-red-500 text-sm mt-1">{formErrors.pickupTime}</p>
+          {/* Preset tip buttons */}
+          <div className="grid grid-cols-4 gap-2 mb-3">
+            {[5, 10, 15, 20].map(percent => {
+              const tipValue = Math.round(totalAmount * (percent / 100));
+              return (
+                <button
+                  key={percent}
+                  type="button"
+                  onClick={() => {
+                    setTipAmount(tipValue);
+                    setTipPercentage(percent);
+                  }}
+                  disabled={isProcessing}
+                  className={`py-1 px-2 rounded-lg border-2 transition-all text-xs ${
+                    tipPercentage === percent
+                      ? 'bg-hot-pink text-white border-hot-pink'
+                      : 'bg-white border-gray-300 hover:border-hot-pink disabled:opacity-50'
+                  }`}
+                >
+                  <div>{percent}%</div>
+                  <div className="text-[10px] mt-0.5">£{(tipValue / 100).toFixed(2)}</div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        
+        {/* Total Display - Compact */}
+        <div className="bg-hot-pink/5 border border-hot-pink/20 rounded-lg p-3 mb-3">
+          <div className="flex justify-between items-center">
+            <div className="text-sm text-gray-700">
+              <div>Order Total: £{(totalAmount / 100).toFixed(2)}</div>
+              {tipAmount > 0 && (
+                <div className="text-xs text-gray-600">Includes £{(tipAmount / 100).toFixed(2)} tip</div>
               )}
             </div>
-            
-            <div>
-              <label htmlFor="specialInstructions" className="block text-sm font-medium mb-2">
-                Special Instructions (Optional)
-              </label>
-              <textarea
-                id="specialInstructions"
-                name="specialInstructions"
-                value={contactDetails.specialInstructions}
-                onChange={handleInputChange}
-                rows={3}
-                placeholder="E.g., Please call when you arrive, Extra napkins, etc."
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-hot-pink resize-none"
-                disabled={isProcessing}
-                maxLength={500}
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                {contactDetails.specialInstructions.length}/500 characters
-              </p>
+            <div className="text-2xl font-bold text-hot-pink">
+              £{((totalAmount + tipAmount) / 100).toFixed(2)}
             </div>
           </div>
         </div>
         
-        <h2 className="text-2xl font-bold text-hot-pink mb-6 flex items-center">
-          <i className="fas fa-credit-card mr-2"></i>
-          Payment Method
-        </h2>
-        
-        <p className="text-gray-700 mb-4">
-          Total: <span className="text-2xl font-bold text-hot-pink">£{(totalAmount / 100).toFixed(2)}</span>
-        </p>
-        
         {/* Quick checkout with digital wallets */}
-        <div className="mb-6">
+        <div className="mb-5">
           <h3 className="text-base font-semibold text-gray-700 mb-3 flex items-center">
             <i className="fas fa-mobile-alt mr-2"></i>
             Quick Checkout
@@ -301,7 +304,7 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
         </div>
         
         {/* Divider */}
-        <div className="relative my-6">
+        <div className="relative my-5">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-300"></div>
           </div>
@@ -317,7 +320,7 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
             Contact Information
           </h3>
           <p className="text-xs text-gray-500 mb-4">
-            Required for card payments. May be auto-filled from digital wallets.
+            Required for card payments.
           </p>
           
           <div className="space-y-4">
@@ -398,7 +401,7 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
           }}
           render={(Button) => (
             <Button disabled={isProcessing}>
-              {isProcessing ? "Processing..." : `Pay £${(totalAmount / 100).toFixed(2)}`}
+              {isProcessing ? "Processing..." : `Pay £${((totalAmount + tipAmount) / 100).toFixed(2)}`}
             </Button>
           )}
         />
@@ -408,6 +411,45 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
         <i className="fas fa-lock mr-2"></i>
         Payments are securely processed by Square
       </p>
+      
+      <Toaster 
+        position="top-center"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            marginTop: '100px',
+            fontSize: '14px',
+          },
+          success: {
+            duration: 3000,
+            style: {
+              background: '#D1FAE5',
+              color: '#065F46',
+              border: '1px solid #A7F3D0',
+              fontSize: '14px',
+            },
+            iconTheme: {
+              primary: '#10B981',
+              secondary: '#fff',
+            },
+          },
+          error: {
+            duration: Infinity,
+            style: {
+              background: '#FEE2E2',
+              color: '#991B1B',
+              border: '1px solid #FECACA',
+              fontSize: '14px',
+            },
+            iconTheme: {
+              primary: '#EF4444',
+              secondary: '#fff',
+            },
+          },
+        }}
+      />
     </div>
+    </>
+          
   );
 }

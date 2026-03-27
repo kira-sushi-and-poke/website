@@ -214,7 +214,7 @@ function mapCategory(apiCategoryName, itemName) {
       return "sushi";
     }
     if (itemLower.includes("poke")) return "poke";
-    if (itemLower.includes("curry") || itemLower.includes("teriyaki") || itemLower.includes("katsu")) {
+    if (itemLower.includes("curry") || itemLower.includes("teriyaki") || itemLower.includes("katsu") || itemLower.includes("crispy rice")) {
       return "hot";
     }
     if (itemLower.includes("dessert") || itemLower.includes("dorayaki")) return "desserts";
@@ -345,6 +345,9 @@ function inferSubcategory(category, itemName, description) {
     }
     if (itemLower.includes('teriyaki')) {
       return 'Teriyaki';
+    }
+    if (itemLower.includes('crispy rice')) {
+      return 'Crispy Rice';
     }
 
     return null;

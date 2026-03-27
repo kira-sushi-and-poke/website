@@ -26,7 +26,7 @@ const FAQAccordion = ({ faqs }) => {
                     </button>
 
                     {openIndex === index && (
-                        <div className="p-4 md:p-5 pt-0 text-gray-700 border-t-2 border-hot-pink/20">
+                        <div className="p-4 md:p-5 text-gray-700 border-t-2 border-hot-pink/20 text-sm">
                             {faq.answer}
                         </div>
                     )}

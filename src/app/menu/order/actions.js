@@ -380,14 +380,15 @@ export async function createCustomer(orderId, name, email, phone) {
  * Process a payment with Square
  * @param {string} sourceId - Square payment source token
  * @param {string} orderId - The Square order ID  
- * @param {number} amount - Payment amount in cents
+ * @param {number} amount - Payment amount in cents (order total only, excluding tip)
  * @param {string} verificationToken - Card verification token (optional)
  * @param {object} contactDetails - Customer contact details (name, email, phone)
  * @param {string} pickupTime - ISO string pickup time
  * @param {string} specialInstructions - Optional special instructions from customer
+ * @param {number} tipAmount - Tip amount in cents (optional, defaults to 0)
  * @returns {Promise<{success: boolean, paymentId?: string, status?: string, receiptUrl?: string, error?: string, declineReason?: string}>}
  */
-export async function processPayment(sourceId, orderId, amount, verificationToken, contactDetails, pickupTime, specialInstructions = "") {
+export async function processPayment(sourceId, orderId, amount, verificationToken, contactDetails, pickupTime, specialInstructions = "", tipAmount = 0) {
   try {
     // Validate required fields
     if (!sourceId || !orderId || !amount) {
@@ -530,18 +531,28 @@ export async function processPayment(sourceId, orderId, amount, verificationToke
     
     // Process payment with Square
     try {
+      // Calculate total payment amount (order total + tip)
+      const totalPaymentAmount = amount + tipAmount;
+      
       const paymentData = await fetchSquare(API_PAYMENTS_URL, {
         method: "POST",
         body: JSON.stringify({
           idempotency_key: crypto.randomUUID(),
           source_id: sourceId,
           amount_money: {
-            amount: amount,
+            amount: totalPaymentAmount,
             currency: CURRENCY,
           },
           location_id: LOCATION_ID,
           order_id: orderId,
           autocomplete: true,
+          // Add tip separately if provided
+          ...(tipAmount > 0 && {
+            tip_money: {
+              amount: tipAmount,
+              currency: CURRENCY,
+            },
+          }),
           ...(verificationToken && {
             verification_token: verificationToken,
           }),
