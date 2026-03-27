@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import { PaymentForm, CreditCard, GooglePay, ApplePay } from "react-square-web-payments-sdk";
@@ -157,25 +157,25 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
     }
   };
   
-  const createPaymentRequest = () => {
-    const finalTotal = totalAmount + tipAmount;
-    
-    const request = {
-      countryCode: "GB",
-      currencyCode: "GBP",
-      total: {
-        amount: (finalTotal / 100).toFixed(2),
-        label: "Kira Sushi & Poke",
-      },
-      // Request contact information from Apple Pay / Google Pay
-      requestBillingContact: true,
-      requestShippingContact: false,
-      // Explicitly request email and phone
-      requiredBillingContactFields: ["email", "phone", "name"],
+  const createPaymentRequest = useMemo(() => {
+    return () => {
+      const finalTotal = totalAmount + tipAmount;
+      
+      return {
+        countryCode: "GB",
+        currencyCode: "GBP",
+        total: {
+          amount: (finalTotal / 100).toFixed(2),
+          label: "Kira Sushi & Poke",
+        },
+        // Request contact information from Apple Pay / Google Pay
+        requestBillingContact: true,
+        requestShippingContact: false,
+        // Explicitly request email and phone
+        requiredBillingContactFields: ["email", "phone", "name"],
+      };
     };
-    
-    return request;
-  };
+  }, [totalAmount, tipAmount]);
   
   if (!appId || !locationId) {
     return (
@@ -219,6 +219,7 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
     
     <div className="bg-white rounded-lg shadow-lg p-8 border-t-4 border-hot-pink">
       <PaymentForm
+        key={`payment-form-${tipAmount}`}
         applicationId={appId}
         locationId={locationId}
         cardTokenizeResponseReceived={cardTokenizeResponseReceived}

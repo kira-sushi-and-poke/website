@@ -11,10 +11,10 @@ module.exports = {
         // Apply security headers to all routes
         source: '/(.*)',
         headers: [
-          // Prevents clickjacking by disallowing the site to be embedded in iframes
+          // Prevents clickjacking by disallowing the site to be embedded in external iframes
           {
             key: 'X-Frame-Options',
-            value: 'DENY',
+            value: 'SAMEORIGIN',
           },
           // Prevents MIME sniffing (forces browser to respect Content-Type)
           {
@@ -67,8 +67,8 @@ module.exports = {
               "base-uri 'self'",
               // Allow form submissions to Square checkout
               "form-action 'self' https://connect.squareup.com https://connect.squareupsandbox.com",
-              // Prevent your site from being embedded in iframes
-              "frame-ancestors 'none'",
+              // Prevent your site from being embedded in external iframes
+              "frame-ancestors 'self'",
             ].join('; '),
           },
         ],
