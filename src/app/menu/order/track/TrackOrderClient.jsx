@@ -128,7 +128,7 @@ export default function TrackOrderClient({ initialData }) {
     statusConfig = {
       icon: "fa-fire",
       title: "Preparing Your Order",
-      message: "Our chef is carefully crafting your delicious meal! Stay on this page to track your order status in real-time.",
+      message: "Our chef is carefully crafting your delicious meal! Stay on this page to know when your order is ready for pickup.",
       color: "yellow",
       showPickupTime: true,
     };
