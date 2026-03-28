@@ -1,11 +1,15 @@
 import React from "react";
 import FAQAccordion from "./FAQAccordion";
+import { getLocationData } from "@/lib/getLocationData";
 
-const faqs = [
-    {
-        question: "What are your opening hours?",
-        answer: "We're open Monday through Sunday from 11:00 AM to 7:00 PM. Check our social media for any holiday hours or special closures."
-    },
+const FAQPage = async () => {
+    const { openingHoursText } = await getLocationData();
+
+    const faqs = [
+        {
+            question: "What are your opening hours?",
+            answer: `We're open ${openingHoursText.sentence}. Check our social media for any holiday hours or special closures.`
+        },
     {
         question: "Do you offer delivery or takeaway?",
         answer: "Unfortunately not at the moment. We are currently operating as a dine-in only restaurant. We hope to offer takeaway and delivery options in the future, so stay tuned!"
@@ -41,10 +45,9 @@ const faqs = [
     {
         question: "How can I stay updated on daily specials?",
         answer: "Follow us on Instagram (@kira_sushi_and_poke) and Facebook! We post our daily specials, new menu items, promotional offers, and behind-the-scenes content regularly."
-    }
-];
+        }
+    ];
 
-const FAQPage = () => {
     // Generate FAQ Schema for SEO
     const faqSchema = {
         "@context": "https://schema.org",

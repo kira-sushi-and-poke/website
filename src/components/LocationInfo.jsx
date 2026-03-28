@@ -1,6 +1,10 @@
 import React from "react";
+import { DEFAULT_OPENING_HOURS_TEXT } from "@/lib/constants";
 
-const LocationInfo = () => {
+const LocationInfo = ({ openingHoursText }) => {
+    // Use provided text or fallback to centralized default
+    const hoursText = openingHoursText || DEFAULT_OPENING_HOURS_TEXT;
+
     return (
         <div className="bg-white border-2 border-hot-pink rounded-lg p-4 md:p-6">
             <div className="space-y-4">
@@ -20,8 +24,8 @@ const LocationInfo = () => {
                         <i className="fas fa-clock"></i> Opening Hours
                     </h3>
                     <div className="text-gray-700">
-                        <p>Monday - Sunday</p>
-                        <p className="font-bold text-lg">11:00 AM - 7:00 PM</p>
+                        <p>{hoursText.days}</p>
+                        <p className="font-bold text-lg">{hoursText.times}</p>
                     </div>
                 </div>
                 

@@ -15,7 +15,11 @@ const MenuItem = ({
     addItem,
     removeItem,
     updatingItems = new Set(),
-    isOrderMode = false
+    isOrderMode = false,
+    isCompact = false,
+    hideImage = false,
+    isVariantCard = false,
+    variants = []
 }) => {
     const [showLightbox, setShowLightbox] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
@@ -68,10 +72,12 @@ const MenuItem = ({
     return (
         <>
             <div className="border-2 border-hot-pink relative overflow-hidden bg-white rounded-lg my-1.5 md:my-2 transition-shadow duration-300 hover:shadow-md">
-                <div
-                    className={`bg-hot-pink w-full h-36 md:h-44 flex items-center justify-center rounded-t-lg overflow-hidden ${hasImages ? "cursor-pointer group" : ""} relative`}
-                    onClick={() => hasImages && openLightbox(0)}
-                >
+                {/* Conditionally render image section */}
+                {!hideImage && (
+                    <div
+                        className={`bg-hot-pink w-full ${isCompact ? 'h-24 md:h-32' : 'h-36 md:h-44'} flex items-center justify-center rounded-t-lg overflow-hidden ${hasImages ? "cursor-pointer group" : ""} relative`}
+                        onClick={() => hasImages && openLightbox(0)}
+                    >
                     {!imageLoaded && (
                         <div className="absolute inset-0 bg-hot-pink animate-pulse"></div>
                     )}
@@ -91,14 +97,14 @@ const MenuItem = ({
 
                             {/* Desktop hover icon - only on large screens */}
                             <div className="absolute inset-0 hidden lg:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
-                                <div className="bg-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg">
-                                    <i className="fas fa-search-plus text-hot-pink text-xl"></i>
+                                <div className={`bg-white rounded-full ${isCompact ? 'w-10 h-10' : 'w-14 h-14'} flex items-center justify-center shadow-lg`}>
+                                    <i className={`fas fa-search-plus text-hot-pink ${isCompact ? 'text-base' : 'text-xl'}`}></i>
                                 </div>
                             </div>
 
                             {/* Mobile & Tablet tap indicator - always visible on touch devices */}
-                            <div className="absolute bottom-2 left-2 lg:hidden bg-white bg-opacity-90 text-hot-pink px-2 py-1 rounded text-xs font-bold shadow-md flex items-center gap-1">
-                                <i className="fas fa-expand text-xs"></i>
+                            <div className={`absolute ${isCompact ? 'bottom-1 left-1' : 'bottom-2 left-2'} lg:hidden bg-white bg-opacity-90 text-hot-pink ${isCompact ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-1 text-xs'} rounded font-bold shadow-md flex items-center gap-1`}>
+                                <i className={`fas fa-expand ${isCompact ? 'text-[8px]' : 'text-xs'}`}></i>
                                 <span>Tap to view</span>
                             </div>
                         </>
@@ -106,75 +112,157 @@ const MenuItem = ({
                     
                     {/* Status Tags */}
                     {status === "popular" && (
-                        <div className="absolute top-2 right-2 bg-yellow text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg flex items-center gap-1.5 z-20">
+                        <div className={`absolute ${isCompact ? 'top-1 right-1 px-2 py-0.5 text-[10px]' : 'top-2 right-2 px-4 py-1.5 text-sm'} bg-yellow text-white rounded-full font-bold shadow-lg flex items-center gap-1.5 z-20`}>
                             <i className="fas fa-star"></i>
-                            <span>POPULAR</span>
+                            {!isCompact && <span>POPULAR</span>}
                         </div>
                     )}
                     {status === "new" && (
-                        <div className="absolute top-2 right-2 bg-hot-pink text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg flex items-center gap-1.5 z-20">
+                        <div className={`absolute ${isCompact ? 'top-1 right-1 px-2 py-0.5 text-[10px]' : 'top-2 right-2 px-4 py-1.5 text-sm'} bg-hot-pink text-white rounded-full font-bold shadow-lg flex items-center gap-1.5 z-20`}>
                             <i className="fas fa-sparkles"></i>
-                            <span>NEW</span>
+                            {!isCompact && <span>NEW</span>}
                         </div>
                     )}
                     
                     {hasMultipleImages && (
-                        <div className="absolute top-2 right-2 bg-black bg-opacity-60 text-white px-2 py-1 rounded text-xs font-bold">
+                        <div className={`absolute ${isCompact ? 'top-1 right-1 px-1.5 py-0.5 text-[10px]' : 'top-2 right-2 px-2 py-1 text-xs'} bg-black bg-opacity-60 text-white rounded font-bold`}>
                             <i className="fas fa-images mr-1"></i>
                             {imagesToDisplay.length}
                         </div>
                     )}
-                </div>
-                <div className="p-2.5 md:p-3">
-                    <div className="flex justify-between items-center mb-2 md:mb-3">
-                        <h3 className="text-hot-pink font-bold text-md md:text-base">{name}</h3>
-                        <div>
-                            {originalPrice !== null && originalPrice !== undefined ? (
-                                <>
-                                    <span className={discountedPrice ? "text-gray-400 line-through text-xs md:text-sm" : "text-yellow font-bold text-base md:text-lg"}>
-                                        £{originalPrice.toFixed(2)}
-                                    </span>
-                                    {discountedPrice && (
-                                        <span className="text-yellow font-bold ml-2 md:ml-2.5 text-base md:text-lg">£{discountedPrice.toFixed(2)}</span>
-                                    )}
-                                </>
-                            ) : (
-                                <span className="text-gray-500 text-xs md:text-sm italic">Price not available</span>
-                            )}
-                        </div>
                     </div>
-                    <p className="text-gray-700 text-xs md:text-sm">
-                        {description}
-                        {variationDescription && (
-                            <span className="text-gray-500 italic ml-2">({variationDescription})</span>
+                )}
+                {/* End of conditional image section */}
+                
+                <div className={isCompact ? "p-2 md:p-2" : "p-2.5 md:p-3"}>
+                    <div className={`flex ${isCompact ? 'flex-col gap-1' : 'justify-between items-center'} mb-2 md:mb-3`}>
+                        <h3 className={`text-hot-pink font-bold ${isCompact ? 'text-xs md:text-sm' : isVariantCard ? 'text-lg md:text-xl' : 'text-md md:text-base'}`}>{name}</h3>
+                        {!isVariantCard && (
+                            <div className={isCompact ? 'text-left' : ''}>
+                                {originalPrice !== null && originalPrice !== undefined ? (
+                                    <>
+                                        <span className={discountedPrice ? `text-gray-400 line-through ${isCompact ? 'text-[10px] md:text-xs' : 'text-xs md:text-sm'}` : `text-yellow font-bold ${isCompact ? 'text-sm md:text-base' : 'text-base md:text-lg'}`}>
+                                            £{originalPrice.toFixed(2)}
+                                        </span>
+                                        {discountedPrice && (
+                                            <span className={`text-yellow font-bold ml-2 md:ml-2.5 ${isCompact ? 'text-sm md:text-base' : 'text-base md:text-lg'}`}>£{discountedPrice.toFixed(2)}</span>
+                                        )}
+                                    </>
+                                ) : (
+                                    <span className={`text-gray-500 italic ${isCompact ? 'text-[10px] md:text-xs' : 'text-xs md:text-sm'}`}>Price not available</span>
+                                )}
+                            </div>
                         )}
-                    </p>
+                    </div>
+                    {/* Hide description for compact view */}
+                    {!isCompact && !isVariantCard && (
+                        <p className="text-gray-700 text-xs md:text-sm">
+                            {description}
+                            {variationDescription && (
+                                <span className="text-gray-500 italic ml-2">({variationDescription})</span>
+                            )}
+                        </p>
+                    )}
                     
-                    {/* Quantity Controls for Order Mode */}
-                    {isOrderMode && variationId && (
-                        <div className="mt-2 md:mt-3 flex flex-col items-center gap-1.5 md:gap-2">
-                            <div className="flex items-center gap-2 md:gap-3">
+                    {/* Show description for variant card */}
+                    {isVariantCard && (
+                        <p className="text-gray-700 text-xs md:text-sm mb-3">
+                            {description}
+                        </p>
+                    )}
+                    
+                    {/* Variant Cards - Order Mode: Grid with Controls */}
+                    {isVariantCard && variants.length > 0 && isOrderMode && (
+                        <div className="grid grid-cols-2 gap-2 md:gap-3">
+                            {variants.map((variant, index) => {
+                                const variantQuantity = cart[variant.variationId] || 0;
+                                const variantIsUpdating = updatingItems.has(variant.variationId);
+                                
+                                return (
+                                    <div key={variant.variationId || index} className="flex flex-col p-2 md:p-3 border border-gray-200 rounded-lg">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <p className="font-semibold text-gray-800 text-xs md:text-sm flex-1">{variant.name}</p>
+                                            <p className="text-yellow font-bold text-sm md:text-base ml-2">
+                                                £{(variant.discountedPrice || variant.originalPrice).toFixed(2)}
+                                            </p>
+                                        </div>
+                                        
+                                        {/* Quantity Controls for Order Mode */}
+                                        {variant.variationId && (
+                                            <div className="flex items-center justify-center gap-1.5 md:gap-2">
+                                                <button
+                                                    onClick={() => removeItem(variant.variationId)}
+                                                    disabled={variantIsUpdating || variantQuantity === 0}
+                                                    className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-gray-200 hover:bg-hot-pink hover:text-white font-bold text-base disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                                                    aria-label="Decrease quantity"
+                                                >
+                                                    −
+                                                </button>
+                                                
+                                                <div className="min-w-[35px] md:min-w-[40px] text-center">
+                                                    {variantIsUpdating ? (
+                                                        <div className="inline-block w-3 h-3 md:w-4 md:h-4 border-2 border-hot-pink border-t-transparent rounded-full animate-spin"></div>
+                                                    ) : (
+                                                        <span className="text-sm md:text-base font-bold">{variantQuantity}</span>
+                                                    )}
+                                                </div>
+                                                
+                                                <button
+                                                    onClick={() => addItem(variant.variationId)}
+                                                    disabled={variantIsUpdating}
+                                                    className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-hot-pink text-white hover:bg-opacity-90 font-bold text-base disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                                                    aria-label="Increase quantity"
+                                                >
+                                                    +
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                    
+                    {/* Variant Cards - View Mode: Compact List */}
+                    {isVariantCard && variants.length > 0 && !isOrderMode && (
+                        <ul className="space-y-1.5 md:space-y-2">
+                            {variants.map((variant, index) => (
+                                <li key={variant.variationId || index} className="flex items-baseline gap-3 text-gray-800">
+                                    <span className="font-medium text-sm md:text-base">{variant.name}</span>
+                                    <span className="flex-1 mb-1 bg-repeat-x bg-bottom h-4" style={{backgroundImage: 'radial-gradient(circle, #d1d5db 1px, transparent 1px)', backgroundSize: '4px 4px'}}></span>
+                                    <span className="text-yellow font-bold text-sm md:text-base">
+                                        £{(variant.discountedPrice || variant.originalPrice).toFixed(2)}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                    
+                    {/* Quantity Controls for Order Mode - Only for non-variant cards */}
+                    {isOrderMode && variationId && !isVariantCard && (
+                        <div className={`${isCompact ? 'mt-1.5 md:mt-2' : 'mt-2 md:mt-3'} flex flex-col items-center gap-1.5 md:gap-2`}>
+                            <div className={`flex items-center ${isCompact ? 'gap-1.5 md:gap-2' : 'gap-2 md:gap-3'}`}>
                                 <button
                                     onClick={() => removeItem(variationId)}
                                     disabled={isUpdating || quantity === 0}
-                                    className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-gray-200 hover:bg-hot-pink hover:text-white font-bold text-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                                    className={`${isCompact ? 'w-7 h-7 md:w-8 md:h-8 text-base' : 'w-9 h-9 md:w-10 md:h-10 text-lg'} rounded-full bg-gray-200 hover:bg-hot-pink hover:text-white font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center`}
                                     aria-label="Decrease quantity"
                                 >
                                     −
                                 </button>
                                 
-                                <div className="min-w-[50px] md:min-w-[60px] text-center">
+                                <div className={isCompact ? 'min-w-[40px] md:min-w-[50px] text-center' : 'min-w-[50px] md:min-w-[60px] text-center'}>
                                     {isUpdating ? (
-                                        <div className="inline-block w-4 h-4 md:w-5 md:h-5 border-2 border-hot-pink border-t-transparent rounded-full animate-spin"></div>
+                                        <div className={`inline-block ${isCompact ? 'w-3 h-3 md:w-4 md:h-4' : 'w-4 h-4 md:w-5 md:h-5'} border-2 border-hot-pink border-t-transparent rounded-full animate-spin`}></div>
                                     ) : (
-                                        <span className="text-base md:text-lg font-bold">{quantity}</span>
+                                        <span className={`font-bold ${isCompact ? 'text-sm md:text-base' : 'text-base md:text-lg'}`}>{quantity}</span>
                                     )}
                                 </div>
                                 
                                 <button
                                     onClick={() => addItem(variationId)}
                                     disabled={isUpdating}
-                                    className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-hot-pink text-white hover:bg-opacity-90 font-bold text-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                                    className={`${isCompact ? 'w-7 h-7 md:w-8 md:h-8 text-base' : 'w-9 h-9 md:w-10 md:h-10 text-lg'} rounded-full bg-hot-pink text-white hover:bg-opacity-90 font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center`}
                                     aria-label="Increase quantity"
                                 >
                                     +
@@ -182,7 +270,7 @@ const MenuItem = ({
                             </div>
                             
                             {quantity > 0 && !isUpdating && (
-                                <div className="text-yellow font-bold text-sm md:text-base">
+                                <div className={`text-yellow font-bold ${isCompact ? 'text-xs md:text-sm' : 'text-sm md:text-base'}`}>
                                     £{((discountedPrice || originalPrice) * quantity).toFixed(2)}
                                 </div>
                             )}
@@ -213,7 +301,7 @@ const MenuItem = ({
                                     e.stopPropagation();
                                     goToPrevious();
                                 }}
-                                className="absolute left-4 top-1/2 -translate-y-1/2 bg-white bg-opacity-20 hover:bg-opacity-40 text-white rounded-full w-12 h-12 flex items-center justify-center text-2xl font-bold transition-all z-10"
+                                className="absolute left-4 top-1/2 -translate-y-1/2 bg-hot-pink hover:bg-yellow text-white rounded-full w-12 h-12 flex items-center justify-center text-2xl font-bold transition-all shadow-lg z-10"
                                 aria-label="Previous image"
                             >
                                 <i className="fas fa-chevron-left"></i>
@@ -223,7 +311,7 @@ const MenuItem = ({
                                     e.stopPropagation();
                                     goToNext();
                                 }}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 bg-white bg-opacity-20 hover:bg-opacity-40 text-white rounded-full w-12 h-12 flex items-center justify-center text-2xl font-bold transition-all z-10"
+                                className="absolute right-4 top-1/2 -translate-y-1/2 bg-hot-pink hover:bg-yellow text-white rounded-full w-12 h-12 flex items-center justify-center text-2xl font-bold transition-all shadow-lg z-10"
                                 aria-label="Next image"
                             >
                                 <i className="fas fa-chevron-right"></i>

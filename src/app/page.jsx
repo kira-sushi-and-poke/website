@@ -1,6 +1,7 @@
 import Reviews from "../components/Reviews";
 import LocationInfo from "../components/LocationInfo";
 import ContactUs from "../components/ContactUs";
+import { getLocationData } from "../lib/getLocationData";
 
 export const metadata = {
     title: "Home | Fresh Japanese Sushi & Poke Bowls in Chester-le-Street",
@@ -11,7 +12,9 @@ export const metadata = {
     }
 };
 
-const HomePage = () => {
+const HomePage = async () => {
+    const { openingHoursText } = await getLocationData();
+
     return (
         <div>
             <div className="bg-white py-12 md:py-16 px-5 md:px-8 text-center border-b-8 border-hot-pink">
@@ -29,7 +32,7 @@ const HomePage = () => {
                         <h2 className="text-3xl md:text-4xl font-bold text-hot-pink mb-4 md:mb-6 text-center">
                             <i className="fas fa-map-marker-alt"></i> Find Us
                         </h2>
-                        <LocationInfo />
+                        <LocationInfo openingHoursText={openingHoursText} />
                     </section>
 
                     {/* Contact Methods */}

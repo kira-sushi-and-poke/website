@@ -1,8 +1,10 @@
 "use client";
 import React, { useState } from "react";
 import { usePathname } from "next/navigation";
+import { DAYS_OF_WEEK, CLOSING_SOON_THRESHOLD } from "@/lib/constants";
+import { convertTo12Hour } from "@/lib/formatTime";
 
-const OpeningHoursChat = () => {
+const OpeningHoursChat = ({ openingHours, isFallback = false }) => {
     const [showModal, setShowModal] = useState(false);
     const [showSign, setShowSign] = useState(true);
     const pathname = usePathname();
@@ -14,23 +16,8 @@ const OpeningHoursChat = () => {
         return null;
     }
 
-    // Opening hours data
-    const openingHours = {
-        Monday: { open: "11:00", close: "19:00" },
-        Tuesday: { open: "11:00", close: "19:00" },
-        Wednesday: { open: "11:00", close: "19:00" },
-        Thursday: { open: "11:00", close: "19:00" },
-        Friday: { open: "11:00", close: "19:00" },
-        Saturday: { open: "11:00", close: "19:00" },
-        Sunday: { open: "11:00", close: "19:00" }
-    };
-
-    // Constants
-    const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    const CLOSING_SOON_THRESHOLD = 30; // minutes
-
     // Helper functions
-    const getCurrentDay = () => DAYS[new Date().getDay()];
+    const getCurrentDay = () => DAYS_OF_WEEK[new Date().getDay()];
     
     const getTodayHours = () => openingHours[getCurrentDay()];
     
@@ -44,28 +31,14 @@ const OpeningHoursChat = () => {
         return now.getHours() * 60 + now.getMinutes();
     };
 
-    // Check if currently open
-    const isOpen = () => {
-        const currentTime = getCurrentTimeInMinutes();
-        const todayHours = getTodayHours();
-        const openTime = timeToMinutes(todayHours.open);
-        const closeTime = timeToMinutes(todayHours.close);
-        
-        return currentTime >= openTime && currentTime < closeTime;
-    };
-
-    // Check if closing soon (within CLOSING_SOON_THRESHOLD minutes of closing)
-    const isClosingSoon = () => {
-        const currentTime = getCurrentTimeInMinutes();
-        const todayHours = getTodayHours();
-        const closeTime = timeToMinutes(todayHours.close);
-        const timeDifference = closeTime - currentTime;
-        
-        return timeDifference > 0 && timeDifference <= CLOSING_SOON_THRESHOLD;
-    };
-
-    const restaurantOpen = isOpen();
-    const closingSoon = isClosingSoon();
+    // Check restaurant status
+    const currentTime = getCurrentTimeInMinutes();
+    const todayHours = getTodayHours();
+    const openTime = timeToMinutes(todayHours.open);
+    const closeTime = timeToMinutes(todayHours.close);
+    
+    const restaurantOpen = currentTime >= openTime && currentTime < closeTime;
+    const closingSoon = restaurantOpen && (closeTime - currentTime) > 0 && (closeTime - currentTime) <= CLOSING_SOON_THRESHOLD;
 
     return (
         <>
@@ -136,6 +109,15 @@ const OpeningHoursChat = () => {
                         <h2 className="text-2xl md:text-3xl font-bold text-hot-pink mb-4 flex items-center gap-3">
                             Opening Hours
                         </h2>
+                        
+                        {/* Fallback warning */}
+                        {isFallback && (
+                            <div className="mb-3 p-2.5 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center gap-2 text-sm text-yellow-800">
+                                <i className="fas fa-exclamation-triangle text-yellow-600"></i>
+                                <span>Displaying default hours. Please call to confirm.</span>
+                            </div>
+                        )}
+                        
                         <div className="flex items-center gap-2 mb-6 p-3 bg-hot-pink/10 rounded">
                             <span className={`inline-block w-3 h-3 rounded-full ${restaurantOpen ? "bg-yellow" : "bg-hot-pink"} animate-pulse`}></span>
                             <div className="flex flex-col">
@@ -153,7 +135,7 @@ const OpeningHoursChat = () => {
                             {Object.entries(openingHours).map(([day, hours]) => (
                                 <li key={day} className="flex justify-between items-center border-b border-gray-200 pb-2">
                                     <span className="font-semibold text-gray-700">{day}:</span>
-                                    <span className="text-gray-600">{hours.open} - {hours.close}</span>
+                                    <span className="text-gray-600">{convertTo12Hour(hours.open)} - {convertTo12Hour(hours.close)}</span>
                                 </li>
                             ))}
                         </ul>

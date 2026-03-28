@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import PickupOnlyNotice from "@/components/PickupOnlyNotice";
 
 export default function PickupDetails({ 
   contactDetails, 
@@ -36,65 +37,59 @@ export default function PickupDetails({
         <i className={`fas fa-chevron-${isExpanded ? "up" : "down"} text-hot-pink transition-transform`}></i>
       </button>
         
-        {isExpanded && (
-          <div className="space-y-3">
-            {/* Pickup Only Notice */}
-            <div className="bg-yellow/10 border border-yellow rounded-lg p-3 flex items-start gap-2">
-              <i className="fas fa-shopping-bag text-yellow text-sm mt-0.5"></i>
-              <div className="text-xs text-gray-700">
-                <p className="font-semibold text-gray-800 mb-1">Pickup Only</p>
-                <p>We don't offer delivery at the moment, but we're hoping to add it soon! For now, you can collect your order from our location at 148 Front Street, Chester-le-Street.</p>
-              </div>
-            </div>
-            
-            <div>
-              <label htmlFor="pickupTime" className="block text-sm font-medium mb-2">
-                Pickup Time *
-              </label>
-              <select
-                id="pickupTime"
-                name="pickupTime"
-                value={contactDetails.pickupTime}
-                onChange={handleInputChange}
-                onFocus={() => setIsExpanded(true)}
-                className={`w-full px-4 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-hot-pink ${
-                  formErrors.pickupTime ? "border-red-500" : "border-gray-300"
-                }`}
-                disabled={isProcessing}
-              >
-                <option value="">Select a pickup time</option>
-                {pickupTimeOptions.map((option, index) => (
-                  <option key={index} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              {formErrors.pickupTime && (
-                <p className="text-red-500 text-sm mt-1">{formErrors.pickupTime}</p>
-              )}
-            </div>
-            
-            <div>
-              <label htmlFor="specialInstructions" className="block text-sm font-medium mb-2">
-                Special Instructions (Optional)
-              </label>
-              <textarea
-                id="specialInstructions"
-                name="specialInstructions"
-                value={contactDetails.specialInstructions}
-                onChange={handleInputChange}
-                rows={3}
-                placeholder="Extra sauce, no wasabi..."
-                className="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-hot-pink resize-none"
-                disabled={isProcessing}
-                maxLength={200}
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                {contactDetails.specialInstructions.length}/200 characters
-              </p>
-            </div>
+      {isExpanded && (
+        <div className="space-y-3">
+          {/* Pickup Only Notice */}
+          <PickupOnlyNotice />
+          
+          <div>
+            <label htmlFor="pickupTime" className="block text-sm font-medium mb-2">
+              Pickup Time *
+            </label>
+            <select
+              id="pickupTime"
+              name="pickupTime"
+              value={contactDetails.pickupTime}
+              onChange={handleInputChange}
+              onFocus={() => setIsExpanded(true)}
+              className={`w-full px-4 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-hot-pink ${
+                formErrors.pickupTime ? "border-red-500" : "border-gray-300"
+              }`}
+              disabled={isProcessing}
+            >
+              <option value="">Select a pickup time</option>
+              {pickupTimeOptions.map((option, index) => (
+                <option key={index} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            {formErrors.pickupTime && (
+              <p className="text-red-500 text-sm mt-1">{formErrors.pickupTime}</p>
+            )}
           </div>
-        )}
-      </div>
+          
+          <div>
+            <label htmlFor="specialInstructions" className="block text-sm font-medium mb-2">
+              Special Instructions (Optional)
+            </label>
+            <textarea
+              id="specialInstructions"
+              name="specialInstructions"
+              value={contactDetails.specialInstructions}
+              onChange={handleInputChange}
+              rows={3}
+              placeholder="Extra sauce, no wasabi..."
+              className="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-hot-pink resize-none"
+              disabled={isProcessing}
+              maxLength={200}
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              {contactDetails.specialInstructions.length}/200 characters
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

@@ -4,6 +4,7 @@ import OpeningHoursChat from "../components/OpeningHoursChat";
 import Navigation from "../components/Navigation";
 import Breadcrumbs from "../components/Breadcrumbs";
 import restaurantInfo from "../data/restaurant-info";
+import { getLocationData } from "../lib/getLocationData";
 import Image from "next/image";
 import KiraLogo from "../../public/kira-sushi-and-poke-logo.png";
 
@@ -59,7 +60,10 @@ export const metadata = {
     }
 };
 
-const Layout = ({ children }) => {
+const Layout = async ({ children }) => {
+    // Fetch opening hours from Square API (with internal fallback handling)
+    const { openingHours, openingHoursSchema, openingHoursText, isFallback } = await getLocationData();
+
     // Generate structured data for Restaurant
     const restaurantSchema = {
         "@context": "https://schema.org",
@@ -77,7 +81,7 @@ const Layout = ({ children }) => {
             "postalCode": restaurantInfo.address.postalCode,
             "addressCountry": restaurantInfo.address.addressCountry
         },
-        "openingHoursSpecification": restaurantInfo.openingHours.map(hours => ({
+        "openingHoursSpecification": openingHoursSchema.map(hours => ({
             "@type": "OpeningHoursSpecification",
             "dayOfWeek": hours.split(" ")[0],
             "opens": hours.split(" ")[1].split("-")[0],
@@ -134,7 +138,7 @@ const Layout = ({ children }) => {
                 </header>
                 <Breadcrumbs />
                 <main>{children}</main>
-                <OpeningHoursChat />
+                <OpeningHoursChat openingHours={openingHours} isFallback={isFallback} />
                 <footer className="bg-gray-800 text-white py-8">
                     <div className="container mx-auto px-4">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -152,7 +156,7 @@ const Layout = ({ children }) => {
                             {/* Opening Hours */}
                             <div>
                                 <h3 className="text-lg font-bold mb-3 text-yellow">Hours</h3>
-                                <p className="text-gray-300">Monday - Sunday<br />11:00 AM - 7:00 PM</p>
+                                <p className="text-gray-300">{openingHoursText.days}<br />{openingHoursText.times}</p>
                             </div>
 
                             {/* Social Media */}

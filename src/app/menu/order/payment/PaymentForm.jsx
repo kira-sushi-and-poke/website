@@ -177,6 +177,47 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
     };
   }, [totalAmount, tipAmount]);
   
+  const createVerificationDetails = useMemo(() => {
+    return () => {
+      const finalTotal = totalAmount + tipAmount;
+      
+      return {
+        amount: (finalTotal / 100).toFixed(2),
+        billingContact: {
+          givenName: contactDetails.name.split(" ")[0] || contactDetails.name,
+          familyName: contactDetails.name.split(" ").slice(1).join(" ") || "",
+          email: contactDetails.email,
+          phone: contactDetails.phone,
+        },
+        currencyCode: "GBP",
+        intent: "CHARGE",
+      };
+    };
+  }, [totalAmount, tipAmount, contactDetails.name, contactDetails.email, contactDetails.phone]);
+  
+  const handleWalletClick = (e) => {
+    if (!contactDetails.pickupTime) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Clear error first to ensure useEffect in PickupDetails triggers every time
+      setFormErrors(prev => ({
+        ...prev,
+        pickupTime: undefined
+      }));
+      
+      // Set error after a brief delay to trigger the useEffect
+      setTimeout(() => {
+        setFormErrors(prev => ({
+          ...prev,
+          pickupTime: "Pickup time is required"
+        }));
+      }, 10);
+      
+      toast.error("Please select a pickup time", { duration: 10000 });
+    }
+  };
+  
   if (!appId || !locationId) {
     return (
       <div className="bg-yellow-50 border-l-4 border-yellow-500 rounded-lg p-5">
@@ -224,6 +265,7 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
         locationId={locationId}
         cardTokenizeResponseReceived={cardTokenizeResponseReceived}
         createPaymentRequest={createPaymentRequest}
+        createVerificationDetails={createVerificationDetails}
       >
         <h1 className="text-xl font-bold text-hot-pink mb-4">
           <i className="fas fa-credit-card mr-2"></i>Payment
@@ -289,14 +331,26 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
           
           {/* Apple Pay - Only in production (requires domain verification) */}
           {isProduction && (
-            <div className="mb-3">
+            <div className="mb-3 relative">
               <ApplePay />
+              {!contactDetails.pickupTime && (
+                <div
+                  className="absolute inset-0 cursor-pointer z-10"
+                  onClick={handleWalletClick}
+                />
+              )}
             </div>
           )}
           
           {/* Google Pay */}
-          <div className="mb-3">
+          <div className="mb-3 relative">
             <GooglePay />
+            {!contactDetails.pickupTime && (
+              <div
+                className="absolute inset-0 cursor-pointer z-10"
+                onClick={handleWalletClick}
+              />
+            )}
           </div>
           
           <p className="text-xs text-gray-500 text-center">
@@ -401,9 +455,18 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
             },
           }}
           render={(Button) => (
-            <Button disabled={isProcessing}>
-              {isProcessing ? "Processing..." : `Pay £${((totalAmount + tipAmount) / 100).toFixed(2)}`}
-            </Button>
+            <div className="relative">
+              <Button disabled={isProcessing}>
+                {isProcessing ? "Processing..." : `Pay £${((totalAmount + tipAmount) / 100).toFixed(2)}`}
+              </Button>
+
+              {!contactDetails.pickupTime && (
+                <div
+                  className="absolute inset-0 cursor-pointer z-10"
+                  onClick={handleWalletClick}
+                />
+              )}
+            </div>
           )}
         />
       </PaymentForm>

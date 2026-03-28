@@ -46,6 +46,12 @@ function sanitizeOrderForClient(order) {
     tender => tender.type === "CARD" && tender.card_details?.status === "CAPTURED"
   ) ?? false;
   
+  // Sanitize service charges - only expose name and amount, not UIDs or internal fields
+  const sanitizedServiceCharges = order.service_charges?.map(charge => ({
+    name: charge.name,
+    amount_money: charge.amount_money,
+  })) || [];
+  
   return {
     id: order.id,
     version: order.version,
@@ -57,7 +63,7 @@ function sanitizeOrderForClient(order) {
     total_tax_money: order.total_tax_money,
     total_discount_money: order.total_discount_money,
     total_service_charge_money: order.total_service_charge_money,
-    service_charges: order.service_charges,
+    service_charges: sanitizedServiceCharges,
     has_payment: hasSuccessfulPayment, // Only true if payment captured
     fulfillment_status: fulfillmentStatus, // Safe: just the state, no PII
     pickup_time: pickupTime, // Safe: just the timestamp
@@ -308,77 +314,6 @@ export async function checkout(orderId) {
 }
 
 /**
- * Creates a customer in Square and attaches them to an order
- * @param {string} orderId - The Square order ID
- * @param {string} name - Customer"s full name
- * @param {string} email - Customer"s email address
- * @param {string} phone - Customer's phone number
- * @returns {Promise<{success: boolean, version?: number, error?: string}>}
- */
-export async function createCustomer(orderId, name, email, phone) {
-  try {
-    // Validate required fields
-    if (!orderId || !name || !email || !phone) {
-      return {
-        success: false,
-        error: "Missing required fields",
-      };
-    }
-    
-    // Create customer in Square
-    const { firstName, lastName } = splitName(name);
-    const customerData = await fetchSquare(API_CUSTOMERS_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        idempotency_key: crypto.randomUUID(),
-        given_name: firstName,
-        family_name: lastName,
-        email_address: email,
-        phone_number: phone,
-      }),
-    });
-    
-    const customerId = customerData.customer?.id;
-    
-    if (!customerId) {
-      return {
-        success: false,
-        error: "Failed to create customer. Please try again.",
-      };
-    }
-    
-    // Fetch the current order to get its version
-    const orderData = await fetchSquare(`${API_ORDERS_URL}/${orderId}`, {
-      method: "GET",
-    });
-    
-    const currentVersion = orderData.order?.version;
-    
-    // Update order with customer_id
-    const updatedOrderData = await fetchSquare(`${API_ORDERS_URL}/${orderId}`, {
-      method: "PUT",
-      body: JSON.stringify({
-        order: {
-          location_id: LOCATION_ID,
-          version: currentVersion,
-          customer_id: customerId,
-        },
-      }),
-    });
-    
-    return {
-      success: true,
-      version: updatedOrderData.order?.version,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: "Failed to create customer or update order. Please try again.",
-    };
-  }
-}
-
-/**
  * Process a payment with Square
  * @param {string} sourceId - Square payment source token
  * @param {string} orderId - The Square order ID  
@@ -494,16 +429,24 @@ export async function processPayment(sourceId, orderId, amount, verificationToke
         
         // Add tip as a service charge if provided
         if (tipAmount > 0) {
-          orderUpdate.service_charges = [
-            {
-              name: "Tip",
-              amount_money: {
-                amount: tipAmount,
-                currency: CURRENCY,
-              },
-              calculation_phase: "TOTAL_PHASE",
-            }
-          ];
+          const serviceCharge = {
+            name: "Tip",
+            amount_money: {
+              amount: tipAmount,
+              currency: CURRENCY,
+            },
+            calculation_phase: "TOTAL_PHASE",
+          };
+          
+          // If updating existing OPEN order, preserve service charge UID to replace instead of duplicate
+          if (currentState === ORDER_STATE_OPEN && orderData.order?.service_charges?.[0]?.uid) {
+            serviceCharge.uid = orderData.order.service_charges[0].uid;
+          }
+          
+          orderUpdate.service_charges = [serviceCharge];
+        } else if (currentState === ORDER_STATE_OPEN && orderData.order?.service_charges?.length > 0) {
+          // Clear existing service charges if tip is 0 on retry
+          orderUpdate.service_charges = [];
         }
         
         // Build fulfillment object (for both DRAFT and OPEN)

@@ -1,6 +1,18 @@
 import React from "react";
 import MenuItem from "./MenuItem";
 
+// Configuration: Subcategories that should be rendered as variant cards
+const VARIANT_SUBCATEGORIES = new Set([
+  "Nigiri",
+  "Hosomaki",
+  "Inarizushi",
+  "Onigiri",
+  "Sashimi",
+  "Japanese Curry",
+  "Teriyaki",
+  "Crispy Rice"
+]);
+
 const MenuList = ({ 
   menuItems, 
   cart = {}, 
@@ -51,10 +63,10 @@ const MenuList = ({
   const sushiSubcategoryOrder = [
     "Makizushi (Rolls)",
     "Inarizushi",
+    "Onigiri",
     "Nigiri",
     "Hosomaki",
-    "Onigiri",
-    "Sashimi"
+    "Sashimi",
   ];
 
   // Define subcategory order for hot dishes
@@ -101,6 +113,61 @@ const MenuList = ({
     });
   };
 
+  // Helper: Render a variant card for subcategories with multiple variants
+  const renderVariantCard = (subcategory, subcategoryItems) => (
+    <MenuItem
+      key={`${subcategory}-combined`}
+      name={subcategory}
+      description={subcategoryItems[0]?.description || ""}
+      image={subcategoryItems[0]?.imageLink || "/images/placeholder.svg"}
+      originalPrice={null}
+      discountedPrice={null}
+      status={null}
+      variationId={null}
+      cart={cart}
+      addItem={addItem}
+      removeItem={removeItem}
+      updatingItems={updatingItems}
+      isOrderMode={isOrderMode}
+      isVariantCard={true}
+      variants={subcategoryItems}
+    />
+  );
+
+  // Helper: Render regular items with optional subcategory heading
+  const renderRegularItems = (subcategory, subcategoryItems) => (
+    <>
+      {subcategory !== "null" && subcategory && (
+        <div className="col-span-full mb-2">
+          <h3 className="text-lg md:text-2xl font-semibold text-gray-800 flex items-center">
+            <span className="bg-hot-pink/10 text-hot-pink px-3 py-1 rounded-full text-base md:text-lg">
+              {subcategory}
+            </span>
+          </h3>
+        </div>
+      )}
+      {subcategoryItems.map((item, itemIndex) => (
+        <MenuItem
+          key={item.variationId || `${item.id}-${item.name}-${itemIndex}`}
+          id={item.id}
+          name={item.name}
+          originalPrice={item.originalPrice}
+          discountedPrice={item.discountedPrice}
+          image={item.imageLink}
+          description={item.description}
+          variationDescription={item.variationDescription}
+          status={item.status}
+          variationId={item.variationId}
+          cart={cart}
+          addItem={addItem}
+          removeItem={removeItem}
+          updatingItems={updatingItems}
+          isOrderMode={isOrderMode}
+        />
+      ))}
+    </>
+  );
+
   return (
     <div className="menu-list space-y-6 md:space-y-10">
       {Object.entries(categories).map(([category, items]) => {
@@ -115,38 +182,39 @@ const MenuList = ({
               {categoryTitles[category]}
             </h2>
 
-            {sortedSubcategories.map(([subcategory, subcategoryItems]) => (
-              <div key={subcategory} className="subcategory-section mb-4 md:mb-6">
-                {subcategory !== "null" && subcategory && (
-                  <h3 className="text-lg md:text-2xl font-semibold text-gray-800 mb-2 md:mb-3 flex items-center">
-                    <span className="bg-hot-pink/10 text-hot-pink px-3 py-1 rounded-full text-base md:text-lg">
-                      {subcategory}
-                    </span>
-                  </h3>
-                )}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 md:gap-4">
-                  {subcategoryItems.map((item, index) => (
-                    <MenuItem
-                      key={item.variationId || `${item.id}-${item.name}-${index}`}
-                      id={item.id}
-                      name={item.name}
-                      originalPrice={item.originalPrice}
-                      discountedPrice={item.discountedPrice}
-                      image={item.imageLink}
-                      description={item.description}
-                      variationDescription={item.variationDescription}
-                      status={item.status}
-                      variationId={item.variationId}
-                      cart={cart}
-                      addItem={addItem}
-                      removeItem={removeItem}
-                      updatingItems={updatingItems}
-                      isOrderMode={isOrderMode}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
+            {/* Render variant cards and regular items in a unified grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 md:gap-4 mb-4 md:mb-6">
+              {sortedSubcategories.map(([subcategory, subcategoryItems], index) => {
+                // Check if this subcategory should be a variant card
+                const isVariantSubcategory = VARIANT_SUBCATEGORIES.has(subcategory);
+                
+                // Check if we need to show "Sushi with Variants" heading before this subcategory
+                const showSushiVariantsHeading = category === "sushi" && 
+                  isVariantSubcategory && 
+                  index > 0 && 
+                  sortedSubcategories[index - 1][0] === "Makizushi (Rolls)";
+                
+                return (
+                  <React.Fragment key={subcategory}>
+                    {/* Show Sushi with Variants heading */}
+                    {showSushiVariantsHeading && (
+                      <div className="col-span-full mb-2 mt-4 hidden lg:block">
+                        <h3 className="text-lg flex font-semibold text-gray-800 mb-2 items-center">
+                          <span className="bg-hot-pink/10 text-hot-pink px-3 py-1 rounded-full text-base md:text-lg">
+                            And more...
+                          </span>
+                        </h3>
+                      </div>
+                    )}
+                    
+                    {isVariantSubcategory
+                      ? renderVariantCard(subcategory, subcategoryItems)
+                      : renderRegularItems(subcategory, subcategoryItems)
+                    }
+                  </React.Fragment>
+                );
+              })}
+            </div>
           </div>
         );
       })}
