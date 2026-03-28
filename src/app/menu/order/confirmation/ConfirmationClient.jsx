@@ -12,10 +12,10 @@ export default function ConfirmationClient({ orderId, status, order }) {
             <i className="fas fa-exclamation-triangle text-yellow text-6xl"></i>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            Order Cancelled
+            Order Canceled
           </h1>
           <p className="text-gray-600 mb-6">
-            This order has been cancelled and no charges were made. If you need assistance, please contact us.
+            No worries! This order was canceled and you haven't been charged. Ready to try again?
           </p>
           <div className="space-y-3">
             <p className="text-sm text-gray-500">Order ID: {orderId}</p>
@@ -68,13 +68,13 @@ export default function ConfirmationClient({ orderId, status, order }) {
               </div>
             </div>
             <h1 className="text-3xl font-bold text-hot-pink mb-3">
-              Payment Successful!
+              Thank You! Order Confirmed
             </h1>
             <p className="text-base text-gray-600 mb-2">
-              Thank you! Your order has been received and we&apos;ll start preparing your delicious meal shortly.
+              We're excited to prepare your meal! We'll have everything ready for pickup at your scheduled time.
             </p>
             <p className="text-sm text-gray-500 mb-4">
-              You can track your order status <Link href={`/menu/order/track?orderId=${orderId}`} className="text-hot-pink font-semibold underline">here</Link>.
+              Want to follow along? <Link href={`/menu/order/track?orderId=${orderId}`} className="text-hot-pink font-semibold underline">Track your order status here</Link>.
             </p>
 
             {formattedPickupTime && (

@@ -229,7 +229,7 @@ const MenuItem = ({
                             {variants.map((variant, index) => (
                                 <li key={variant.variationId || index} className="flex items-baseline gap-3 text-gray-800">
                                     <span className="font-medium text-sm md:text-base">{variant.name}</span>
-                                    <span className="flex-1 mb-1 bg-repeat-x bg-bottom h-4" style={{backgroundImage: 'radial-gradient(circle, #d1d5db 1px, transparent 1px)', backgroundSize: '4px 4px'}}></span>
+                                    <span className="flex-1 border-b-2 border-dotted border-gray-300"></span>
                                     <span className="text-yellow font-bold text-sm md:text-base">
                                         £{(variant.discountedPrice || variant.originalPrice).toFixed(2)}
                                     </span>

@@ -59,12 +59,15 @@ export default async function PaymentPage({ searchParams }) {
         <div className="max-w-3xl mx-auto">
           {/* Header */}
           <div className="mb-5">
-            <h1 className="text-2xl font-bold text-hot-pink text-center">
-              <i className="fas fa-credit-card mr-2"></i>Complete Your Payment
+            <h1 className="text-2xl md:text-3xl font-bold text-hot-pink text-center">
+              <i className="fas fa-credit-card mr-2"></i>Almost There!
             </h1>
-            <p className="text-green-500 text-center text-sm mt-2">
+            <p className="text-gray-700 text-center text-base mt-2 mb-1">
+              Complete your order and we'll have it ready for you to pickup
+            </p>
+            <p className="text-green-600 text-center text-sm">
               <i className="fas fa-lock mr-1"></i>
-              Secure checkout powered by Square
+              Safe & secure checkout powered by Square
             </p>
           </div>
         

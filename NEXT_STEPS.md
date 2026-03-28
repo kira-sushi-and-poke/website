@@ -2,6 +2,14 @@
 
 ## Immediate Priorities
 
+### 0. Deployment Configuration ⚠️ CRITICAL
+- [ ] **Set `TZ=UTC` environment variable in production deployment**
+  - Required for pickup time validation to work correctly
+  - Prevents timezone issues between client and server
+  - See README.md Deployment section for details
+- [ ] Verify all environment variables from `.env.example` are set in production
+- [ ] Test pickup time validation works correctly in production environment
+
 ### 1. Testing & Quality Assurance
 - [ ] Test complete order flow with real payments (sandbox → production)
 - [ ] Verify tip calculation and display across all payment methods (Card, Google Pay, Apple Pay)
@@ -108,26 +116,6 @@
 
 ## Known Issues to Address
 
-### Current Items
-- [x] CSP headers blocking Square SDK - FIXED
-- [x] Order total mismatch with tip - FIXED
-- [x] Google Pay not updating with tip changes - FIXED
-- [x] Special instructions trim/validation - FIXED
-- [ ] Confirm special instructions display in Square Dashboard
-- [ ] Verify payment form behaves correctly across all browsers
-
-### Bugs to Fix
-- [x] **Fix multiple tips added when order fails** - Service charges persist on retry, need to clear or check for existing tips
-- [x] **Fix quote character usage in PickupDetails** - Replace escaped `\"` with single quotes `'` for cleaner code
-- [ ] **Improve loading state after payment submission** - Show clear feedback while processing the payment
-- [x] Check if createCustomer needs to be a server action - REMOVED (redundant, customer creation happens inline in processPayment)
-- [x] Pass `createVerificationDetails` - ADDED for Square buyer verification
-- [x] Validate pickup time early for digital wallets - ADDED overlay validation to prevent wallet UI from opening without pickup time selected
-
-
-### Features to Add
-- [ ] **Closing time integration with Square** - Integrate with Square's hours API or location settings to disable ordering when closed
-
 ## Documentation Needed
 
 - [ ] API documentation for Square integration
@@ -145,7 +133,3 @@
 - Service charges used for tip functionality (appears as line item in Square)
 - Order tracking auto-refreshes every 30 seconds for active orders
 - All PII properly sanitized in client-exposed order data
-
-
-=====
-

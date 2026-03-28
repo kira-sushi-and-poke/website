@@ -118,8 +118,8 @@ export default function TrackOrderClient({ initialData }) {
   // Determine status display based on fulfillment state
   let statusConfig = {
     icon: "fa-clock",
-    title: "Order Submitted",
-    message: "Your order has been submitted! We'll start preparing your meal shortly. Stay on this page to track your order status in real-time.",
+    title: "We Got Your Order!",
+    message: "Your order is in! We'll start preparing shortly. This page will update automatically as your order progresses.",
     color: "yellow",
     showPickupTime: true,
   };
@@ -127,16 +127,16 @@ export default function TrackOrderClient({ initialData }) {
   if (fulfillmentState === "RESERVED") {
     statusConfig = {
       icon: "fa-fire",
-      title: "Preparing Your Order",
-      message: "Our chef is carefully crafting your delicious meal! Stay on this page to know when your order is ready for pickup.",
+      title: "We're Preparing Your Food!",
+      message: "Our kitchen is preparing your order right now. Stay on this page to know when it's ready for pickup.",
       color: "yellow",
       showPickupTime: true,
     };
   } else if (fulfillmentState === "PREPARED") {
     statusConfig = {
       icon: "fa-check-circle",
-      title: "Order Ready for Pickup!",
-      message: "Your order is ready and waiting for you!",
+      title: "Your Order is Ready! 🎉",
+      message: "Come and get it! Your fresh meal is packed and waiting for you.",
       color: "hot-pink",
       showPickupTime: true,
     };
@@ -144,7 +144,7 @@ export default function TrackOrderClient({ initialData }) {
     statusConfig = {
       icon: "fa-check",
       title: "Order Completed",
-      message: "Thank you for your order. We hope you enjoy your food!",
+      message: "Thank you for your order! We hope you enjoyed your meal.",
       color: "hot-pink",
       showPickupTime: false,
     };

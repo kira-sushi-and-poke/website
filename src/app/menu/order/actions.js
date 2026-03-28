@@ -18,6 +18,7 @@ import {
 } from "@/lib/constants";
 import { fetchSquare } from "@/lib/squareApi";
 import { splitName } from "@/lib/splitName";
+import { validatePickupTime } from "@/lib/validation";
 
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 const LOCATION_ID = process.env.LOCATION_ID;
@@ -335,11 +336,12 @@ export async function processPayment(sourceId, orderId, amount, verificationToke
       };
     }
     
-    // Validate pickup time is provided
-    if (!pickupTime) {
+    // Validate pickup time is provided and valid (at least 20 minutes from now)
+    const pickupError = validatePickupTime(pickupTime);
+    if (pickupError) {
       return {
         success: false,
-        error: "Pickup time is required",
+        error: pickupError,
       };
     }
     

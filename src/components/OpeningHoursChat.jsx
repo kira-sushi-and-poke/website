@@ -46,11 +46,7 @@ const OpeningHoursChat = ({ openingHours, isFallback = false }) => {
             {showSign && (
                 <div className="fixed bottom-6 right-6 z-40">
                     <a
-                        href="#"
-                        onClick={(e) => {
-                            e.preventDefault();
-                            setShowModal(true);
-                        }}
+                        href="/menu/order"
                         className={`
                             relative px-6 py-4 rounded-lg font-bold text-center
                             transition-all duration-300 hover:scale-105
@@ -84,7 +80,7 @@ const OpeningHoursChat = ({ openingHours, isFallback = false }) => {
                                     Closing Soon
                                 </div>
                             )}
-                            <div className="text-xs opacity-75 mt-1 text-hot-pink">View opening hours</div>
+                            <div className="text-xs opacity-75 mt-1 text-hot-pink underline">Order here</div>
                         </div>
                     </a>
                 </div>

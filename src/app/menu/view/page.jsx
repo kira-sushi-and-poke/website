@@ -6,6 +6,7 @@ import ErrorDisplay from "../ErrorDisplay";
 import AllergenNotice from "../AllergenNotice";
 import { getMenuData } from "@/lib/getMenuData";
 import { generateMenuSchema } from "../menuSchema";
+import ScrollCTABanner from "./ScrollCTABanner";
 
 // Generate metadata for SEO
 export const metadata = {
@@ -29,7 +30,8 @@ export default async function MenuViewPage() {
                 />
             )}
             <div className="py-8 md:py-12 px-5 md:px-10 max-w-7xl mx-auto overflow-visible">
-                <h1 className="text-2xl md:text-4xl font-bold mb-4 md:mb-6 text-hot-pink">Menu | Kira Sushi & Poke</h1>
+                <h1 className="text-2xl md:text-4xl font-bold mb-2 md:mb-3 text-hot-pink">Menu | Kira Sushi & Poke</h1>
+                <p className="text-sm md:text-base text-gray-600 mb-3">Real photos, no filters - what you see is what you get!</p>
 
                 {!success && error && (
                     <ErrorDisplay error={error} />
@@ -45,6 +47,9 @@ export default async function MenuViewPage() {
                     </>
                 )}
             </div>
+            
+            {/* Scroll-triggered CTA Banner */}
+            <ScrollCTABanner />
         </>
     );
 }
