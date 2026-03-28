@@ -14,7 +14,8 @@ export default async function MenuOrderPage() {
 
     return (
         <div className="py-6 md:py-12 px-3 md:px-10 max-w-7xl mx-auto overflow-visible">
-            <h1 className="text-xl md:text-4xl font-bold mb-3 md:mb-6 text-hot-pink">Order Menu</h1>
+            <h1 className="text-xl md:text-4xl font-bold mb-2 md:mb-3 text-hot-pink">Let's Start Your Order</h1>
+            <p className="text-sm md:text-base text-gray-600 mb-3">Real photos, no filters - what you see is what you get! Select your favorites and we'll have them ready for pickup!</p>
 
             {!success && error && (
                 <ErrorDisplay error={error} />

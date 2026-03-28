@@ -1,3 +1,5 @@
+import { DEFAULT_OPENING_HOURS_SCHEMA } from "../lib/constants";
+
 // Restaurant Business Information
 export const restaurantInfo = {
   name: "Kira Sushi and Poke",
@@ -13,16 +15,8 @@ export const restaurantInfo = {
     addressCountry: "GB"
   },
   
-  // Opening hours in Schema.org format
-  openingHours: [
-    "Mo 11:00-19:00",
-    "Tu 11:00-19:00",
-    "We 11:00-19:00",
-    "Th 11:00-19:00",
-    "Fr 11:00-19:00",
-    "Sa 11:00-19:00",
-    "Su 11:00-19:00"
-  ],
+  // Fallback hours - dynamic hours fetched from Square in layout.jsx
+  openingHours: DEFAULT_OPENING_HOURS_SCHEMA,
   
   socialMedia: {
     facebook: "https://www.facebook.com/people/Kira-Sushi-Poke/61583413766423/",

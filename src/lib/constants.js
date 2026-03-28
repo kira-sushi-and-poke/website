@@ -49,3 +49,48 @@ export const TIME_FORMAT_OPTIONS = {
   minute: "2-digit",
   hour12: false
 };
+
+/**
+ * Default Opening Hours (Fallback)
+ * Used when Square Locations API is unavailable
+ */
+export const DEFAULT_OPENING_HOURS = {
+  Monday: { open: "11:00", close: "19:00" },
+  Tuesday: { open: "11:00", close: "19:00" },
+  Wednesday: { open: "11:00", close: "19:00" },
+  Thursday: { open: "11:00", close: "19:00" },
+  Friday: { open: "11:00", close: "19:00" },
+  Saturday: { open: "11:00", close: "19:00" },
+  Sunday: { open: "11:00", close: "19:00" }
+};
+
+/**
+ * Default Opening Hours in Schema.org format
+ * Used for structured data / SEO
+ */
+export const DEFAULT_OPENING_HOURS_SCHEMA = [
+  "Mo 11:00-19:00",
+  "Tu 11:00-19:00",
+  "We 11:00-19:00",
+  "Th 11:00-19:00",
+  "Fr 11:00-19:00",
+  "Sa 11:00-19:00",
+  "Su 11:00-19:00"
+];
+
+/**
+ * Default Opening Hours Text (Fallback)
+ * Pre-formatted text for display components
+ */
+export const DEFAULT_OPENING_HOURS_TEXT = {
+  short: "Mon-Sun 11:00 AM - 7:00 PM",
+  days: "Monday - Sunday",
+  times: "11:00 AM - 7:00 PM",
+  sentence: "Monday through Sunday from 11:00 AM to 7:00 PM"
+};
+
+/**
+ * Opening Hours Helper Constants
+ */
+export const DAYS_OF_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+export const CLOSING_SOON_THRESHOLD = 30; // minutes before closing to show "closing soon"

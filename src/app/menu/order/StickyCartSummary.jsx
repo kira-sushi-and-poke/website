@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import PickupOnlyNotice from "@/components/PickupOnlyNotice";
 
 export default function StickyCartSummary({ 
     cart, 
@@ -13,7 +14,7 @@ export default function StickyCartSummary({
     onCheckout
 }) {
     const [isExpanded, setIsExpanded] = useState(false);
-    const [confirmRemove, setConfirmRemove] = useState(null); // { variationId, name }
+    const [confirmRemove, setConfirmRemove] = useState(null);
     const [confirmClearCart, setConfirmClearCart] = useState(false);
     
     // Lock body scroll when expanded
@@ -211,14 +212,8 @@ export default function StickyCartSummary({
                         <div className="border-t border-gray-200 px-5 md:px-10 py-4 bg-gray-50 shrink-0">
                             {/* Pickup Only Notice */}
                             {!isEmpty && (
-                                <div className="bg-yellow/10 border border-yellow rounded-lg p-3 md:p-4 mb-4 md:mb-6 flex items-start gap-2 md:gap-3">
-                                    <i className="fas fa-shopping-bag text-yellow text-lg mt-0.5"></i>
-                                    <div>
-                                        <p className="text-sm font-semibold text-gray-800 mb-1">Pickup Only</p>
-                                        <p className="text-xs text-gray-700">
-                                            We don"t offer delivery at the moment, but we"re hoping to add it soon! For now, you can collect your order from our location at 148 Front Street, Chester-le-Street.
-                                        </p>
-                                    </div>
+                                <div className="mb-4 md:mb-6">
+                                    <PickupOnlyNotice />
                                 </div>
                             )}
                             

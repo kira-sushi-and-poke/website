@@ -1,17 +1,19 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import { PaymentForm, CreditCard, GooglePay, ApplePay } from "react-square-web-payments-sdk";
 import { generatePickupTimes } from "@/lib/generatePickupTimes";
-import { validateContactDetails } from "@/lib/validation";
+import { validateContactDetails, validatePickupTime } from "@/lib/validation";
 import { processPayment } from "../actions";
 import PickupDetails from "./PickupDetails";
 
 export default function PaymentFormComponent({ orderId, totalAmount }) {
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("Processing Payment...");
+  const paymentTimeoutRef = useRef(null);
   const [contactDetails, setContactDetails] = useState({
     name: "",
     email: "",
@@ -77,13 +79,44 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
   };
   
   const cardTokenizeResponseReceived = async (token, verifiedBuyer) => {
-    // Prevent double submission
-    if (isProcessing) return;
+    // Clear timeout since callback was triggered
+    if (paymentTimeoutRef.current) {
+      clearTimeout(paymentTimeoutRef.current);
+      paymentTimeoutRef.current = null;
+    }
     
-    // Set loading state
-    setIsProcessing(true);
+    // Set loading state if not already set (e.g., for credit card payments)
+    if (!isProcessing) {
+      setIsProcessing(true);
+      setLoadingMessage("Processing Payment...");
+    }
 
     try {
+      // Check token status - handle cancel/error cases
+      if (token.status === 'Cancel') {
+        // User cancelled the payment sheet
+        setIsProcessing(false);
+        return;
+      }
+      
+      if (token.status === 'Error' || token.status === 'Invalid') {
+        // Tokenization error
+        setIsProcessing(false);
+        const errorMessage = token.errors?.[0]?.message || "Payment failed. Please try again.";
+        toast.error(errorMessage, { duration: 10000 });
+        return;
+      }
+      
+      if (token.status !== 'OK') {
+        // Unknown/Abort status
+        setIsProcessing(false);
+        toast.error("Payment processing failed. Please try again.", { duration: 10000 });
+        return;
+      }
+      
+      // Update message to show we're now processing the payment
+      setLoadingMessage("Processing Payment...");
+      
       // Determine payment method
       const paymentMethod = token.details?.method;
       const isWalletPayment = paymentMethod === "Apple Pay" || 
@@ -118,6 +151,18 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
             pickupTime: "Pickup time is required"
           }));
           toast.error("Please select a pickup time", { duration: 10000 });
+          return;
+        }
+        
+        // Validate pickup time is at least 20 minutes from now
+        const pickupError = validatePickupTime(contactDetails.pickupTime);
+        if (pickupError) {
+          setIsProcessing(false);
+          setFormErrors(prev => ({
+            ...prev,
+            pickupTime: pickupError
+          }));
+          toast.error(pickupError, { duration: 10000 });
           return;
         }
       } else {
@@ -177,6 +222,64 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
     };
   }, [totalAmount, tipAmount]);
   
+  const createVerificationDetails = useMemo(() => {
+    return () => {
+      const finalTotal = totalAmount + tipAmount;
+      const nameParts = contactDetails.name.trim().split(/\s+/);
+      
+      return {
+        amount: (finalTotal / 100).toFixed(2),
+        billingContact: {
+          givenName: nameParts.length === 1 ? nameParts[0] : nameParts.slice(0, -1).join(" "),
+          familyName: nameParts.length > 1 ? nameParts[nameParts.length - 1] : "",
+          email: contactDetails.email,
+          phone: contactDetails.phone,
+        },
+        currencyCode: "GBP",
+        intent: "CHARGE",
+      };
+    };
+  }, [totalAmount, tipAmount, contactDetails.name, contactDetails.email, contactDetails.phone]);
+  
+  const handleWalletPayClick = () => {
+    // Set loading state when pickup time is selected
+    if (contactDetails.pickupTime && !isProcessing) {
+      setIsProcessing(true);
+      setLoadingMessage("Please wait while we process your payment");
+      
+      // Set timeout to reset loading if callback doesn't fire
+      // Square SDK doesn't call cardTokenizeResponseReceived when user cancels
+      paymentTimeoutRef.current = setTimeout(() => {
+        setIsProcessing(false);
+        paymentTimeoutRef.current = null;
+      }, 30000); // 30 seconds
+    }
+    // Click continues to propagate to GooglePay button or overlay
+  };
+  
+  const handleClickForValidation = (e) => {
+    if (!contactDetails.pickupTime) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Clear error first to ensure useEffect in PickupDetails triggers every time
+      setFormErrors(prev => ({
+        ...prev,
+        pickupTime: undefined
+      }));
+      
+      // Set error after a brief delay to trigger the useEffect
+      setTimeout(() => {
+        setFormErrors(prev => ({
+          ...prev,
+          pickupTime: "Pickup time is required"
+        }));
+      }, 10);
+      
+      toast.error("Please select a pickup time", { duration: 10000 });
+    }
+  };
+  
   if (!appId || !locationId) {
     return (
       <div className="bg-yellow-50 border-l-4 border-yellow-500 rounded-lg p-5">
@@ -204,7 +307,7 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
           </div>
         </div>
         <div className="w-16 h-16 border-4 border-hot-pink border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-xl font-bold text-hot-pink">Processing Payment...</p>
+        <p className="text-xl font-bold text-hot-pink">{loadingMessage}</p>
         <p className="text-sm text-gray-600 mt-2">Please don't close this page</p>
       </div>
     )}
@@ -224,6 +327,12 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
         locationId={locationId}
         cardTokenizeResponseReceived={cardTokenizeResponseReceived}
         createPaymentRequest={createPaymentRequest}
+        createVerificationDetails={createVerificationDetails}
+        formProps={{
+          onSubmit: (e) => {
+            // Form submission handled by Square SDK
+          }
+        }}
       >
         <h1 className="text-xl font-bold text-hot-pink mb-4">
           <i className="fas fa-credit-card mr-2"></i>Payment
@@ -289,14 +398,28 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
           
           {/* Apple Pay - Only in production (requires domain verification) */}
           {isProduction && (
-            <div className="mb-3">
+            <div className="mb-3 relative" onClickCapture={handleWalletPayClick}>
               <ApplePay />
+
+              {!contactDetails.pickupTime && (
+                <div
+                  className="absolute inset-0 cursor-pointer z-10"
+                  onClick={handleClickForValidation}
+                />
+              )}
             </div>
           )}
           
           {/* Google Pay */}
-          <div className="mb-3">
+          <div className="mb-3 relative" onClickCapture={handleWalletPayClick}>
             <GooglePay />
+
+            {!contactDetails.pickupTime && (
+              <div
+                className="absolute inset-0 cursor-pointer z-10"
+                onClick={handleClickForValidation}
+              />
+            )}
           </div>
           
           <p className="text-xs text-gray-500 text-center">
@@ -401,9 +524,18 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
             },
           }}
           render={(Button) => (
-            <Button disabled={isProcessing}>
-              {isProcessing ? "Processing..." : `Pay £${((totalAmount + tipAmount) / 100).toFixed(2)}`}
-            </Button>
+            <div className="relative">
+              <Button disabled={isProcessing}>
+                {isProcessing ? "Processing..." : `Pay £${((totalAmount + tipAmount) / 100).toFixed(2)}`}
+              </Button>
+
+              {!contactDetails.pickupTime && (
+                <div
+                  className="absolute inset-0 cursor-pointer z-10"
+                  onClick={handleClickForValidation}
+                />
+              )}
+            </div>
           )}
         />
       </PaymentForm>

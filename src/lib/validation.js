@@ -25,6 +25,36 @@ export function validatePhone(phone) {
 }
 
 /**
+ * Validate that pickup time is at least 20 minutes from now
+ * Note: Uses UTC timestamps (getTime()) for timezone-safe comparisons.
+ * Both client and server parse ISO strings correctly regardless of their local timezone.
+ * @param {string} pickupTime - ISO string of pickup time
+ * @returns {string|null} Error message if invalid, null if valid
+ */
+export function validatePickupTime(pickupTime) {
+  if (!pickupTime) {
+    return "Pickup time is required";
+  }
+
+  const pickupDate = new Date(pickupTime);
+  
+  // Check if pickup time is valid date
+  if (isNaN(pickupDate.getTime())) {
+    return "Invalid pickup time";
+  }
+  
+  // Get current time and minimum allowed time
+  const now = new Date();
+  const minTime = new Date(now.getTime() + 20 * 60000); // 20 minutes from now
+  
+  if (pickupDate.getTime() < minTime.getTime()) {
+    return "Pickup time must be at least 20 minutes from now";
+  }
+  
+  return null;
+}
+
+/**
  * Validate contact details object
  * @param {object} details - Contact details object with name, email, phone, pickupTime
  * @returns {{isValid: boolean, errors: object}} Validation result with errors object
@@ -48,8 +78,11 @@ export function validateContactDetails(details) {
     errors.phone = "Invalid phone number";
   }
   
-  if (details.pickupTime !== undefined && !details.pickupTime) {
-    errors.pickupTime = "Pickup time is required";
+  if (details.pickupTime !== undefined) {
+    const pickupError = validatePickupTime(details.pickupTime);
+    if (pickupError) {
+      errors.pickupTime = pickupError;
+    }
   }
   
   return {

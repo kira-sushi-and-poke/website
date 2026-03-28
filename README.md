@@ -25,6 +25,29 @@ Welcome to the Kira Sushi and Poke web app! This application is designed to show
    http://localhost:3000
    ```
 
+## Deployment
+
+When deploying to production (Vercel, AWS, etc.), ensure the following:
+
+### Environment Variables
+- Copy all variables from `.env.example` to your deployment platform
+- **CRITICAL:** Set `TZ=UTC` in your deployment environment variables
+  - This ensures consistent date/time handling for pickup time validation
+  - Prevents timezone-related issues between client and server
+  - Required for accurate "20 minutes from now" calculations
+
+### Vercel Deployment
+```bash
+# In Vercel dashboard, add environment variable:
+TZ=UTC
+```
+
+### Other Platforms
+Ensure your server runs in UTC timezone. This is critical for:
+- Pickup time validation (must be 20+ minutes from current time)
+- Square API timestamp handling
+- Consistent behavior regardless of server location
+
 ## Usage
 
 - The home page features an "About Us" section that provides information about the restaurant.
