@@ -1,67 +1,57 @@
+import { toZonedTime, fromZonedTime } from 'date-fns-tz';
+import { addDays, addMinutes, setHours, setMinutes, format } from 'date-fns';
+
+const UK_TZ = 'Europe/London';
+
 /**
  * Generate pickup time options with 15-minute intervals
- * @param {number} minLeadTimeMinutes - Minimum lead time from now (default: 30)
+ * All times are displayed in UK timezone (Europe/London) to match restaurant's local time.
+ * Users anywhere in the world will see UK times to avoid confusion.
+ * @param {number} minLeadTimeMinutes - Minimum lead time from now (default: 45)
  * @param {number} startHour - Start of day hour (default: 11)
  * @param {number} endHour - End of day hour (default: 19)
  * @returns {Array<{label: string, value: string}>} Array of time options
  */
 export function generatePickupTimes(
-  minLeadTimeMinutes = 30,
+  minLeadTimeMinutes = 45,
   startHour = 11,
   endHour = 19
 ) {
   const times = [];
-  const now = new Date();
-  const minTime = new Date(now.getTime() + minLeadTimeMinutes * 60000);
   
-  // Start from today at startHour
-  const startOfDay = new Date(now);
-  startOfDay.setHours(startHour, 0, 0, 0);
+  // Get current time in UK timezone
+  const nowUTC = new Date();
+  const nowUK = toZonedTime(nowUTC, UK_TZ);
+  const minPickupUK = addMinutes(nowUK, minLeadTimeMinutes);
   
-  // End at endHour
-  const endOfDay = new Date(now);
-  endOfDay.setHours(endHour, 0, 0, 0);
-  
-  // If current time is past startHour, start from minTime instead
-  let currentTime = minTime > startOfDay ? minTime : startOfDay;
-  
-  // Round up to next 15-min interval
-  const minutes = currentTime.getMinutes();
-  const roundedMinutes = Math.ceil(minutes / 15) * 15;
-  currentTime.setMinutes(roundedMinutes, 0, 0);
-  
-  // Generate time slots
-  while (currentTime <= endOfDay) {
-    const timeString = currentTime.toLocaleTimeString("en-GB", { 
-      hour: "2-digit", 
-      minute: "2-digit",
-      hour12: false 
-    });
-    const isoString = currentTime.toISOString();
-    times.push({ label: timeString, value: isoString });
-    currentTime = new Date(currentTime.getTime() + 15 * 60000); // Add 15 minutes
-  }
-  
-  // If no times today, add times for tomorrow
-  if (times.length === 0) {
-    const tomorrow = new Date(now);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(startHour, 0, 0, 0);
+  // Try today and tomorrow
+  for (let dayOffset = 0; dayOffset <= 1; dayOffset++) {
+    const targetDay = addDays(nowUK, dayOffset);
     
-    const tomorrowEnd = new Date(tomorrow);
-    tomorrowEnd.setHours(endHour, 0, 0, 0);
-    
-    let time = tomorrow;
-    while (time <= tomorrowEnd) {
-      const timeString = time.toLocaleTimeString("en-GB", { 
-        hour: "2-digit", 
-        minute: "2-digit",
-        hour12: false 
-      }) + " (Tomorrow)";
-      const isoString = time.toISOString();
-      times.push({ label: timeString, value: isoString });
-      time = new Date(time.getTime() + 15 * 60000);
+    for (let hour = startHour; hour < endHour; hour++) {
+      for (let minute = 0; minute < 60; minute += 15) {
+        // Create time in UK timezone
+        let timeUK = setHours(setMinutes(targetDay, minute), hour);
+        
+        // Skip if before minimum pickup time
+        if (timeUK < minPickupUK) continue;
+        
+        // Convert UK time to UTC for storage
+        const timeUTC = fromZonedTime(timeUK, UK_TZ);
+        
+        // Format label
+        const timeLabel = format(timeUK, 'HH:mm');
+        const label = timeLabel + (dayOffset === 1 ? ' (Tomorrow)' : '');
+        
+        times.push({
+          label: label,
+          value: timeUTC.toISOString()
+        });
+      }
     }
+    
+    // If we have times for today, don't generate tomorrow
+    if (times.length > 0) break;
   }
   
   return times;

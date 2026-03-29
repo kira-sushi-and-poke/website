@@ -3,6 +3,8 @@ import { getOrder } from "../actions";
 import PaymentForm from "./PaymentForm";
 import OrderIdValidator from "../OrderIdValidator";
 import OrderSummary from "./OrderSummary";
+import { getMenuData } from "@/lib/getMenuData";
+import { enrichLineItems } from "@/lib/enrichLineItems";
 
 export const metadata = {
   title: "Pay Order | Kira Sushi & Poke",
@@ -47,6 +49,11 @@ export default async function PaymentPage({ searchParams }) {
     redirect(`/menu/order/confirmation?orderId=${orderId}`);
   }
   
+  // Fetch menu data to enrich line items with displayName
+  const menuResult = await getMenuData();
+  const menuData = menuResult.success ? menuResult.data : [];
+  const enrichedLineItems = enrichLineItems(order.line_items, menuData);
+  
   // Calculate total
   const total = order.line_items.reduce((sum, item) => {
     const itemTotal = parseFloat(item.base_price_money?.amount || 0) * parseInt(item.quantity);
@@ -72,7 +79,7 @@ export default async function PaymentPage({ searchParams }) {
           </div>
         
           {/* Order Summary */}
-          <OrderSummary lineItems={order.line_items} total={total} />
+          <OrderSummary lineItems={enrichedLineItems} total={total} />
           
           {/* Payment Form */}
           <PaymentForm orderId={orderId} totalAmount={total} />

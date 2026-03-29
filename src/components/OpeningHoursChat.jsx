@@ -4,49 +4,36 @@ import { usePathname } from "next/navigation";
 import { DAYS_OF_WEEK, CLOSING_SOON_THRESHOLD } from "@/lib/constants";
 import { convertTo12Hour } from "@/lib/formatTime";
 
-const OpeningHoursChat = ({ openingHours, isFallback = false }) => {
+const OpeningHoursChat = ({ openingHours, isFallback = false, restaurantStatus }) => {
     const [showModal, setShowModal] = useState(false);
     const [showSign, setShowSign] = useState(true);
     const pathname = usePathname();
 
-    // Hide on menu/order pages
-    const shouldHide = pathname?.startsWith("/menu/order") || pathname === "/menu/order";
+    // Use restaurant status from props (calculated server-side)
+    const { isOpen, closingSoon } = restaurantStatus;
+    const restaurantOpen = isOpen;
+
+    // Hide on menu/order pages ONLY when restaurant is open
+    const isOrderPage = pathname?.startsWith("/menu/order") || pathname === "/menu/order";
+    const shouldHide = isOrderPage && restaurantOpen;
     
     if (shouldHide) {
         return null;
     }
 
-    // Helper functions
-    const getCurrentDay = () => DAYS_OF_WEEK[new Date().getDay()];
-    
-    const getTodayHours = () => openingHours[getCurrentDay()];
-    
-    const timeToMinutes = (timeString) => {
-        const [hours, minutes] = timeString.split(":").map(Number);
-        return hours * 60 + minutes;
-    };
-    
-    const getCurrentTimeInMinutes = () => {
-        const now = new Date();
-        return now.getHours() * 60 + now.getMinutes();
-    };
-
-    // Check restaurant status
-    const currentTime = getCurrentTimeInMinutes();
-    const todayHours = getTodayHours();
-    const openTime = timeToMinutes(todayHours.open);
-    const closeTime = timeToMinutes(todayHours.close);
-    
-    const restaurantOpen = currentTime >= openTime && currentTime < closeTime;
-    const closingSoon = restaurantOpen && (closeTime - currentTime) > 0 && (closeTime - currentTime) <= CLOSING_SOON_THRESHOLD;
-
     return (
         <>
             {/* Sticky Restaurant Sign */}
             {showSign && (
-                <div className="fixed bottom-6 right-6 z-40">
+                <div className="fixed bottom-6 right-6 z-60">
                     <a
-                        href="/menu/order"
+                        href={(restaurantOpen && !closingSoon) ? "/menu/order" : "#"}
+                        onClick={(e) => {
+                            if (!restaurantOpen || closingSoon) {
+                                e.preventDefault();
+                                setShowModal(true);
+                            }
+                        }}
                         className={`
                             relative px-6 py-4 rounded-lg font-bold text-center
                             transition-all duration-300 hover:scale-105
@@ -80,7 +67,9 @@ const OpeningHoursChat = ({ openingHours, isFallback = false }) => {
                                     Closing Soon
                                 </div>
                             )}
-                            <div className="text-xs opacity-75 mt-1 text-hot-pink underline">Order here</div>
+                            <div className="text-xs opacity-75 mt-1 text-hot-pink underline">
+                                {(restaurantOpen && !closingSoon) ? "Order here" : "View opening times"}
+                            </div>
                         </div>
                     </a>
                 </div>
@@ -89,7 +78,7 @@ const OpeningHoursChat = ({ openingHours, isFallback = false }) => {
             {/* Modal */}
             {showModal && (
                 <div 
-                    className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+                    className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-70 p-4"
                     onClick={() => setShowModal(false)}
                 >
                     <div 

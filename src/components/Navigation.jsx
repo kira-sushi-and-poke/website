@@ -8,8 +8,6 @@ const Navigation = () => {
     const navItems = [
         { href: "/", label: "Home" },
         { href: "/menu", label: "Menu" },
-        { href: "/about", label: "About" },
-        { href: "/reviews", label: "Reviews" },
         { href: "/contact", label: "Contact" },
         { href: "/faq", label: "FAQ" }
     ];
@@ -23,7 +21,7 @@ const Navigation = () => {
                         <li key={item.href}>
                             <a 
                                 href={item.href} 
-                                className={`font-bold transition-all duration-200 px-4 py-2 rounded-lg border-2 ${
+                                className={`font-bold transition-all duration-200 px-3 py-2 rounded-lg border-2 text-sm ${
                                     isActive 
                                         ? "bg-yellow text-white border-yellow shadow-md" 
                                         : "bg-white text-hot-pink border-white hover:bg-yellow hover:text-white hover:border-yellow hover:shadow-md"

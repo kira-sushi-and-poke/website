@@ -11,8 +11,8 @@ const FAQPage = async () => {
             answer: `We're open ${openingHoursText.sentence}. Check our social media for any holiday hours or special closures.`
         },
     {
-        question: "Do you offer delivery or takeaway?",
-        answer: "Unfortunately not at the moment. We are currently operating as a dine-in only restaurant. We hope to offer takeaway and delivery options in the future, so stay tuned!"
+        question: "Do you offer delivery?",
+        answer: "Unfortunately, we don't offer delivery at this time, but you're welcome to enjoy your food as dine-in or pickup. Yes, you can now place your order for pickup directly through our website."
     },
     {
         question: "Do you have gluten-free options?",

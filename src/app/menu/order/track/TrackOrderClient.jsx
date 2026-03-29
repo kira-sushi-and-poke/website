@@ -107,6 +107,7 @@ export default function TrackOrderClient({ initialData }) {
   
   const formattedPickupTime = pickupTime 
     ? new Date(pickupTime).toLocaleString("en-GB", {
+        timeZone: "Europe/London",
         weekday: "long",
         month: "long",
         day: "numeric",
@@ -135,7 +136,7 @@ export default function TrackOrderClient({ initialData }) {
   } else if (fulfillmentState === "PREPARED") {
     statusConfig = {
       icon: "fa-check-circle",
-      title: "Your Order is Ready! 🎉",
+      title: "Your Order is Ready!",
       message: "Come and get it! Your fresh meal is packed and waiting for you.",
       color: "hot-pink",
       showPickupTime: true,

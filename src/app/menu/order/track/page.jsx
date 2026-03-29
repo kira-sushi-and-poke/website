@@ -1,6 +1,8 @@
 import TrackOrderClient from "./TrackOrderClient";
 import { getOrder } from "../actions";
 import OrderIdValidator from "../OrderIdValidator";
+import { getMenuData } from "@/lib/getMenuData";
+import { enrichLineItems } from "@/lib/enrichLineItems";
 
 export const metadata = {
   title: "Track Order | Kira Sushi & Poke",
@@ -20,7 +22,17 @@ export default async function TrackOrderPage({ searchParams }) {
   if (orderId) {
     const { success, order } = await getOrder(orderId);
     if (success && order) {
-      orderData = { orderId, order };
+      // Fetch menu data to enrich line items with displayName
+      const menuResult = await getMenuData();
+      const menuData = menuResult.success ? menuResult.data : [];
+      
+      // Enrich line items with displayName from menu data
+      const enrichedOrder = {
+        ...order,
+        line_items: enrichLineItems(order.line_items, menuData)
+      };
+      
+      orderData = { orderId, order: enrichedOrder };
     } else {
       // Order not found, but pass orderId so client can show appropriate error
       orderData = { orderId, error: "not_found" };

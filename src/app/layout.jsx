@@ -5,6 +5,7 @@ import Navigation from "../components/Navigation";
 import Breadcrumbs from "../components/Breadcrumbs";
 import restaurantInfo from "../data/restaurant-info";
 import { getLocationData } from "../lib/getLocationData";
+import { checkRestaurantStatus } from "../lib/checkRestaurantStatus";
 import Image from "next/image";
 import KiraLogo from "../../public/kira-sushi-and-poke-logo.png";
 
@@ -63,6 +64,7 @@ export const metadata = {
 const Layout = async ({ children }) => {
     // Fetch opening hours from Square API (with internal fallback handling)
     const { openingHours, openingHoursSchema, openingHoursText, isFallback } = await getLocationData();
+    const restaurantStatus = checkRestaurantStatus(openingHours);
 
     // Generate structured data for Restaurant
     const restaurantSchema = {
@@ -138,10 +140,10 @@ const Layout = async ({ children }) => {
                 </header>
                 <Breadcrumbs />
                 <main>{children}</main>
-                <OpeningHoursChat openingHours={openingHours} isFallback={isFallback} />
+                <OpeningHoursChat openingHours={openingHours} isFallback={isFallback} restaurantStatus={restaurantStatus} />
                 <footer className="bg-gray-800 text-white py-8">
                     <div className="container mx-auto px-4">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                             {/* Address */}
                             <div>
                                 <h3 className="text-lg font-bold mb-3 text-yellow">Location</h3>
@@ -159,9 +161,22 @@ const Layout = async ({ children }) => {
                                 <p className="text-gray-300">{openingHoursText.days}<br />{openingHoursText.times}</p>
                             </div>
 
+                            {/* Links */}
+                            <div>
+                                <h3 className="text-lg font-bold mb-3 text-yellow">Links</h3>
+                                <ul className="space-y-2">
+                                    <li><a href="/" className="text-gray-300 hover:text-yellow transition-colors">Home</a></li>
+                                    <li><a href="/menu" className="text-gray-300 hover:text-yellow transition-colors">Menu</a></li>
+                                    <li><a href="/about" className="text-gray-300 hover:text-yellow transition-colors">About</a></li>
+                                    <li><a href="/reviews" className="text-gray-300 hover:text-yellow transition-colors">Reviews</a></li>
+                                    <li><a href="/contact" className="text-gray-300 hover:text-yellow transition-colors">Contact</a></li>
+                                    <li><a href="/faq" className="text-gray-300 hover:text-yellow transition-colors">FAQ</a></li>
+                                </ul>
+                            </div>
+
                             {/* Social Media */}
                             <div>
-                                <h3 className="text-lg font-bold mb-3 text-yellow">Follow Us</h3>
+                                <h3 className="text-lg font-bold mb-3 text-yellow">Follow us</h3>
                                 <div className="flex gap-4">
                                     <a 
                                         href={restaurantInfo.socialMedia.facebook} 

@@ -5,6 +5,8 @@ import MenuSkeleton from "../MenuSkeleton";
 import ErrorDisplay from "../ErrorDisplay";
 import AllergenNotice from "../AllergenNotice";
 import { getMenuData } from "@/lib/getMenuData";
+import { getLocationData } from "@/lib/getLocationData";
+import { checkRestaurantStatus } from "@/lib/checkRestaurantStatus";
 import { generateMenuSchema } from "../menuSchema";
 import ScrollCTABanner from "./ScrollCTABanner";
 
@@ -16,6 +18,8 @@ export const metadata = {
 
 export default async function MenuViewPage() {
     const { success, error, data: menuData } = await getMenuData();
+    const { openingHours } = await getLocationData();
+    const restaurantStatus = checkRestaurantStatus(openingHours);
 
     const menuSchema = success && menuData.length > 0 ? generateMenuSchema(menuData) : null;
 
@@ -48,8 +52,8 @@ export default async function MenuViewPage() {
                 )}
             </div>
             
-            {/* Scroll-triggered CTA Banner */}
-            <ScrollCTABanner />
+            {/* Scroll-triggered CTA Banner - Only show when restaurant is open */}
+            {restaurantStatus.isOpen && <ScrollCTABanner />}
         </>
     );
 }

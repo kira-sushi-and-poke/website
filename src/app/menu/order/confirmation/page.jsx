@@ -3,6 +3,8 @@ import { getOrder } from "../actions";
 import ConfirmationClient from "./ConfirmationClient";
 import OrderIdValidator from "../OrderIdValidator";
 import Link from "next/link";
+import { getMenuData } from "@/lib/getMenuData";
+import { enrichLineItems } from "@/lib/enrichLineItems";
 
 export const metadata = {
   title: "Order Confirmation | Kira Sushi & Poke",
@@ -64,6 +66,16 @@ export default async function ConfirmationPage({ searchParams }) {
     );
   }
 
+  // Fetch menu data to enrich line items with displayName
+  const menuResult = await getMenuData();
+  const menuData = menuResult.success ? menuResult.data : [];
+  
+  // Enrich line items with displayName from menu data
+  const enrichedOrder = {
+    ...order,
+    line_items: enrichLineItems(order.line_items, menuData)
+  };
+
   // Handle different order states
   const orderState = order.state;
 
@@ -79,7 +91,7 @@ export default async function ConfirmationPage({ searchParams }) {
           <ConfirmationClient
             orderId={orderId}
             status="completed"
-            order={order}
+            order={enrichedOrder}
           />
         </OrderIdValidator>
       );
@@ -109,7 +121,7 @@ export default async function ConfirmationPage({ searchParams }) {
         <ConfirmationClient
           orderId={orderId}
           status="completed"
-          order={order}
+          order={enrichedOrder}
         />
       </OrderIdValidator>
     );

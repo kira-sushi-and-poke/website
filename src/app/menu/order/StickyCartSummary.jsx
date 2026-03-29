@@ -70,7 +70,7 @@ export default function StickyCartSummary({
         return {
             variationId,
             quantity,
-            name: menuItem?.name || "Unknown Item",
+            name: menuItem?.displayName || menuItem?.name || "Unknown Item",
             price: menuItem?.discountedPrice || menuItem?.originalPrice || 0,
             image,
         };

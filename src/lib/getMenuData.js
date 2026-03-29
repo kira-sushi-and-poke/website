@@ -134,6 +134,14 @@ function transformCatalog(catalogData) {
         const isGenericVariationName = /^(regular|small|medium|large|standard)$/i.test(variationName.trim());
         const menuItemName = isGenericVariationName ? itemName : variationName;
 
+        // Construct displayName for orders/cart (with full context)
+        let displayName;
+        if (isGenericVariationName) {
+          displayName = itemName;  // "Chicken Curry" not "Chicken Curry - Regular"
+        } else {
+          displayName = `${itemName} - ${variationName}`;  // "Nigiri - Prawn"
+        }
+
         // Extract variation-specific description
         let variationDesc = variationData.price_description?.trim() || "";
 
@@ -182,6 +190,8 @@ function transformCatalog(catalogData) {
           id: obj.id,
           variationId: variation.id,
           name: menuItemName,
+          itemName: itemName,
+          displayName: displayName,
           category,
           subcategory,
           status,

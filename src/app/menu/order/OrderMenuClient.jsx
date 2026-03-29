@@ -12,7 +12,7 @@ import StickyCartSummary from "./StickyCartSummary";
 import LocalStorageModal from "@/components/LocalStorageModal";
 import { getOrderFromStorage, saveOrderToStorage, clearOrderFromStorage } from "@/lib/storage";
 
-export default function OrderMenuClient({ menuData }) {
+export default function OrderMenuClient({ menuData, restaurantStatus }) {
     const router = useRouter();
     const [cart, setCart] = useState({}); // { variationId: quantity }
     const [orderId, setOrderId] = useState(null);
@@ -23,16 +23,25 @@ export default function OrderMenuClient({ menuData }) {
     const [isPaidOrder, setIsPaidOrder] = useState(false); // Flag for already paid orders
     const [isMounted, setIsMounted] = useState(false);
 
+    const { isOpen } = restaurantStatus;
+
     // Set mounted state to prevent hydration mismatch
     useEffect(() => {
         setIsMounted(true);
     }, []);
 
     // Initialize order after mount to avoid hydration issues with localStorage
+    // Skip initialization if restaurant is closed
     useEffect(() => {
         if (!isMounted) return;
+
+        if (!isOpen) {
+            setIsInitializing(false);
+            return;
+        }
+
         initializeOrder();
-    }, [isMounted]);
+    }, [isMounted, isOpen]);
 
     const initializeOrder = async () => {
         try {
@@ -282,6 +291,33 @@ export default function OrderMenuClient({ menuData }) {
         <>
             <LocalStorageModal />
 
+            {/* Closed Restaurant Modal - Unclosable */}
+            {!isOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg p-6 md:p-8 max-w-md w-full relative">
+                        <div className="text-center mb-6">
+                            <div className="mx-auto h-16 w-16 bg-yellow/20 rounded-full flex items-center justify-center mb-4">
+                                <i className="fas fa-moon text-yellow text-4xl"></i>
+                            </div>
+                            <h2 className="text-2xl md:text-3xl font-bold text-hot-pink mb-3">
+                                Sorry, We're Closed Now
+                            </h2>
+                            <p className="text-gray-700 mb-4">
+                                You can still view our menu, but you'll have to wait until we're open to place an order.
+                            </p>
+                        </div>
+                        <div className="flex justify-center">
+                            <Link
+                                href="/menu/view"
+                                className="bg-hot-pink text-white py-3 px-6 rounded-lg hover:bg-hot-pink/90 transition-colors text-center font-semibold"
+                            >
+                                View Menu
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Paid Order Banner */}
             {isPaidOrder && (
                 <div className="bg-green-100 border-2 border-green-500 rounded-lg p-4 md:p-6 mb-4 md:mb-6">
@@ -324,21 +360,21 @@ export default function OrderMenuClient({ menuData }) {
             )}
 
             {/* Add padding to bottom if cart has items - extra space for collapsed cart */}
-            <div className={Object.keys(cart).length > 0 ? "pb-24 md:pb-28" : ""}>
+            <div className={Object.keys(cart).length > 0 && isOpen ? "pb-24 md:pb-28" : ""}>
                 <AllergenNotice />
                 <CategoryNavigation />
                 <MenuList 
                     menuItems={menuData} 
                     cart={cart}
-                    addItem={isPaidOrder ? () => {} : addItem}
-                    removeItem={isPaidOrder ? () => {} : removeItem}
+                    addItem={(isPaidOrder || !isOpen) ? () => {} : addItem}
+                    removeItem={(isPaidOrder || !isOpen) ? () => {} : removeItem}
                     updatingItems={updatingItems}
                     isOrderMode={true}
                 />
             </div>
 
-            {/* Sticky Cart Summary */}
-            {!isPaidOrder && (
+            {/* Sticky Cart Summary - Hide when closed or paid order */}
+            {!isPaidOrder && isOpen && (
                 <StickyCartSummary 
                     cart={cart}
                     menuData={menuData}

@@ -48,6 +48,7 @@ export default function ConfirmationClient({ orderId, status, order }) {
     const pickupTime = order.pickup_time;
     const formattedPickupTime = pickupTime 
       ? new Date(pickupTime).toLocaleString("en-GB", {
+          timeZone: "Europe/London",
           weekday: "long",
           year: "numeric",
           month: "long",
@@ -108,20 +109,15 @@ export default function ConfirmationClient({ orderId, status, order }) {
                   return (
                     <div
                       key={index}
-                      className="flex justify-between items-start border-b border-gray-200 last:border-0"
+                      className="flex justify-between items-start border-b border-gray-200 pb-3 last:border-0 last:pb-0"
                     >
                       <div className="flex-1">
                         <p className="font-medium text-gray-900">
-                          {item.name || "Item"}
+                          {item.displayName || item.name || "Item"}
                         </p>
                         <p className="text-sm text-gray-500">
                           Quantity: {item.quantity}
                         </p>
-                        {item.variation_name && (
-                          <p className="text-sm text-gray-500">
-                            {item.variation_name}
-                          </p>
-                        )}
                       </div>
                       <p className="font-medium text-gray-900 ml-4">
                         {formattedItemTotal}

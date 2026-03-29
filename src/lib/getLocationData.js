@@ -73,7 +73,8 @@ function formatOpeningHoursText(openingHours) {
 export async function getLocationData() {
   try {
     const data = await fetchSquare(`/v2/locations/${LOCATION_ID}`, {
-      method: "GET"
+      method: "GET",
+      next: { revalidate: 1800 } // Revalidate every 30 minutes
     });
 
     const periods = data.location?.business_hours?.periods;
