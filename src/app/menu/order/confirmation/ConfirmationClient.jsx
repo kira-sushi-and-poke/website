@@ -113,7 +113,7 @@ export default function ConfirmationClient({ orderId, status, order }) {
                     >
                       <div className="flex-1">
                         <p className="font-medium text-gray-900">
-                          {item.name || "Item"}
+                          {item.displayName || item.name || "Item"}
                         </p>
                         <p className="text-sm text-gray-500">
                           Quantity: {item.quantity}
