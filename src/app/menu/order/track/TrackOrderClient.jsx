@@ -107,6 +107,7 @@ export default function TrackOrderClient({ initialData }) {
   
   const formattedPickupTime = pickupTime 
     ? new Date(pickupTime).toLocaleString("en-GB", {
+        timeZone: "Europe/London",
         weekday: "long",
         month: "long",
         day: "numeric",

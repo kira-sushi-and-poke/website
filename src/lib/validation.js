@@ -25,7 +25,7 @@ export function validatePhone(phone) {
 }
 
 /**
- * Validate that pickup time is at least 20 minutes from now
+ * Validate that pickup time is at least 45 minutes from now
  * Note: Uses UTC timestamps (getTime()) for timezone-safe comparisons.
  * Both client and server parse ISO strings correctly regardless of their local timezone.
  * @param {string} pickupTime - ISO string of pickup time
@@ -45,10 +45,10 @@ export function validatePickupTime(pickupTime) {
   
   // Get current time and minimum allowed time
   const now = new Date();
-  const minTime = new Date(now.getTime() + 20 * 60000); // 20 minutes from now
+  const minTime = new Date(now.getTime() + 45 * 60000); // 45 minutes from now
   
   if (pickupDate.getTime() < minTime.getTime()) {
-    return "Pickup time must be at least 20 minutes from now";
+    return "Pickup time must be at least 45 minutes from now";
   }
   
   return null;

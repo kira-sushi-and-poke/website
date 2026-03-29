@@ -44,7 +44,7 @@ export default function PickupDetails({
           
           <div>
             <label htmlFor="pickupTime" className="block text-sm font-medium mb-2">
-              Pickup Time *
+              Pickup Time * <span className="text-gray-600 text-xs">(UK time)</span>
             </label>
             <select
               id="pickupTime"

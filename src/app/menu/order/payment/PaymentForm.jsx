@@ -154,7 +154,7 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
           return;
         }
         
-        // Validate pickup time is at least 20 minutes from now
+        // Validate pickup time is at least 45 minutes from now
         const pickupError = validatePickupTime(contactDetails.pickupTime);
         if (pickupError) {
           setIsProcessing(false);

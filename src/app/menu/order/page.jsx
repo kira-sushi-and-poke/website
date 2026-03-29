@@ -1,6 +1,8 @@
 import React from "react";
 import ErrorDisplay from "../ErrorDisplay";
 import { getMenuData } from "@/lib/getMenuData";
+import { getLocationData } from "@/lib/getLocationData";
+import { checkRestaurantStatus } from "@/lib/checkRestaurantStatus";
 import OrderMenuClient from "./OrderMenuClient";
 
 // Generate metadata for SEO
@@ -11,6 +13,8 @@ export const metadata = {
 
 export default async function MenuOrderPage() {
     const { success, error, data: menuData } = await getMenuData();
+    const { openingHours } = await getLocationData();
+    const restaurantStatus = checkRestaurantStatus(openingHours);
 
     return (
         <div className="py-6 md:py-12 px-3 md:px-10 max-w-7xl mx-auto overflow-visible">
@@ -22,7 +26,7 @@ export default async function MenuOrderPage() {
             )}
 
             {success && menuData.length > 0 && (
-                <OrderMenuClient menuData={menuData} />
+                <OrderMenuClient menuData={menuData} restaurantStatus={restaurantStatus} />
             )}
         </div>
     );

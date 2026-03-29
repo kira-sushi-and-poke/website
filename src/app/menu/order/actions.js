@@ -336,7 +336,7 @@ export async function processPayment(sourceId, orderId, amount, verificationToke
       };
     }
     
-    // Validate pickup time is provided and valid (at least 20 minutes from now)
+    // Validate pickup time is provided and valid (at least 45 minutes from now)
     const pickupError = validatePickupTime(pickupTime);
     if (pickupError) {
       return {

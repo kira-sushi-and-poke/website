@@ -5,7 +5,7 @@ export default function PickupOnlyNotice() {
       <div className="text-xs text-gray-700">
         <p className="font-semibold text-gray-800 mb-1">Pickup Only</p>
         <p>
-          We're pickup-only for now (but delivery is coming soon!). You can collect your order from our location at 148 Front Street, Chester-le-Street. Usually ready in 30-45 minutes!
+          We're pickup-only for now (delivery coming soon!). Your freshly prepared order will typically be ready in 45 minutes to an hour. On busy days, it may take a little longer. Collect from 148 Front Street, Chester-le-Street.
         </p>
       </div>
     </div>
