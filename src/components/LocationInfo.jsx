@@ -1,12 +1,22 @@
 import React from "react";
 import { DEFAULT_OPENING_HOURS_TEXT } from "@/lib/constants";
+import SpecialHoursNotice from "./SpecialHoursNotice";
+import { format } from 'date-fns';
 
-const LocationInfo = ({ openingHoursText }) => {
+const LocationInfo = ({ openingHoursText, restaurantStatus }) => {
     // Use provided text or fallback to centralized default
     const hoursText = openingHoursText || DEFAULT_OPENING_HOURS_TEXT;
+    
+    const { isOpen, closingSoon, nextOpenDate, overrideActive } = restaurantStatus || {};
 
     return (
-        <div className="bg-white border-2 border-hot-pink rounded-lg p-4 md:p-6">
+        <div className="space-y-6">
+            {/* Special Hours Notice */}
+            {restaurantStatus && (
+                <SpecialHoursNotice restaurantStatus={restaurantStatus} />
+            )}
+            
+            <div className="bg-white border-2 border-hot-pink rounded-lg p-4 md:p-6">
             <div className="space-y-4">
                 <div>
                     <h3 className="text-xl font-bold text-hot-pink mb-2">Address</h3>
@@ -21,8 +31,36 @@ const LocationInfo = ({ openingHoursText }) => {
 
                 <div>
                     <h3 className="text-xl font-bold text-hot-pink mb-2">
-                        <i className="fas fa-clock"></i> Opening Hours
+                        <i className="fas fa-clock"></i> {overrideActive && restaurantStatus.mobileLocationName ? restaurantStatus.mobileLocationName : 'Opening Hours'}
                     </h3>
+                    
+                    {/* Current Status */}
+                    {restaurantStatus && (
+                        <div className="mb-3 p-3 bg-hot-pink/10 rounded-lg flex items-center gap-2">
+                            <span className={`inline-block w-3 h-3 rounded-full ${isOpen ? "bg-yellow" : "bg-hot-pink"} animate-pulse`}></span>
+                            <div className="flex flex-col">
+                                <span className="text-base font-semibold text-hot-pink">
+                                    {isOpen ? "We're Open Now!" : "Currently Closed"}
+                                </span>
+                                {isOpen && closingSoon && (
+                                    <span className="text-sm font-bold text-orange-600">
+                                        Closing Soon (within 30 minutes)
+                                    </span>
+                                )}
+                                {!isOpen && nextOpenDate && (
+                                    <span className="text-sm text-gray-600">
+                                        Next open: {format(new Date(nextOpenDate), 'EEEE d MMM')}
+                                    </span>
+                                )}
+                                {!isOpen && !nextOpenDate && overrideActive && (
+                                    <span className="text-sm text-gray-600 font-medium">
+                                        Closed until further notice
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                    
                     <div className="text-gray-700">
                         <p>{hoursText.days}</p>
                         <p className="font-bold text-lg">{hoursText.times}</p>
@@ -55,6 +93,7 @@ const LocationInfo = ({ openingHoursText }) => {
                         * Parking at these locations is at your own risk and responsibility.
                     </p>
                 </div>
+            </div>
             </div>
         </div>
     );

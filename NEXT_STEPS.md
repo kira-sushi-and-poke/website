@@ -2,14 +2,6 @@
 
 ## Immediate Priorities
 
-### 0. Deployment Configuration ⚠️ CRITICAL
-- [ ] **Set `TZ=UTC` environment variable in production deployment**
-  - Required for pickup time validation to work correctly
-  - Prevents timezone issues between client and server
-  - See README.md Deployment section for details
-- [ ] Verify all environment variables from `.env.example` are set in production
-- [ ] Test pickup time validation works correctly in production environment
-
 ### 1. Testing & Quality Assurance
 - [ ] Test complete order flow with real payments (sandbox → production)
 - [ ] Verify tip calculation and display across all payment methods (Card, Google Pay, Apple Pay)

@@ -47,11 +47,19 @@ const Reviews = () => {
         ],
         tripadvisor: [
             {
+                id: 10,
+                name: "Matt T",
+                comment: "Some of the best sushi I have ever had and I mean that with no exaggeration! The presentation was incredible. Would certainly recommend!",
+                rating: 5,
+                date: "27 Mar 2026",
+                platform: "tripadvisor"
+            },
+            {
                 id: 5,
                 name: "StevefromWashington",
                 rating: 5,
                 comment: "Excellent fresh sushi and very tasty chicken katsu curry. Top quality food at sensible prices.",
-                date: "Feb 2026",
+                date: "28 Feb 2026",
                 platform: "tripadvisor"
             }
         ]

@@ -4,6 +4,8 @@ import PaymentForm from "./PaymentForm";
 import OrderIdValidator from "../OrderIdValidator";
 import OrderSummary from "./OrderSummary";
 import { getMenuData } from "@/lib/getMenuData";
+import { getLocationData } from "@/lib/getLocationData";
+import { checkRestaurantStatus } from "@/lib/checkRestaurantStatus";
 import { enrichLineItems } from "@/lib/enrichLineItems";
 
 export const metadata = {
@@ -49,6 +51,17 @@ export default async function PaymentPage({ searchParams }) {
     redirect(`/menu/order/confirmation?orderId=${orderId}`);
   }
   
+  // Check restaurant status - redirect if closed
+  const { openingHours, isFallback, mobileLocationData } = await getLocationData();
+  const restaurantStatus = checkRestaurantStatus(openingHours, mobileLocationData, isFallback);
+  
+  if (!restaurantStatus.isOpen) {
+    redirect("/menu/order"); // Redirects to page with closed modal
+  }
+  
+  // Pass override periods to payment form for accurate pickup time generation
+  const overridePeriods = restaurantStatus.overrideActive ? restaurantStatus.overridePeriods : [];
+  
   // Fetch menu data to enrich line items with displayName
   const menuResult = await getMenuData();
   const menuData = menuResult.success ? menuResult.data : [];
@@ -82,7 +95,12 @@ export default async function PaymentPage({ searchParams }) {
           <OrderSummary lineItems={enrichedLineItems} total={total} />
           
           {/* Payment Form */}
-          <PaymentForm orderId={orderId} totalAmount={total} />
+          <PaymentForm 
+            orderId={orderId} 
+            totalAmount={total} 
+            openingHours={openingHours}
+            overridePeriods={overridePeriods}
+          />
         </div>
       </div>
     </OrderIdValidator>

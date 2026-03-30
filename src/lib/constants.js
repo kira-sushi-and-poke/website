@@ -94,3 +94,11 @@ export const DEFAULT_OPENING_HOURS_TEXT = {
  */
 export const DAYS_OF_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 export const CLOSING_SOON_THRESHOLD = 30; // minutes before closing to show "closing soon"
+
+/**
+ * Location IDs
+ * Note: LOCATION_ID and MOBILE_LOCATION_ID are accessed via process.env
+ * MOBILE_LOCATION_ID is optional - if not set, only Physical location hours are used
+ * Physical location: Regular weekly schedule (always displayed)
+ * Mobile location: Override signal (only active when status is ACTIVE)
+ */

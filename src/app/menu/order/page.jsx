@@ -13,8 +13,8 @@ export const metadata = {
 
 export default async function MenuOrderPage() {
     const { success, error, data: menuData } = await getMenuData();
-    const { openingHours } = await getLocationData();
-    const restaurantStatus = checkRestaurantStatus(openingHours);
+    const { openingHours, isFallback, mobileLocationData } = await getLocationData();
+    const restaurantStatus = checkRestaurantStatus(openingHours, mobileLocationData, isFallback);
 
     return (
         <div className="py-6 md:py-12 px-3 md:px-10 max-w-7xl mx-auto overflow-visible">
