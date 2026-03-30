@@ -19,6 +19,10 @@ import {
 import { fetchSquare } from "@/lib/squareApi";
 import { splitName } from "@/lib/splitName";
 import { validatePickupTime } from "@/lib/validation";
+import { getLocationData } from "@/lib/getLocationData";
+import { checkRestaurantStatus } from "@/lib/checkRestaurantStatus";
+import { toZonedTime } from 'date-fns-tz';
+import { format, startOfDay, isSameDay } from 'date-fns';
 
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 const LOCATION_ID = process.env.LOCATION_ID;
@@ -343,6 +347,65 @@ export async function processPayment(sourceId, orderId, amount, verificationToke
         success: false,
         error: pickupError,
       };
+    }
+    
+    // Validate restaurant will be open at pickup time (considering mobile overrides)
+    try {
+      const { openingHours, mobileLocationData } = await getLocationData();
+      const pickupTimeUTC = new Date(pickupTime);
+      const pickupTimeUK = toZonedTime(pickupTimeUTC, 'Europe/London');
+      const pickupDayName = format(pickupTimeUK, 'EEEE'); // "Monday", "Tuesday", etc.
+      
+      // Check if mobile override is active
+      if (mobileLocationData?.status === 'ACTIVE') {
+        const mobilePeriods = mobileLocationData.business_hours?.periods || [];
+        
+        // Map day name to Square format
+        const dayMap = {
+          'Sunday': 'SUN', 'Monday': 'MON', 'Tuesday': 'TUE',
+          'Wednesday': 'WED', 'Thursday': 'THU', 'Friday': 'FRI', 'Saturday': 'SAT'
+        };
+        const pickupDaySquare = dayMap[pickupDayName];
+        
+        // Check if there are periods for the pickup day
+        const dayPeriods = mobilePeriods.filter(p => p.day_of_week === pickupDaySquare);
+        
+        if (dayPeriods.length === 0) {
+          // No periods for this day = closed
+          return {
+            success: false,
+            error: "Restaurant is closed on the selected pickup date. Please choose a different time.",
+          };
+        }
+        
+        // Check if pickup time falls within any of the day's periods
+        const pickupHour = pickupTimeUK.getHours();
+        const pickupMinute = pickupTimeUK.getMinutes();
+        const pickupMinutes = pickupHour * 60 + pickupMinute;
+        
+        let isWithinPeriod = false;
+        for (const period of dayPeriods) {
+          const [startHour, startMin] = period.start_local_time.substring(0, 5).split(':').map(Number);
+          const [endHour, endMin] = period.end_local_time.substring(0, 5).split(':').map(Number);
+          const startMinutes = startHour * 60 + startMin;
+          const endMinutes = endHour * 60 + endMin;
+          
+          if (pickupMinutes >= startMinutes && pickupMinutes < endMinutes) {
+            isWithinPeriod = true;
+            break;
+          }
+        }
+        
+        if (!isWithinPeriod) {
+          return {
+            success: false,
+            error: "Pickup time falls outside opening hours. Please select a time during open hours.",
+          };
+        }
+      }
+    } catch (error) {
+      console.error("Failed to validate pickup time against opening hours:", error);
+      // Continue - don't block payment if validation fails
     }
     
     // Validate contact details are provided

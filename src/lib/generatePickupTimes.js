@@ -1,21 +1,21 @@
 import { toZonedTime, fromZonedTime } from 'date-fns-tz';
-import { addDays, addMinutes, setHours, setMinutes, format } from 'date-fns';
+import { addDays, addMinutes, setHours, setMinutes, format, startOfDay } from 'date-fns';
 
 const UK_TZ = 'Europe/London';
 
 /**
- * Generate pickup time options with 15-minute intervals
+ * Generate pickup time options with 15-minute intervals based on actual opening hours
  * All times are displayed in UK timezone (Europe/London) to match restaurant's local time.
  * Users anywhere in the world will see UK times to avoid confusion.
+ * @param {Object} openingHours - Physical opening hours by day {Monday: {open: "11:00", close: "19:00"}, ...}
+ * @param {Array} overridePeriods - Optional mobile override periods from checkRestaurantStatus [{date, dayName, periods}, ...]
  * @param {number} minLeadTimeMinutes - Minimum lead time from now (default: 45)
- * @param {number} startHour - Start of day hour (default: 11)
- * @param {number} endHour - End of day hour (default: 19)
  * @returns {Array<{label: string, value: string}>} Array of time options
  */
 export function generatePickupTimes(
-  minLeadTimeMinutes = 45,
-  startHour = 11,
-  endHour = 19
+  openingHours,
+  overridePeriods = [],
+  minLeadTimeMinutes = 45
 ) {
   const times = [];
   
@@ -27,15 +27,53 @@ export function generatePickupTimes(
   // Try today and tomorrow
   for (let dayOffset = 0; dayOffset <= 1; dayOffset++) {
     const targetDay = addDays(nowUK, dayOffset);
+    const targetDayStart = startOfDay(targetDay);
+    const dayName = format(targetDay, 'EEEE'); // "Monday", "Tuesday", etc.
     
-    for (let hour = startHour; hour < endHour; hour++) {
-      for (let minute = 0; minute < 60; minute += 15) {
-        // Create time in UK timezone
-        let timeUK = setHours(setMinutes(targetDay, minute), hour);
-        
-        // Skip if before minimum pickup time
-        if (timeUK < minPickupUK) continue;
-        
+    // Check if mobile override has hours for this date
+    const overridePeriod = overridePeriods.find(period => {
+      const periodStart = startOfDay(period.date);
+      return periodStart.getTime() === targetDayStart.getTime();
+    });
+    
+    // If override exists and date is closed (no periods), skip this day
+    if (overridePeriod && (!overridePeriod.periods || overridePeriod.periods.length === 0)) {
+      continue; // Closed via mobile override
+    }
+    
+    // Get opening hours - use override if available, otherwise physical hours
+    let hoursToUse;
+    if (overridePeriod && overridePeriod.periods && overridePeriod.periods.length > 0) {
+      // Use first period from mobile override (assuming single period per day for now)
+      // TODO: Handle multiple periods per day if needed
+      const firstPeriod = overridePeriod.periods[0];
+      hoursToUse = {
+        open: firstPeriod.start_local_time.substring(0, 5),
+        close: firstPeriod.end_local_time.substring(0, 5)
+      };
+    } else {
+      // Use physical hours
+      hoursToUse = openingHours[dayName];
+    }
+    
+    if (!hoursToUse || !hoursToUse.open || !hoursToUse.close) {
+      continue; // No hours for this day
+    }
+    
+    // Parse opening hours
+    const [openHour, openMinute] = hoursToUse.open.split(':').map(Number);
+    const [closeHour, closeMinute] = hoursToUse.close.split(':').map(Number);
+    
+    // Generate times in 15-minute intervals
+    let currentHour = openHour;
+    let currentMinute = openMinute;
+    
+    while (currentHour < closeHour || (currentHour === closeHour && currentMinute < closeMinute)) {
+      // Create time in UK timezone
+      let timeUK = setHours(setMinutes(targetDay, currentMinute), currentHour);
+      
+      // Skip if before minimum pickup time
+      if (timeUK >= minPickupUK) {
         // Convert UK time to UTC for storage
         const timeUTC = fromZonedTime(timeUK, UK_TZ);
         
@@ -47,6 +85,13 @@ export function generatePickupTimes(
           label: label,
           value: timeUTC.toISOString()
         });
+      }
+      
+      // Increment by 15 minutes
+      currentMinute += 15;
+      if (currentMinute >= 60) {
+        currentMinute = 0;
+        currentHour++;
       }
     }
     

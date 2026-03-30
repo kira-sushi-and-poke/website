@@ -9,7 +9,7 @@ import { validateContactDetails, validatePickupTime } from "@/lib/validation";
 import { processPayment } from "../actions";
 import PickupDetails from "./PickupDetails";
 
-export default function PaymentFormComponent({ orderId, totalAmount }) {
+export default function PaymentFormComponent({ orderId, totalAmount, openingHours, overridePeriods = [] }) {
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("Processing Payment...");
@@ -30,11 +30,11 @@ export default function PaymentFormComponent({ orderId, totalAmount }) {
   const locationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID;
   const isProduction = process.env.NODE_ENV === "production";
   
-  // Generate pickup time options (15-min intervals, 30 min from now, 11am-7pm)
+  // Generate pickup time options based on actual opening hours and mobile override periods
   React.useEffect(() => {
-    const times = generatePickupTimes();
+    const times = generatePickupTimes(openingHours, overridePeriods);
     setPickupTimeOptions(times);
-  }, []);
+  }, [openingHours, overridePeriods]);
   
   const validateContactForm = () => {
     const { isValid, errors } = validateContactDetails(contactDetails);

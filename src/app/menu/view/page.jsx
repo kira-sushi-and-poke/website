@@ -18,8 +18,8 @@ export const metadata = {
 
 export default async function MenuViewPage() {
     const { success, error, data: menuData } = await getMenuData();
-    const { openingHours } = await getLocationData();
-    const restaurantStatus = checkRestaurantStatus(openingHours);
+    const { openingHours, isFallback, mobileLocationData } = await getLocationData();
+    const restaurantStatus = checkRestaurantStatus(openingHours, mobileLocationData, isFallback);
 
     const menuSchema = success && menuData.length > 0 ? generateMenuSchema(menuData) : null;
 

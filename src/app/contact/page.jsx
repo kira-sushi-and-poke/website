@@ -2,6 +2,7 @@ import React from "react";
 import LocationInfo from "@/components/LocationInfo";
 import ContactUs from "@/components/ContactUs";
 import { getLocationData } from "@/lib/getLocationData";
+import { checkRestaurantStatus } from "@/lib/checkRestaurantStatus";
 
 export const metadata = {
     title: "Contact | Kira Sushi & Poke | Chester-le-Street",
@@ -13,7 +14,8 @@ export const metadata = {
 };
 
 const ContactPage = async () => {
-    const { openingHoursText } = await getLocationData();
+    const { openingHoursText, openingHours, isFallback, mobileLocationData } = await getLocationData();
+    const restaurantStatus = checkRestaurantStatus(openingHours, mobileLocationData, isFallback);
 
     return (
         <div className="py-8 md:py-12 px-5 md:px-10 max-w-6xl mx-auto">
@@ -27,7 +29,7 @@ const ContactPage = async () => {
                     <h2 className="text-2xl font-bold text-hot-pink mb-4">
                         <i className="fas fa-map-marker-alt"></i> Location & Hours
                     </h2>
-                    <LocationInfo openingHoursText={openingHoursText} />
+                    <LocationInfo openingHoursText={openingHoursText} restaurantStatus={restaurantStatus} />
                 </div>
 
                 {/* Contact Methods */}

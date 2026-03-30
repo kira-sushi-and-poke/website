@@ -2,6 +2,7 @@ import Reviews from "../components/Reviews";
 import LocationInfo from "../components/LocationInfo";
 import ContactUs from "../components/ContactUs";
 import { getLocationData } from "../lib/getLocationData";
+import { checkRestaurantStatus } from "../lib/checkRestaurantStatus";
 
 export const metadata = {
     title: "Home | Fresh Japanese Sushi & Poke Bowls in Chester-le-Street",
@@ -13,7 +14,8 @@ export const metadata = {
 };
 
 const HomePage = async () => {
-    const { openingHoursText } = await getLocationData();
+    const { openingHoursText, openingHours, isFallback, mobileLocationData } = await getLocationData();
+    const restaurantStatus = checkRestaurantStatus(openingHours, mobileLocationData, isFallback);
 
     return (
         <div>
@@ -32,7 +34,7 @@ const HomePage = async () => {
                         <h2 className="text-3xl md:text-4xl font-bold text-hot-pink mb-4 md:mb-6 text-center">
                             <i className="fas fa-map-marker-alt"></i> Find Us
                         </h2>
-                        <LocationInfo openingHoursText={openingHoursText} />
+                        <LocationInfo openingHoursText={openingHoursText} restaurantStatus={restaurantStatus} />
                     </section>
 
                     {/* Contact Methods */}

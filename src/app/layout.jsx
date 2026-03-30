@@ -63,8 +63,8 @@ export const metadata = {
 
 const Layout = async ({ children }) => {
     // Fetch opening hours from Square API (with internal fallback handling)
-    const { openingHours, openingHoursSchema, openingHoursText, isFallback } = await getLocationData();
-    const restaurantStatus = checkRestaurantStatus(openingHours);
+    const { openingHours, openingHoursSchema, openingHoursText, isFallback, mobileLocationData } = await getLocationData();
+    const restaurantStatus = checkRestaurantStatus(openingHours, mobileLocationData, isFallback);
 
     // Generate structured data for Restaurant
     const restaurantSchema = {

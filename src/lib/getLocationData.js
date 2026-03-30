@@ -5,6 +5,7 @@ import { DEFAULT_OPENING_HOURS, DEFAULT_OPENING_HOURS_SCHEMA, DEFAULT_OPENING_HO
 import { stripSeconds, convertTo12Hour } from "./formatTime";
 
 const LOCATION_ID = process.env.LOCATION_ID;
+const MOBILE_LOCATION_ID = process.env.MOBILE_LOCATION_ID;
 
 /**
  * Transform Square's day format to app format
@@ -67,25 +68,56 @@ function formatOpeningHoursText(openingHours) {
 }
 
 /**
+ * Fetch mobile location data (optional override signal)
+ * @returns {Promise<{status: string, business_hours: object, name: string} | null>}
+ */
+async function getMobileLocationData() {
+  if (!MOBILE_LOCATION_ID) {
+    return null;
+  }
+
+  try {
+    const data = await fetchSquare(`/v2/locations/${MOBILE_LOCATION_ID}`, {
+      method: "GET",
+      next: { revalidate: 300 } // Revalidate every 5 minutes for time-sensitive overrides
+    });
+
+    return {
+      status: data.location?.status || 'INACTIVE',
+      business_hours: data.location?.business_hours || null,
+      name: data.location?.name || 'Special Hours'
+    };
+  } catch (error) {
+    return null;
+  }
+}
+
+/**
  * Fetch location data from Square Locations API
- * @returns {Promise<{openingHours: object, openingHoursSchema: string[], openingHoursText: object, isFallback: boolean}>}
+ * Returns both physical location hours (transformed) and mobile location data (raw)
+ * @returns {Promise<{openingHours: object, openingHoursSchema: string[], openingHoursText: object, isFallback: boolean, mobileLocationData: object|null}>}
  */
 export async function getLocationData() {
   try {
-    const data = await fetchSquare(`/v2/locations/${LOCATION_ID}`, {
-      method: "GET",
-      next: { revalidate: 1800 } // Revalidate every 30 minutes
-    });
+    // Fetch both Physical and Mobile locations in parallel
+    const [physicalData, mobileLocationData] = await Promise.all([
+      fetchSquare(`/v2/locations/${LOCATION_ID}`, {
+        method: "GET",
+        next: { revalidate: 300 }
+      }),
+      getMobileLocationData()
+    ]);
 
-    const periods = data.location?.business_hours?.periods;
+    const periods = physicalData.location?.business_hours?.periods;
     
     if (!periods || periods.length === 0) {
-      console.warn("No business hours found in Square location data, using fallback");
+      console.warn("No business hours found in Square location data - showing default hours but disabling ordering");
       return {
-        openingHours: DEFAULT_OPENING_HOURS,
+        openingHours: DEFAULT_OPENING_HOURS, // Show default hours for display
         openingHoursSchema: DEFAULT_OPENING_HOURS_SCHEMA,
         openingHoursText: DEFAULT_OPENING_HOURS_TEXT,
-        isFallback: true
+        isFallback: true, // Flag to disable ordering
+        mobileLocationData: null
       };
     }
 
@@ -113,15 +145,17 @@ export async function getLocationData() {
       openingHours,
       openingHoursSchema,
       openingHoursText: formatOpeningHoursText(openingHours),
-      isFallback: false
+      isFallback: false,
+      mobileLocationData
     };
 
   } catch (error) {
     return {
-      openingHours: DEFAULT_OPENING_HOURS,
+      openingHours: DEFAULT_OPENING_HOURS, // Show default hours for display
       openingHoursSchema: DEFAULT_OPENING_HOURS_SCHEMA,
       openingHoursText: DEFAULT_OPENING_HOURS_TEXT,
-      isFallback: true
+      isFallback: true, // Flag to disable ordering
+      mobileLocationData: null
     };
   }
 }
