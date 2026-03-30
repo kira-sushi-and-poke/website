@@ -404,7 +404,6 @@ export async function processPayment(sourceId, orderId, amount, verificationToke
         }
       }
     } catch (error) {
-      console.error("Failed to validate pickup time against opening hours:", error);
       // Continue - don't block payment if validation fails
     }
     
