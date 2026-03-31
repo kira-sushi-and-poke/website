@@ -14,25 +14,25 @@ const AboutUs = () => {
             <section className="grid md:grid-cols-3 gap-6 mb-8 md:mb-12">
                 <div className="bg-yellow/10 border-2 border-yellow rounded-lg p-6">
                     <div className="text-4xl mb-3 text-hot-pink"><i className="fas fa-utensils"></i></div>
-                    <h3 className="text-xl font-bold text-hot-pink mb-2">Master Craftsmanship</h3>
+                    <h3 className="text-xl font-bold text-hot-pink mb-2">Master craftsmanship</h3>
                     <p className="text-gray-700">Over 10 years of sushi chef experience ensuring every roll, nigiri, and sashimi is crafted to perfection using traditional Japanese techniques.</p>
                 </div>
                 <div className="bg-yellow/10 border-2 border-yellow rounded-lg p-6">
                     <div className="text-4xl mb-3 text-hot-pink"><i className="fas fa-fish"></i></div>
-                    <h3 className="text-xl font-bold text-hot-pink mb-2">Premium Ingredients</h3>
+                    <h3 className="text-xl font-bold text-hot-pink mb-2">Premium ingredients</h3>
                     <p className="text-gray-700">Fresh, high-quality ingredients including bluefin tuna and daily-sourced fish. We never compromise on quality for our Chester-le-Street community.</p>
                 </div>
                 <div className="bg-yellow/10 border-2 border-yellow rounded-lg p-6">
                     <div className="text-4xl mb-3 text-hot-pink"><i className="fas fa-leaf"></i></div>
-                    <h3 className="text-xl font-bold text-hot-pink mb-2">Dietary Options</h3>
+                    <h3 className="text-xl font-bold text-hot-pink mb-2">Dietary options</h3>
                     <p className="text-gray-700">Accommodating all dietary needs with gluten-free sashimi, vegan poke bowls, and vegetarian options. Everyone deserves great Japanese food.</p>
                 </div>
             </section>
 
             {/* History Section */}
             <section className="bg-white border-2 border-hot-pink rounded-lg p-4 md:p-6 lg:p-8 mb-8 md:mb-12">
-                <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-hot-pink mb-4 md:mb-6">
-                    <i className="fas fa-book-open"></i> Chef Radori's Story
+                <h2 className="text-2xl md:text-3xl font-bold text-hot-pink mb-4 md:mb-6">
+                    <i className="fas fa-book-open"></i> Chef Radori's story
                 </h2>
                 <div className="space-y-4 md:space-y-5 text-gray-700 leading-relaxed">
                     <p className="text-base md:text-lg">

@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 
 const Navigation = () => {
     const pathname = usePathname();
@@ -19,7 +20,7 @@ const Navigation = () => {
                     const isActive = pathname === item.href;
                     return (
                         <li key={item.href}>
-                            <a 
+                            <Link 
                                 href={item.href} 
                                 className={`font-bold transition-all duration-200 px-3 py-2 rounded-lg border-2 text-sm ${
                                     isActive 
@@ -28,7 +29,7 @@ const Navigation = () => {
                                 }`}
                             >
                                 {item.label}
-                            </a>
+                            </Link>
                         </li>
                     );
                 })}
@@ -36,7 +37,7 @@ const Navigation = () => {
                 {/* Order/Basket Icon - Hidden for testing */}
                 {/* Uncomment when ready to launch ordering feature
                 <li>
-                    <a 
+                    <Link 
                         href="/menu/order"
                         className={`font-bold transition-all duration-200 px-4 py-2 rounded-lg border-2 flex items-center gap-2 ${
                             pathname?.startsWith("/menu/order")
@@ -47,7 +48,7 @@ const Navigation = () => {
                     >
                         <i className="fas fa-shopping-basket"></i>
                         <span>Order</span>
-                    </a>
+                    </Link>
                 </li>
                 */}
             </ul>

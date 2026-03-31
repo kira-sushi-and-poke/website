@@ -1,7 +1,7 @@
 import React from "react";
 import { DEFAULT_OPENING_HOURS_TEXT } from "@/lib/constants";
 import SpecialHoursNotice from "./SpecialHoursNotice";
-import { format } from 'date-fns';
+import { format, isToday, isTomorrow } from 'date-fns';
 
 const LocationInfo = ({ openingHoursText, restaurantStatus }) => {
     // Use provided text or fallback to centralized default
@@ -31,7 +31,7 @@ const LocationInfo = ({ openingHoursText, restaurantStatus }) => {
 
                 <div>
                     <h3 className="text-xl font-bold text-hot-pink mb-2">
-                        <i className="fas fa-clock"></i> {overrideActive && restaurantStatus.mobileLocationName ? restaurantStatus.mobileLocationName : 'Opening Hours'}
+                        <i className="fas fa-clock"></i> {overrideActive && restaurantStatus.mobileLocationName ? restaurantStatus.mobileLocationName : 'Opening hours'}
                     </h3>
                     
                     {/* Current Status */}
@@ -49,7 +49,11 @@ const LocationInfo = ({ openingHoursText, restaurantStatus }) => {
                                 )}
                                 {!isOpen && nextOpenDate && (
                                     <span className="text-sm text-gray-600">
-                                        Next open: {format(new Date(nextOpenDate), 'EEEE d MMM')}
+                                        Next open: {isToday(new Date(nextOpenDate)) 
+                                            ? `Today at ${format(new Date(nextOpenDate), 'h:mm a')}` 
+                                            : isTomorrow(new Date(nextOpenDate))
+                                            ? `Tomorrow at ${format(new Date(nextOpenDate), 'h:mm a')}`
+                                            : format(new Date(nextOpenDate), 'EEEE d MMM')}
                                     </span>
                                 )}
                                 {!isOpen && !nextOpenDate && overrideActive && (

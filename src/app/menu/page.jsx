@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import CarouselReviews from "@/components/CarouselReviews";
 
 // Generate metadata for SEO
 export const metadata = {
@@ -24,7 +25,7 @@ export default function MenuPage() {
                     >
                         <div className="flex items-center gap-3 mb-2">
                             <i className="fas fa-book-open text-hot-pink text-xl"></i>
-                            <h3 className="font-bold text-hot-pink text-lg">Just Browsing?</h3>
+                            <h3 className="font-bold text-hot-pink text-lg">Just browsing?</h3>
                         </div>
                         <p className="text-gray-600 text-sm">View our menu here</p>
                     </Link>
@@ -34,12 +35,15 @@ export default function MenuPage() {
                     >
                         <div className="flex items-center gap-3 mb-2">
                             <i className="fas fa-shopping-cart text-white text-xl"></i>
-                            <h3 className="font-bold text-lg">Ready to Order?</h3>
+                            <h3 className="font-bold text-lg">Ready to order?</h3>
                         </div>
                         <p className="text-white/90 text-sm">Start your order for pickup</p>
                     </Link>
                 </div>
             </div>
+
+            {/* Reviews Carousel */}
+            <CarouselReviews />
         </div>
     );
 }

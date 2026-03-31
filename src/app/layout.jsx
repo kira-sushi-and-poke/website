@@ -8,6 +8,7 @@ import { getLocationData } from "../lib/getLocationData";
 import { checkRestaurantStatus } from "../lib/checkRestaurantStatus";
 import Image from "next/image";
 import KiraLogo from "../../public/kira-sushi-and-poke-logo.png";
+import Link from "next/link";
 
 export const metadata = {
     title: {
@@ -139,7 +140,9 @@ const Layout = async ({ children }) => {
                     </div>
                 </header>
                 <Breadcrumbs />
+                
                 <main>{children}</main>
+
                 <OpeningHoursChat openingHours={openingHours} isFallback={isFallback} restaurantStatus={restaurantStatus} />
                 <footer className="bg-gray-800 text-white py-8">
                     <div className="container mx-auto px-4">
@@ -165,12 +168,12 @@ const Layout = async ({ children }) => {
                             <div>
                                 <h3 className="text-lg font-bold mb-3 text-yellow">Links</h3>
                                 <ul className="space-y-2">
-                                    <li><a href="/" className="text-gray-300 hover:text-yellow transition-colors">Home</a></li>
-                                    <li><a href="/menu" className="text-gray-300 hover:text-yellow transition-colors">Menu</a></li>
-                                    <li><a href="/about" className="text-gray-300 hover:text-yellow transition-colors">About</a></li>
-                                    <li><a href="/reviews" className="text-gray-300 hover:text-yellow transition-colors">Reviews</a></li>
-                                    <li><a href="/contact" className="text-gray-300 hover:text-yellow transition-colors">Contact</a></li>
-                                    <li><a href="/faq" className="text-gray-300 hover:text-yellow transition-colors">FAQ</a></li>
+                                    <li><Link href="/" className="text-gray-300 hover:text-yellow transition-colors">Home</Link></li>
+                                    <li><Link href="/menu" className="text-gray-300 hover:text-yellow transition-colors">Menu</Link></li>
+                                    <li><Link href="/about" className="text-gray-300 hover:text-yellow transition-colors">About</Link></li>
+                                    <li><Link href="/reviews" className="text-gray-300 hover:text-yellow transition-colors">Reviews</Link></li>
+                                    <li><Link href="/contact" className="text-gray-300 hover:text-yellow transition-colors">Contact</Link></li>
+                                    <li><Link href="/faq" className="text-gray-300 hover:text-yellow transition-colors">FAQ</Link></li>
                                 </ul>
                             </div>
 
