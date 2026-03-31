@@ -1,5 +1,6 @@
 import React from "react";
 import AboutUs from "@/components/AboutUs";
+import CarouselReviews from "@/components/CarouselReviews";
 
 export const metadata = {
     title: "About | Kira Sushi & Poke | Authentic Japanese Chester-le-Street",
@@ -62,6 +63,9 @@ const AboutPage = () => {
             <div className="p-5">
                 <AboutUs />
             </div>
+            
+            {/* Customer Reviews Carousel */}
+            <CarouselReviews />
         </>
     );
 };

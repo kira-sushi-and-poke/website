@@ -1,37 +1,106 @@
 "use client";
 
-import React, { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+
+// Constants at the top
+const AUTO_REFRESH_INTERVAL = 30000; // 30 seconds
+const REFRESH_BUTTON_DELAY = 5000; // 5 seconds
 
 export default function TrackOrderClient({ initialData }) {
   const router = useRouter();
   const [isRefreshing, setIsRefreshing] = useState(false);
-  
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    router.refresh(); // Re-fetches server component data
-    // Reset refreshing state after a delay
-    setTimeout(() => setIsRefreshing(false), 5000);
-  };
-  
-  // Auto-refresh every 30 seconds for active orders
+
+  // Derive order properties once at the top
+  const order = initialData?.order;
+  const orderId = initialData?.orderId;
+  const orderState = order?.state;
+  const fulfillmentState = order?.fulfillment_status || "PROPOSED";
+  const hasPaid = order?.has_payment;
+  const pickupTime = order?.pickup_time;
+  const isOrderActive = orderState !== "COMPLETED" && fulfillmentState !== "CANCELED";
+
+  // Auto-refresh effect for active orders
   useEffect(() => {
-    if (!initialData?.order) return;
-    
-    const orderState = initialData.order.state;
-    const isActive = orderState !== "COMPLETED" && orderState !== "CANCELED";
-    
-    if (!isActive) return;
+    if (!order || !isOrderActive) return;
     
     const interval = setInterval(() => {
       router.refresh();
-    }, 30000); // 30 seconds
+    }, AUTO_REFRESH_INTERVAL);
     
     return () => clearInterval(interval);
-  }, [initialData, router]);
+  }, [order, isOrderActive, router]);
+
+  // Redirect effect for unpaid/draft orders
+  useEffect(() => {
+    if (!order) return;
+    
+    if (!hasPaid || orderState === "DRAFT") {
+      router.push("/menu/order");
+    }
+  }, [order, hasPaid, orderState, router]);
+
+  // Handler functions
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    router.refresh();
+    setTimeout(() => setIsRefreshing(false), REFRESH_BUTTON_DELAY);
+  };
   
-  // No initialData means no orderId was provided in URL
+  // Helper function to get status configuration
+  const getStatusConfig = (fulfillmentState, orderState) => {
+    if (fulfillmentState === "RESERVED") {
+      return {
+        icon: "fa-fire",
+        title: "We're preparing your food!",
+        message: "Our kitchen is preparing your order right now. Stay on this page to know when it's ready for pickup.",
+        color: "yellow",
+        showPickupTime: true,
+      };
+    }
+
+    if (fulfillmentState === "PREPARED") {
+      return {
+        icon: "fa-check-circle",
+        title: "Your order is ready!",
+        message: "Come and get it! Your fresh meal is packed and waiting for you.",
+        color: "hot-pink",
+        showPickupTime: true,
+      };
+    }
+    
+    if (fulfillmentState === "CANCELED") {
+      return {
+        icon: "fa-times-circle",
+        title: "Order canceled",
+        message: "This order has been canceled. You will be refunded shortly. Contact us if you have questions.",
+        color: "yellow",
+        showPickupTime: false,
+      };
+    }
+    
+    if (orderState === "COMPLETED") {
+      return {
+        icon: "fa-check",
+        title: "Order completed",
+        message: "Thank you for your order! We hope you enjoyed your meal.",
+        color: "hot-pink",
+        showPickupTime: false,
+      };
+    }
+
+    // Default: PROPOSED
+    return {
+      icon: "fa-clock",
+      title: "We got your order!",
+      message: "Your order is in! We'll start preparing shortly. This page will update automatically as your order progresses.",
+      color: "yellow",
+      showPickupTime: true,
+    };
+  };
+
+  // Early returns for error states
   if (!initialData) {
     return (
       <div className="min-h-screen bg-[#fffef9] flex items-center justify-center p-4">
@@ -40,21 +109,19 @@ export default function TrackOrderClient({ initialData }) {
             <i className="fas fa-search text-yellow text-7xl"></i>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            No Order ID Provided
+            No order ID provided
           </h1>
-
           <Link
             href="/menu/order"
             className="block w-full bg-hot-pink text-white py-4 px-4 rounded-lg hover:bg-hot-pink/90 transition-colors font-bold text-lg"
           >
-            Back to Order
+            Back to order
           </Link>
         </div>
       </div>
     );
   }
 
-  // Handle order fetch errors
   if (initialData.error === "not_found") {
     return (
       <div className="min-h-screen bg-[#fffef9] flex items-center justify-center p-4">
@@ -63,24 +130,26 @@ export default function TrackOrderClient({ initialData }) {
             <i className="fas fa-exclamation-triangle text-hot-pink text-7xl"></i>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            Order Not Found
+            Order not found
           </h1>
           <p className="text-gray-600 mb-6">
-            We couldn&apos;t find this order. Please check your Order ID and try again.
+            We couldn&apos;t find this order. Please check your order ID and try again.
           </p>
           <div className="space-y-3">
-            <p className="text-sm text-gray-500 bg-gray-50 px-4 py-2 rounded-full inline-block">Order ID: {initialData.orderId}</p>
+            <p className="text-sm text-gray-500 bg-gray-50 px-4 py-2 rounded-full inline-block">
+              Order ID: {orderId}
+            </p>
             <Link
               href="/contact"
               className="block w-full bg-hot-pink text-white py-3 px-4 rounded-lg hover:bg-hot-pink/90 transition-colors font-semibold"
             >
-              Contact Support
+              Contact support
             </Link>
             <Link
               href="/menu/order"
               className="block w-full border-2 border-hot-pink text-hot-pink py-3 px-4 rounded-lg hover:bg-hot-pink hover:text-white transition-colors font-semibold"
             >
-              Back to Order
+              Back to order
             </Link>
           </div>
         </div>
@@ -88,23 +157,7 @@ export default function TrackOrderClient({ initialData }) {
     );
   }
 
-  const { orderId, order } = initialData;
-
-  // Handle different order states
-  const orderState = order.state;
-  const hasPaid = order.has_payment;
-
-  useEffect(() => {
-  // If order is not found or has no items, redirect back to order page with error
-    if (!hasPaid || orderState === "DRAFT") {
-      router.push("/menu/order");
-    }
-  }, [orderState, hasPaid, router]);
-
-  // Extract fulfillment status
-  const fulfillmentState = order.fulfillment_status || "PROPOSED";
-  const pickupTime = order.pickup_time;
-  
+  // Format pickup time
   const formattedPickupTime = pickupTime 
     ? new Date(pickupTime).toLocaleString("en-GB", {
         timeZone: "Europe/London",
@@ -116,49 +169,9 @@ export default function TrackOrderClient({ initialData }) {
       })
     : null;
 
-  // Determine status display based on fulfillment state
-  let statusConfig = {
-    icon: "fa-clock",
-    title: "We Got Your Order!",
-    message: "Your order is in! We'll start preparing shortly. This page will update automatically as your order progresses.",
-    color: "yellow",
-    showPickupTime: true,
-  };
+  const statusConfig = getStatusConfig(fulfillmentState, orderState);
 
-  if (fulfillmentState === "RESERVED") {
-    statusConfig = {
-      icon: "fa-fire",
-      title: "We're Preparing Your Food!",
-      message: "Our kitchen is preparing your order right now. Stay on this page to know when it's ready for pickup.",
-      color: "yellow",
-      showPickupTime: true,
-    };
-  } else if (fulfillmentState === "PREPARED") {
-    statusConfig = {
-      icon: "fa-check-circle",
-      title: "Your Order is Ready!",
-      message: "Come and get it! Your fresh meal is packed and waiting for you.",
-      color: "hot-pink",
-      showPickupTime: true,
-    };
-  } else if (orderState === "COMPLETED") {
-    statusConfig = {
-      icon: "fa-check",
-      title: "Order Completed",
-      message: "Thank you for your order! We hope you enjoyed your meal.",
-      color: "hot-pink",
-      showPickupTime: false,
-    };
-  } else if (orderState === "CANCELED") {
-    statusConfig = {
-      icon: "fa-times-circle",
-      title: "Order Canceled",
-      message: "This order has been canceled. Contact us if you have questions.",
-      color: "yellow",
-      showPickupTime: false,
-    };
-  }
-
+  // Main render
   return (
     <div className="min-h-screen bg-[#fffef9] py-12 px-4">
       <div className="max-w-3xl mx-auto">
@@ -180,16 +193,18 @@ export default function TrackOrderClient({ initialData }) {
             <div className="bg-gradient-to-r from-hot-pink/10 to-yellow/10 border border-hot-pink rounded-lg p-4 mb-4">
               <p className="text-xs font-semibold text-gray-700 mb-1 flex items-center justify-center">
                 <i className="fas fa-clock mr-2"></i>
-                Pickup Time
+                Pickup time
               </p>
               <p className="text-base font-bold text-hot-pink">{formattedPickupTime}</p>
             </div>
           )}
           
-          <p className="text-sm text-gray-500 bg-gray-50 px-4 py-2 rounded-full inline-block mb-4">Order ID: {orderId}</p>
+          <p className="text-sm text-gray-500 bg-gray-50 px-4 py-2 rounded-full inline-block mb-4">
+            Order ID: {orderId}
+          </p>
           
           {/* Auto-refresh indicator - only show for active orders */}
-          {orderState !== "COMPLETED" && orderState !== "CANCELED" && (
+          {isOrderActive && (
             <p className="text-xs text-gray-500 mb-3">
               <i className="fas fa-sync-alt mr-1 text-yellow"></i>
               Auto-refreshing every 30 seconds
@@ -197,7 +212,7 @@ export default function TrackOrderClient({ initialData }) {
           )}
           
           {/* Refresh Button - only show for active orders */}
-          {orderState !== "COMPLETED" && orderState !== "CANCELED" && (
+          {isOrderActive && (
             <button
               onClick={handleRefresh}
               disabled={isRefreshing}
@@ -211,7 +226,7 @@ export default function TrackOrderClient({ initialData }) {
               ) : (
                 <>
                   <i className="fas fa-sync-alt mr-2"></i>
-                  Refresh Now
+                  Refresh now
                 </>
               )}
             </button>
@@ -225,26 +240,26 @@ export default function TrackOrderClient({ initialData }) {
             className="block w-full bg-gradient-to-r from-hot-pink to-yellow text-white py-4 px-4 rounded-lg hover:opacity-90 transition-opacity text-center font-bold text-lg"
           >
             <i className="fas fa-receipt mr-2"></i>
-            View Order Details
+            View order details
           </Link>
           <Link
             href="/menu/order"
             className="block w-full bg-hot-pink text-white py-4 px-4 rounded-lg hover:bg-hot-pink/90 transition-colors text-center font-bold text-lg"
           >
-            Back to Menu Order
+            Back to menu order
           </Link>
           <Link
             href="/"
             className="block w-full border-2 border-hot-pink text-hot-pink py-3 px-4 rounded-lg hover:bg-hot-pink hover:text-white transition-colors text-center font-semibold"
           >
-            Back to Home
+            Back to home
           </Link>
-          {orderState !== "COMPLETED" && (
+          {isOrderActive && (
             <Link
               href="/contact"
               className="block w-full border-2 border-gray-300 text-gray-600 py-3 px-4 rounded-lg hover:border-hot-pink hover:text-hot-pink transition-colors text-center font-semibold"
             >
-              Need Help?
+              Need help?
             </Link>
           )}
         </div>

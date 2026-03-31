@@ -118,9 +118,10 @@ export function checkRestaurantStatus(openingHours, mobileLocationData = null, i
   /**
    * Find next occurrence of a day_of_week from tomorrow onwards (for next open date calculation)
    * @param {string} dayOfWeek - Square format (MON, TUE, etc.)
+   * @param {string} openTime - Opening time in HH:MM format (optional)
    * @returns {Date|null} - Next occurrence in UK timezone from tomorrow
    */
-  const getNextFutureDateForDay = (dayOfWeek) => {
+  const getNextFutureDateForDay = (dayOfWeek, openTime = null) => {
     const targetDayName = dayOfWeekMap[dayOfWeek];
     if (!targetDayName) return null;
 
@@ -134,23 +135,59 @@ export function checkRestaurantStatus(openingHours, mobileLocationData = null, i
       daysUntil += 7; // Next week
     }
 
-    return addDays(startOfDay(nowUK), daysUntil);
+    const nextDate = addDays(startOfDay(nowUK), daysUntil);
+    
+    // Set opening time if provided
+    if (openTime) {
+      const [hours, minutes] = openTime.split(':').map(Number);
+      nextDate.setHours(hours, minutes, 0, 0);
+    }
+    
+    return nextDate;
   };
 
   /**
    * Calculate next open date from mobile periods or fall back to physical hours
    * @param {Array} mobilePeriods - Mobile location periods
    * @param {Object} physicalHours - Physical location hours
+   * @param {Array} todayPeriods - Today's mobile periods (to check if opens later today)
+   * @param {number} currentTime - Current time in minutes
    * @returns {Date|null} - Next open date or null for "closed until further notice"
    */
-  const calculateNextOpenDate = (mobilePeriods, physicalHours) => {
+  const calculateNextOpenDate = (mobilePeriods, physicalHours, todayPeriods = [], currentTime = 0) => {
     if (!mobilePeriods || mobilePeriods.length === 0) {
       return null; // "Closed until further notice"
     }
 
-    // Map each period's day_of_week to its next occurrence from tomorrow
+    // First check if restaurant opens LATER TODAY
+    if (todayPeriods && todayPeriods.length > 0) {
+      const futurePeriodsToday = todayPeriods.filter(period => {
+        const periodStartTime = timeToMinutes(period.start_local_time.substring(0, 5));
+        return periodStartTime > currentTime;
+      });
+
+      if (futurePeriodsToday.length > 0) {
+        // Find earliest period that starts after current time
+        const earliestPeriod = futurePeriodsToday.reduce((earliest, current) => {
+          const earliestTime = timeToMinutes(earliest.start_local_time.substring(0, 5));
+          const currentTime = timeToMinutes(current.start_local_time.substring(0, 5));
+          return currentTime < earliestTime ? current : earliest;
+        });
+
+        const todayDate = startOfDay(getCurrentDateUK());
+        const openTime = earliestPeriod.start_local_time.substring(0, 5);
+        const [hours, minutes] = openTime.split(':').map(Number);
+        todayDate.setHours(hours, minutes, 0, 0);
+        return todayDate;
+      }
+    }
+
+    // Map each period's day_of_week to its next occurrence from tomorrow with opening time
     const futureDates = mobilePeriods
-      .map(period => getNextFutureDateForDay(period.day_of_week))
+      .map(period => {
+        const openTime = period.start_local_time ? period.start_local_time.substring(0, 5) : null;
+        return getNextFutureDateForDay(period.day_of_week, openTime);
+      })
       .filter(date => date !== null);
 
     if (futureDates.length === 0) {
@@ -167,18 +204,37 @@ export function checkRestaurantStatus(openingHours, mobileLocationData = null, i
   /**
    * Calculate next open date from physical hours (fallback)
    * @param {Object} physicalHours - Physical location hours
+   * @param {number} currentTime - Current time in minutes (optional, to check if opens later today)
    * @returns {Date|null}
    */
-  const calculateNextOpenFromPhysical = (physicalHours) => {
+  const calculateNextOpenFromPhysical = (physicalHours, currentTime = null) => {
     const nowUK = getCurrentDateUK();
     const todayName = getCurrentDay();
+    
+    // First check if restaurant opens LATER TODAY
+    if (currentTime !== null && physicalHours[todayName]) {
+      const todayOpenTime = timeToMinutes(physicalHours[todayName].open);
+      if (todayOpenTime > currentTime) {
+        const todayDate = startOfDay(nowUK);
+        const [hours, minutes] = physicalHours[todayName].open.split(':').map(Number);
+        todayDate.setHours(hours, minutes, 0, 0);
+        return todayDate;
+      }
+    }
     
     // Check tomorrow onwards for next open day
     for (let i = 1; i <= 7; i++) {
       const checkDate = addDays(nowUK, i);
       const dayName = format(checkDate, 'EEEE');
       if (physicalHours[dayName]) {
-        return startOfDay(checkDate);
+        const nextDate = startOfDay(checkDate);
+        // Set opening time from physical hours
+        const openTime = physicalHours[dayName].open;
+        if (openTime) {
+          const [hours, minutes] = openTime.split(':').map(Number);
+          nextDate.setHours(hours, minutes, 0, 0);
+        }
+        return nextDate;
       }
     }
     
@@ -374,7 +430,7 @@ export function checkRestaurantStatus(openingHours, mobileLocationData = null, i
         isOpen: false,
         closingSoon: false,
         todayHours,
-        nextOpenDate: calculateNextOpenDate(mobilePeriods, openingHours),
+        nextOpenDate: calculateNextOpenDate(mobilePeriods, openingHours, todayMobilePeriods, currentTime),
         overrideActive: true,
         overridePeriods: transformPeriodsToDateRange(mobilePeriods, openingHours),
         isTodayOnly,
@@ -396,7 +452,7 @@ export function checkRestaurantStatus(openingHours, mobileLocationData = null, i
     isOpen,
     closingSoon,
     todayHours,
-    nextOpenDate: isOpen ? null : calculateNextOpenFromPhysical(openingHours),
+    nextOpenDate: isOpen ? null : calculateNextOpenFromPhysical(openingHours, currentTime),
     overrideActive: false,
     overridePeriods: [],
     isTodayOnly: false,

@@ -1,9 +1,7 @@
-import React from "react";
 import Link from "next/link";
 import Reviews from "@/components/Reviews";
 
 const ReviewsPage = () => {
-
     return (
         <div className="py-8 md:py-12 px-5 md:px-10 max-w-7xl mx-auto">
             <h1 className="text-2xl md:text-4xl font-bold mb-4 md:mb-6 text-hot-pink text-center">
@@ -20,8 +18,8 @@ const ReviewsPage = () => {
             {/* SEO Content Section - After Reviews */}
             <div className="mt-12 max-w-4xl mx-auto">
                 <div className="bg-white border-2 border-hot-pink rounded-lg p-6 md:p-8">
-                    <h2 className="text-2xl font-bold text-hot-pink mb-4 text-center">
-                        Why Chester-le-Street Loves Kira Sushi & Poke
+                    <h2 className="text-2xl md:text-3xl font-bold text-hot-pink mb-4 text-center">
+                        Why Chester-le-Street loves Kira Sushi & Poke
                     </h2>
                     <div className="text-gray-700 leading-relaxed space-y-3">
                         <p>
@@ -37,8 +35,8 @@ const ReviewsPage = () => {
 
             {/* Call to Action */}
             <div className="mt-12 text-center bg-hot-pink/10 border-2 border-hot-pink rounded-lg p-6 md:p-8">
-                <h2 className="text-2xl font-bold text-hot-pink mb-3">
-                    Leave Us a Review!
+                <h2 className="text-2xl md:text-3xl font-bold text-hot-pink mb-3">
+                    Leave us a review!
                 </h2>
                 <p className="text-gray-700 mb-6">
                     We'd love to hear about your experience. Share your thoughts on your favorite platform!

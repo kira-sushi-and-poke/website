@@ -1,4 +1,3 @@
-import React from "react";
 import LocationInfo from "@/components/LocationInfo";
 import ContactUs from "@/components/ContactUs";
 import { getLocationData } from "@/lib/getLocationData";
@@ -26,16 +25,16 @@ const ContactPage = async () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
                 {/* Location & Hours */}
                 <div>
-                    <h2 className="text-2xl font-bold text-hot-pink mb-4">
-                        <i className="fas fa-map-marker-alt"></i> Location & Hours
+                    <h2 className="text-2xl md:text-3xl font-bold text-hot-pink mb-4">
+                        <i className="fas fa-map-marker-alt"></i> Location and hours
                     </h2>
                     <LocationInfo openingHoursText={openingHoursText} restaurantStatus={restaurantStatus} />
                 </div>
 
                 {/* Contact Methods */}
                 <div>
-                    <h2 className="text-2xl font-bold text-hot-pink mb-4">
-                        <i className="fas fa-comments"></i> Get In Touch
+                    <h2 className="text-2xl md:text-3xl font-bold text-hot-pink mb-4">
+                        <i className="fas fa-comments"></i> Get in touch
                     </h2>
                     <ContactUs />
                 </div>

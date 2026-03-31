@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { usePathname } from "next/navigation";
 import { DAYS_OF_WEEK, CLOSING_SOON_THRESHOLD } from "@/lib/constants";
 import { convertTo12Hour } from "@/lib/formatTime";
-import { format } from 'date-fns';
+import { format, isToday, isTomorrow } from 'date-fns';
 
 const OpeningHoursChat = ({ openingHours, isFallback = false, restaurantStatus }) => {
     const [showModal, setShowModal] = useState(false);
@@ -117,7 +117,11 @@ const OpeningHoursChat = ({ openingHours, isFallback = false, restaurantStatus }
                                 )}
                                 {!restaurantOpen && nextOpenDate && (
                                     <span className="text-sm text-gray-600">
-                                        Next open: {format(new Date(nextOpenDate), 'EEEE d MMM')}
+                                        Next open: {isToday(new Date(nextOpenDate)) 
+                                            ? `Today at ${format(new Date(nextOpenDate), 'h:mm a')}` 
+                                            : isTomorrow(new Date(nextOpenDate))
+                                            ? `Tomorrow at ${format(new Date(nextOpenDate), 'h:mm a')}`
+                                            : format(new Date(nextOpenDate), 'EEEE d MMM')}
                                     </span>
                                 )}
                                 {!restaurantOpen && !nextOpenDate && overrideActive && (

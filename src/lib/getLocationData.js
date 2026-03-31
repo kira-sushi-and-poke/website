@@ -79,7 +79,7 @@ async function getMobileLocationData() {
   try {
     const data = await fetchSquare(`/v2/locations/${MOBILE_LOCATION_ID}`, {
       method: "GET",
-      next: { revalidate: 300 } // Revalidate every 5 minutes for time-sensitive overrides
+      next: { revalidate: 180 } // Revalidate every 3 minutes for time-sensitive overrides
     });
 
     return {
@@ -103,7 +103,7 @@ export async function getLocationData() {
     const [physicalData, mobileLocationData] = await Promise.all([
       fetchSquare(`/v2/locations/${LOCATION_ID}`, {
         method: "GET",
-        next: { revalidate: 300 }
+        next: { revalidate: 180 } // Revalidate every 3 minutes for time-sensitive overrides
       }),
       getMobileLocationData()
     ]);
