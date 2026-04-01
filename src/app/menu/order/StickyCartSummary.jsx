@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import PickupOnlyNotice from "@/components/PickupOnlyNotice";
 
 export default function StickyCartSummary({ 
@@ -11,7 +12,7 @@ export default function StickyCartSummary({
     removeItemCompletely,
     clearCart,
     updatingItems,
-    onCheckout
+    orderId
 }) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [confirmRemove, setConfirmRemove] = useState(null);
@@ -232,13 +233,13 @@ export default function StickyCartSummary({
                                 )}
                                 
                                 {/* Confirm & Pay Button */}
-                                <button
-                                    onClick={onCheckout}
-                                    disabled={isEmpty}
-                                    className="flex-1 px-6 py-3 bg-hot-pink text-white rounded-lg font-bold hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                                <Link
+                                    href={isEmpty ? "#" : `/menu/order/payment?orderId=${orderId}`}
+                                    className={`flex-1 px-6 py-3 bg-hot-pink text-white rounded-lg font-bold hover:bg-opacity-90 transition-colors flex items-center justify-center gap-2 ${isEmpty ? 'opacity-50 pointer-events-none' : ''}`}
+                                    aria-disabled={isEmpty}
                                 >
                                     Confirm & Pay
-                                </button>
+                                </Link>
                             </div>
                         </div>
                     </div>

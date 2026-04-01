@@ -173,13 +173,13 @@ const MenuItem = ({
                     
                     {/* Variant Cards - Order Mode: Grid with Controls */}
                     {isVariantCard && variants.length > 0 && isOrderMode && (
-                        <div className="grid grid-cols-2 gap-2 md:gap-3">
+                        <div className="grid grid-cols-2 gap-1.5 md:gap-3">
                             {variants.map((variant, index) => {
                                 const variantQuantity = cart[variant.variationId] || 0;
                                 const variantIsUpdating = updatingItems.has(variant.variationId);
                                 
                                 return (
-                                    <div key={variant.variationId || index} className="flex flex-col p-2 md:p-3 border border-gray-200 rounded-lg">
+                                    <div key={variant.variationId || index} className="flex flex-col p-1.5 md:p-2.5 border border-gray-200 rounded-lg">
                                         <div className="flex justify-between items-start mb-2">
                                             <p className="font-semibold text-gray-800 text-xs md:text-sm flex-1">{variant.name}</p>
                                             <p className="text-yellow font-bold text-sm md:text-base ml-2">
@@ -189,17 +189,17 @@ const MenuItem = ({
                                         
                                         {/* Quantity Controls for Order Mode */}
                                         {variant.variationId && (
-                                            <div className="flex items-center justify-center gap-2 md:gap-2">
+                                            <div className="flex items-center justify-center gap-1.5 md:gap-2">
                                                 <button
                                                     onClick={() => removeItem(variant.variationId)}
                                                     disabled={variantIsUpdating || variantQuantity === 0}
-                                                    className="min-w-[44px] min-h-[44px] w-11 h-11 md:w-10 md:h-10 rounded-full bg-gray-200 active:bg-hot-pink active:text-white md:hover:bg-hot-pink md:hover:text-white font-bold text-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                                                    className="min-w-[44px] min-h-[44px] w-10 h-10 md:w-10 md:h-10 rounded-full bg-gray-200 active:bg-hot-pink active:text-white md:hover:bg-hot-pink md:hover:text-white font-bold text-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                                                     aria-label="Decrease quantity"
                                                 >
                                                     −
                                                 </button>
                                                 
-                                                <div className="min-w-[40px] md:min-w-[45px] text-center">
+                                                <div className="min-w-[36px] md:min-w-[45px] text-center">
                                                     {variantIsUpdating ? (
                                                         <div className="inline-block w-4 h-4 md:w-4 md:h-4 border-2 border-hot-pink border-t-transparent rounded-full animate-spin"></div>
                                                     ) : (
@@ -210,7 +210,7 @@ const MenuItem = ({
                                                 <button
                                                     onClick={() => addItem(variant.variationId)}
                                                     disabled={variantIsUpdating}
-                                                    className="min-w-[44px] min-h-[44px] w-11 h-11 md:w-10 md:h-10 rounded-full bg-hot-pink text-white active:bg-opacity-80 md:hover:bg-opacity-90 font-bold text-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                                                    className="min-w-[44px] min-h-[44px] w-10 h-10 md:w-10 md:h-10 rounded-full bg-hot-pink text-white active:bg-opacity-80 md:hover:bg-opacity-90 font-bold text-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                                                     aria-label="Increase quantity"
                                                 >
                                                     +

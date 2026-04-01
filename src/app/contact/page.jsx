@@ -22,6 +22,10 @@ const ContactPage = async () => {
                 Contact | Kira Sushi & Poke
             </h1>
 
+            <p className="text-center text-gray-600 mb-8 md:mb-10 max-w-2xl mx-auto">
+                We'd love to hear from you! Whether you have questions about our menu, want to make a reservation, or just want to say hello, feel free to reach out.
+            </p>
+            
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
                 {/* Location & Hours */}
                 <div>
