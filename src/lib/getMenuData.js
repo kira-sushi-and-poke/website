@@ -1,6 +1,6 @@
 "use server";
 
-import { SQUARE_API_VERSION } from "./constants";
+import { SQUARE_API_VERSION, CATEGORY_CONFIG } from "./constants";
 
 /**
  * Fetch menu data server-side directly from third party API
@@ -76,7 +76,12 @@ function transformCatalog(catalogData) {
   // First pass: collect categories and images
   catalogData.objects.forEach(obj => {
     if (obj.type === "CATEGORY") {
-      categories[obj.id] = obj.category_data.name;
+      // Store both name and ordinal for category ordering
+      const categoryData = obj.category_data;
+      categories[obj.id] = {
+        name: categoryData.name,
+        ordinal: categoryData.parent_category?.ordinal ?? 999999
+      };
     } else if (obj.type === "IMAGE") {
       images[obj.id] = obj.image_data.url;
     }
@@ -84,29 +89,38 @@ function transformCatalog(catalogData) {
 
   // Second pass: process items and their variations
   catalogData.objects.forEach(obj => {
-    if (obj.type === "ITEM" && !obj.is_deleted) {
+    if (obj.type === "ITEM" && !obj.is_deleted && !obj.item_data?.is_archived) {
       const itemData = obj.item_data;
 
       // The ITEM name is the subcategory (e.g., "Makizushi (Sushi Rolls)")
       const itemName = itemData.name;
       const itemDescription = itemData.description || "";
 
-      // Get category from CATEGORY object or infer from ITEM name
+      // Get category from CATEGORY object
       const categoryIds = itemData.categories || [];
       const firstCategoryId = categoryIds.length > 0 ? categoryIds[0].id : null;
-      const apiCategoryName = firstCategoryId ? categories[firstCategoryId] : null;
-      const category = mapCategory(apiCategoryName, itemName);
+      const categoryInfo = firstCategoryId ? categories[firstCategoryId] : null;
+      const apiCategoryName = categoryInfo?.name;
+      const category = normalizeCategoryName(apiCategoryName);
+      const categoryDisplayName = apiCategoryName || "Uncategorized";
+      const categoryOrdinal = categoryInfo?.ordinal ?? 999999;
 
-      // Get custom attributes for ITEM level
-      const itemCustomAttributes = itemData.custom_attribute_values || {};
+      // Get custom attributes for ITEM level (at obj level, not itemData level!)
+      const itemCustomAttributes = obj.custom_attribute_values || {};
 
-      // Check for subcategory custom attribute override
-      const subcategoryAttr = Object.values(itemCustomAttributes).find(attr =>
-        attr.name?.toLowerCase() === "subcategory" || attr.key?.toLowerCase() === "subcategory"
+      // ITEM name IS the subcategory (e.g., "Makizushi (Sushi Rolls)", "Nigiri")
+      const subcategory = itemName;
+
+      // Extract display_type custom attribute (TEXT type)
+      const displayTypeAttr = Object.values(itemCustomAttributes).find(attr =>
+        attr.name?.toLowerCase() === "display_type" || attr.key?.toLowerCase() === "display_type"
       );
+      
+      // Get string value and normalize (trim and lowercase), default to "separate"
+      const displayType = displayTypeAttr?.string_value?.trim().toLowerCase() || "separate";
 
-      // Use custom attribute if set, otherwise infer subcategory
-      const subcategory = subcategoryAttr?.string_value || inferSubcategory(category, itemName, itemDescription);
+      // Extract ITEM ordinal from categories array (this controls order within category)
+      const itemOrdinal = categoryIds.length > 0 ? categoryIds[0].ordinal : 999999;
 
       // Get images for this item group
       const imageItemLinks = (itemData.image_ids || [])
@@ -122,6 +136,10 @@ function transformCatalog(catalogData) {
         const priceData = variationData?.price_money;
         const variationImageLinks = (variationData?.image_ids || []);
         const allImageLinks = [...new Set([...imageItemLinks, ...variationImageLinks.map(id => images[id]).filter(Boolean)])];
+        
+        // Extract VARIATION ordinal for sorting
+        const variationOrdinal = variationData?.ordinal ?? 999999;
+        
         // Only create menu item if variation has a price
         if (!priceData || !priceData.amount) return;
 
@@ -145,7 +163,7 @@ function transformCatalog(catalogData) {
         // Extract variation-specific description
         let variationDesc = variationData.price_description?.trim() || "";
 
-        // Get custom attributes from variation
+        // Get custom attributes from variation (at variation level, not variationData level!)
         const customAttributes = variation.custom_attribute_values || {};
 
         // Check for explicit status custom attribute (variation level first, then item level)
@@ -193,7 +211,9 @@ function transformCatalog(catalogData) {
           itemName: itemName,
           displayName: displayName,
           category,
+          categoryDisplayName,
           subcategory,
+          displayType,
           status,
           originalPrice: price,
           discountedPrice: null,
@@ -204,164 +224,57 @@ function transformCatalog(catalogData) {
             itemId: obj.id,
             variationId: variation.id,
             version: obj.version
-          }
+          },
+          // Ordinals for sorting
+          _categoryOrdinal: categoryOrdinal,
+          _itemOrdinal: itemOrdinal,
+          _variationOrdinal: variationOrdinal
         });
       });
     }
+  });
+
+  // Sort menu items by ordinals: category ordinal, then item ordinal, then variation ordinal
+  menuItems.sort((a, b) => {
+    // First by category ordinal from Square
+    if (a._categoryOrdinal !== b._categoryOrdinal) {
+      return a._categoryOrdinal - b._categoryOrdinal;
+    }
+    
+    // Then by item ordinal
+    if (a._itemOrdinal !== b._itemOrdinal) {
+      return a._itemOrdinal - b._itemOrdinal;
+    }
+    
+    // Finally by variation ordinal
+    return a._variationOrdinal - b._variationOrdinal;
   });
 
   return menuItems;
 }
 
 /**
- * Map Square category name to app category
+ * Normalize Square category name to app category ID
+ * Uses CATEGORY_CONFIG mapping from constants
  */
-function mapCategory(apiCategoryName, itemName) {
+function normalizeCategoryName(apiCategoryName) {
   if (!apiCategoryName) {
-    // Try to infer from item name
-    const itemLower = itemName.toLowerCase();
-    if (itemLower.includes("sushi") || itemLower.includes("roll") || itemLower.includes("nigiri") || itemLower.includes("sashimi") || itemLower.includes("hosomaki") || itemLower.includes("inarizushi") || itemLower.includes("inari") || itemLower.includes("onigiri")) {
-      return "sushi";
-    }
-    if (itemLower.includes("poke")) return "poke";
-    if (itemLower.includes("curry") || itemLower.includes("teriyaki") || itemLower.includes("katsu") || itemLower.includes("crispy rice")) {
-      return "hot";
-    }
-    if (itemLower.includes("dessert") || itemLower.includes("dorayaki")) return "desserts";
-    if (itemLower.includes("drink") || itemLower.includes("pepsi") || itemLower.includes("ramune") || itemLower.includes("water")) {
-      return "drinks";
-    }
-    if (itemLower.includes("moriawase")) return "platters";
-    if (itemLower.includes("school special") || itemLower.includes("kids")) return "kids";
-    return "solo";
+    return "solo"; // Default category for uncategorized items
   }
-
-  // Category mapping configuration
-  const categoryMap = {
-    // Platters/Chef's Selection
-    "chef selection": "platters",
-    "chef's selection": "platters",
-    "moriawase": "platters",
-    "sharing": "platters",
-    "platters": "platters",
-    "sushi platters": "platters",
-
-    // Sushi
-    "sushi": "sushi",
-    "sushi menu": "sushi",
-    "makizushi": "sushi",
-    "nigiri": "sushi",
-    "sashimi": "sushi",
-    "rolls": "sushi",
-
-    // Poke
-    "poke": "poke",
-    "poke bowls": "poke",
-    "poke bowl": "poke",
-    "bowls": "poke",
-
-    // Hot dishes
-    "hot dishes": "hot",
-    "hot": "hot",
-    "mains": "hot",
-    "main dishes": "hot",
-    "main dishes (hot)": "hot",
-    "curry": "hot",
-    "teriyaki": "hot",
-
-    // Kids Menu
-    "kids menu": "kids",
-    "kids": "kids",
-    "school special": "kids",
-    "children": "kids",
-
-    // Sides
-    "sides": "solo",
-    "appetizers": "solo",
-    "starters": "solo",
-    "small plates": "solo",
-
-    // Desserts
-    "desserts": "desserts",
-    "dessert": "desserts",
-    "sweets": "desserts",
-
-    // Drinks
-    "drinks": "drinks",
-    "beverages": "drinks",
-    "beverage": "drinks",
-    "drink": "drinks",
-  };
 
   const normalized = apiCategoryName.toLowerCase().trim();
 
-  // Direct match
-  if (categoryMap[normalized]) {
-    return categoryMap[normalized];
+  // Direct match from CATEGORY_CONFIG
+  if (CATEGORY_CONFIG.mapping[normalized]) {
+    return CATEGORY_CONFIG.mapping[normalized];
   }
 
   // Fuzzy match
-  for (const [key, value] of Object.entries(categoryMap)) {
+  for (const [key, value] of Object.entries(CATEGORY_CONFIG.mapping)) {
     if (normalized.includes(key) || key.includes(normalized)) {
       return value;
     }
   }
 
-  return "solo";
-}
-
-/**
- * Infer subcategory for sushi and hot items
- */
-function inferSubcategory(category, itemName, description) {
-  const itemLower = itemName.toLowerCase();
-
-  // Handle sushi subcategories
-  if (category === "sushi") {
-    // Check if item name contains parentheses - likely a subcategory descriptor
-    if (itemName.includes("(") && itemName.includes(")")) {
-      return itemName;
-    }
-
-    // Exact matches for known subcategory names
-    const subcategoryMap = {
-      "makizushi": "Makizushi (Sushi Rolls)",
-      "inarizushi": "Inarizushi",
-      "sashimi": "Sashimi",
-      "onigiri": "Onigiri",
-      "nigiri": "Nigiri",
-      "hosomaki": "Hosomaki",
-    };
-
-    // Check for exact match
-    for (const [key, value] of Object.entries(subcategoryMap)) {
-      if (itemLower === key) {
-        return value;
-      }
-    }
-
-    return null;
-  }
-
-  // Handle hot dishes subcategories
-  if (category === "hot") {
-    // Check if item name contains parentheses
-    if (itemName.includes("(") && itemName.includes(")")) {
-      return itemName;
-    }
-
-    if (itemLower.includes("curry")) {
-      return "Japanese Curry";
-    }
-    if (itemLower.includes("teriyaki")) {
-      return "Teriyaki";
-    }
-    if (itemLower.includes("crispy rice")) {
-      return "Crispy Rice";
-    }
-
-    return null;
-  }
-
-  return null;
+  return "solo"; // Default fallback
 }

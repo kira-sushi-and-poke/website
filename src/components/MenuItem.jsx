@@ -135,17 +135,17 @@ const MenuItem = ({
                 {/* End of conditional image section */}
                 
                 <div className={isCompact ? "p-3 md:p-3" : "p-4 md:p-4"}>
-                    <div className={`flex ${isCompact ? 'flex-col gap-1' : 'justify-between items-start gap-3'} mb-2 md:mb-3`}>
-                        <h3 className={`font-heading text-hot-pink leading-tight ${isCompact ? 'text-xs md:text-sm' : isVariantCard ? 'text-lg md:text-xl' : 'text-base md:text-lg'}`}>{name}</h3>
+                    <div className={`flex ${isCompact ? 'flex-col gap-1' : 'justify-between items-center gap-3'} mb-2 md:mb-3`}>
+                        <h4 className={`font-heading text-hot-pink ${isCompact ? 'text-xs md:text-sm' : isVariantCard ? 'text-lg md:text-xl' : 'text-base md:text-lg'}`}>{name}</h4>
                         {!isVariantCard && (
                             <div className={`${isCompact ? 'text-left' : 'text-right shrink-0'}`}>
                                 {originalPrice !== null && originalPrice !== undefined ? (
                                     <>
-                                        <span className={discountedPrice ? `text-gray-400 line-through block ${isCompact ? 'text-[10px] md:text-xs' : 'text-sm'}` : `text-yellow font-bold ${isCompact ? 'text-sm md:text-base' : 'text-lg md:text-xl'}`}>
+                                        <span className={discountedPrice ? `text-gray-400 line-through block ${isCompact ? 'text-[10px] md:text-xs' : 'text-sm'}` : `text-yellow font-bold ${isCompact ? 'text-sm md:text-base' : 'text-base md:text-lg'}`}>
                                             £{originalPrice.toFixed(2)}
                                         </span>
                                         {discountedPrice && (
-                                            <span className={`text-yellow font-bold ${isCompact ? 'text-sm md:text-base' : 'text-lg md:text-xl'}`}>£{discountedPrice.toFixed(2)}</span>
+                                            <span className={`text-yellow font-bold ${isCompact ? 'text-sm md:text-base' : 'text-base md:text-lg'}`}>£{discountedPrice.toFixed(2)}</span>
                                         )}
                                     </>
                                 ) : (
@@ -341,7 +341,7 @@ const MenuItem = ({
                                 {currentImageIndex + 1} / {imagesToDisplay.length}
                             </div>
                         )}
-                        <h3 className="text-2xl font-bold mb-2">{name}</h3>
+                        <h4 className="text-2xl font-bold mb-2">{name}</h4>
                         <p className="text-sm opacity-90">{description}</p>
                     </div>
 

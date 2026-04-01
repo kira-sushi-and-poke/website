@@ -102,3 +102,66 @@ export const CLOSING_SOON_THRESHOLD = 30; // minutes before closing to show "clo
  * Physical location: Regular weekly schedule (always displayed)
  * Mobile location: Override signal (only active when status is ACTIVE)
  */
+
+/**
+ * Menu Category Configuration
+ * Maps Square category names to app category IDs
+ */
+export const CATEGORY_CONFIG = {
+  // Category mappings: Square category name → app category ID
+  mapping: {
+    // Platters/Chef's Selection
+    "platters": "platters",
+    "moriawase": "platters",
+    "chef selection": "platters",
+    "chef's selection": "platters",
+    "sharing": "platters",
+    "sushi platters": "platters",
+    
+    // Sushi
+    "sushi": "sushi",
+    "sushi menu": "sushi",
+    "makizushi": "sushi",
+    "nigiri": "sushi",
+    "sashimi": "sushi",
+    "rolls": "sushi",
+    
+    // Poke
+    "poke": "poke",
+    "poke bowls": "poke",
+    "poke bowl": "poke",
+    "bowls": "poke",
+    
+    // Hot dishes
+    "hot dishes": "hot",
+    "hot": "hot",
+    "mains": "hot",
+    "main dishes": "hot",
+    "main dishes (hot)": "hot",
+    "curry": "hot",
+    "teriyaki": "hot",
+    
+    // Kids Menu
+    "kids menu": "kids",
+    "kids": "kids",
+    "school special": "kids",
+    "children": "kids",
+    
+    // Sides
+    "sides": "solo",
+    "appetizers": "solo",
+    "starters": "solo",
+    "small plates": "solo",
+    
+    // Desserts
+    "desserts": "desserts",
+    "dessert": "desserts",
+    "sweets": "desserts",
+    
+    // Drinks
+    "drinks": "drinks",
+    "beverages": "drinks",
+    "beverage": "drinks",
+    "drink": "drinks",
+  }
+};
