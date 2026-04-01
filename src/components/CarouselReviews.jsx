@@ -59,9 +59,9 @@ const CarouselReviews = () => {
     const arrowButtonClass = "flex absolute top-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 rounded-full bg-hot-pink text-white items-center justify-center hover:bg-hot-pink/90 transition-all md:opacity-0 md:group-hover:opacity-100 hover:opacity-100 shadow-lg z-10";
 
     return (
-        <section className="reviews-carousel py-8 md:py-12 px-5 md:px-10 max-w-7xl mx-auto">
+        <section className="reviews-carousel px-5 md:px-10 max-w-7xl mx-auto">
             <h2 className="text-2xl md:text-3xl font-bold text-hot-pink mb-6 md:mb-8 text-center">
-                <i className="fas fa-star"></i> Customer reviews
+                Customer reviews
             </h2>
 
             <div className="relative group">

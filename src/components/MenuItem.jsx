@@ -71,7 +71,7 @@ const MenuItem = ({
 
     return (
         <>
-            <div className="border-2 border-hot-pink relative overflow-hidden bg-white rounded-lg my-1.5 md:my-2 transition-shadow duration-300 hover:shadow-md">
+            <div className="relative overflow-hidden bg-white rounded-lg my-1.5 md:my-2 shadow-md border border-gray-100 transition-all duration-300 active:shadow-lg md:hover:shadow-lg md:hover:border-hot-pink/20">
                 {/* Conditionally render image section */}
                 {!hideImage && (
                     <div
@@ -134,18 +134,18 @@ const MenuItem = ({
                 )}
                 {/* End of conditional image section */}
                 
-                <div className={isCompact ? "p-2 md:p-2" : "p-2.5 md:p-3"}>
-                    <div className={`flex ${isCompact ? 'flex-col gap-1' : 'justify-between items-center'} mb-2 md:mb-3`}>
-                        <h3 className={`text-hot-pink font-bold ${isCompact ? 'text-xs md:text-sm' : isVariantCard ? 'text-lg md:text-xl' : 'text-md md:text-base'}`}>{name}</h3>
+                <div className={isCompact ? "p-3 md:p-3" : "p-4 md:p-4"}>
+                    <div className={`flex ${isCompact ? 'flex-col gap-1' : 'justify-between items-start gap-3'} mb-2 md:mb-3`}>
+                        <h3 className={`font-heading text-hot-pink leading-tight ${isCompact ? 'text-xs md:text-sm' : isVariantCard ? 'text-lg md:text-xl' : 'text-base md:text-lg'}`}>{name}</h3>
                         {!isVariantCard && (
-                            <div className={isCompact ? 'text-left' : ''}>
+                            <div className={`${isCompact ? 'text-left' : 'text-right shrink-0'}`}>
                                 {originalPrice !== null && originalPrice !== undefined ? (
                                     <>
-                                        <span className={discountedPrice ? `text-gray-400 line-through ${isCompact ? 'text-[10px] md:text-xs' : 'text-xs md:text-sm'}` : `text-yellow font-bold ${isCompact ? 'text-sm md:text-base' : 'text-base md:text-lg'}`}>
+                                        <span className={discountedPrice ? `text-gray-400 line-through block ${isCompact ? 'text-[10px] md:text-xs' : 'text-sm'}` : `text-yellow font-bold ${isCompact ? 'text-sm md:text-base' : 'text-lg md:text-xl'}`}>
                                             £{originalPrice.toFixed(2)}
                                         </span>
                                         {discountedPrice && (
-                                            <span className={`text-yellow font-bold ml-2 md:ml-2.5 ${isCompact ? 'text-sm md:text-base' : 'text-base md:text-lg'}`}>£{discountedPrice.toFixed(2)}</span>
+                                            <span className={`text-yellow font-bold ${isCompact ? 'text-sm md:text-base' : 'text-lg md:text-xl'}`}>£{discountedPrice.toFixed(2)}</span>
                                         )}
                                     </>
                                 ) : (
@@ -189,28 +189,28 @@ const MenuItem = ({
                                         
                                         {/* Quantity Controls for Order Mode */}
                                         {variant.variationId && (
-                                            <div className="flex items-center justify-center gap-1.5 md:gap-2">
+                                            <div className="flex items-center justify-center gap-2 md:gap-2">
                                                 <button
                                                     onClick={() => removeItem(variant.variationId)}
                                                     disabled={variantIsUpdating || variantQuantity === 0}
-                                                    className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-gray-200 hover:bg-hot-pink hover:text-white font-bold text-base disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                                                    className="min-w-[44px] min-h-[44px] w-11 h-11 md:w-10 md:h-10 rounded-full bg-gray-200 active:bg-hot-pink active:text-white md:hover:bg-hot-pink md:hover:text-white font-bold text-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                                                     aria-label="Decrease quantity"
                                                 >
                                                     −
                                                 </button>
                                                 
-                                                <div className="min-w-[35px] md:min-w-[40px] text-center">
+                                                <div className="min-w-[40px] md:min-w-[45px] text-center">
                                                     {variantIsUpdating ? (
-                                                        <div className="inline-block w-3 h-3 md:w-4 md:h-4 border-2 border-hot-pink border-t-transparent rounded-full animate-spin"></div>
+                                                        <div className="inline-block w-4 h-4 md:w-4 md:h-4 border-2 border-hot-pink border-t-transparent rounded-full animate-spin"></div>
                                                     ) : (
-                                                        <span className="text-sm md:text-base font-bold">{variantQuantity}</span>
+                                                        <span className="text-base md:text-base font-bold">{variantQuantity}</span>
                                                     )}
                                                 </div>
                                                 
                                                 <button
                                                     onClick={() => addItem(variant.variationId)}
                                                     disabled={variantIsUpdating}
-                                                    className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-hot-pink text-white hover:bg-opacity-90 font-bold text-base disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                                                    className="min-w-[44px] min-h-[44px] w-11 h-11 md:w-10 md:h-10 rounded-full bg-hot-pink text-white active:bg-opacity-80 md:hover:bg-opacity-90 font-bold text-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                                                     aria-label="Increase quantity"
                                                 >
                                                     +
@@ -241,28 +241,28 @@ const MenuItem = ({
                     {/* Quantity Controls for Order Mode - Only for non-variant cards */}
                     {isOrderMode && variationId && !isVariantCard && (
                         <div className={`${isCompact ? 'mt-1.5 md:mt-2' : 'mt-2 md:mt-3'} flex flex-col items-center gap-1.5 md:gap-2`}>
-                            <div className={`flex items-center ${isCompact ? 'gap-1.5 md:gap-2' : 'gap-2 md:gap-3'}`}>
+                            <div className={`flex items-center ${isCompact ? 'gap-2 md:gap-2' : 'gap-3 md:gap-3'}`}>
                                 <button
                                     onClick={() => removeItem(variationId)}
                                     disabled={isUpdating || quantity === 0}
-                                    className={`${isCompact ? 'w-7 h-7 md:w-8 md:h-8 text-base' : 'w-9 h-9 md:w-10 md:h-10 text-lg'} rounded-full bg-gray-200 hover:bg-hot-pink hover:text-white font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center`}
+                                    className={`${isCompact ? 'min-w-[44px] min-h-[44px] w-11 h-11 md:w-10 md:h-10 text-lg' : 'min-w-[44px] min-h-[44px] w-12 h-12 md:w-11 md:h-11 text-xl'} rounded-full bg-gray-200 active:bg-hot-pink active:text-white md:hover:bg-hot-pink md:hover:text-white font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center`}
                                     aria-label="Decrease quantity"
                                 >
                                     −
                                 </button>
                                 
-                                <div className={isCompact ? 'min-w-[40px] md:min-w-[50px] text-center' : 'min-w-[50px] md:min-w-[60px] text-center'}>
+                                <div className={isCompact ? 'min-w-[45px] md:min-w-[50px] text-center' : 'min-w-[55px] md:min-w-[60px] text-center'}>
                                     {isUpdating ? (
-                                        <div className={`inline-block ${isCompact ? 'w-3 h-3 md:w-4 md:h-4' : 'w-4 h-4 md:w-5 md:h-5'} border-2 border-hot-pink border-t-transparent rounded-full animate-spin`}></div>
+                                        <div className={`inline-block ${isCompact ? 'w-4 h-4 md:w-4 md:h-4' : 'w-5 h-5 md:w-5 md:h-5'} border-2 border-hot-pink border-t-transparent rounded-full animate-spin`}></div>
                                     ) : (
-                                        <span className={`font-bold ${isCompact ? 'text-sm md:text-base' : 'text-base md:text-lg'}`}>{quantity}</span>
+                                        <span className={`font-bold ${isCompact ? 'text-base md:text-base' : 'text-lg md:text-lg'}`}>{quantity}</span>
                                     )}
                                 </div>
                                 
                                 <button
                                     onClick={() => addItem(variationId)}
                                     disabled={isUpdating}
-                                    className={`${isCompact ? 'w-7 h-7 md:w-8 md:h-8 text-base' : 'w-9 h-9 md:w-10 md:h-10 text-lg'} rounded-full bg-hot-pink text-white hover:bg-opacity-90 font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center`}
+                                    className={`${isCompact ? 'min-w-[44px] min-h-[44px] w-11 h-11 md:w-10 md:h-10 text-lg' : 'min-w-[44px] min-h-[44px] w-12 h-12 md:w-11 md:h-11 text-xl'} rounded-full bg-hot-pink text-white active:bg-opacity-80 md:hover:bg-opacity-90 font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center`}
                                     aria-label="Increase quantity"
                                 >
                                     +

@@ -15,17 +15,17 @@ const Navigation = () => {
 
     return (
         <nav>
-            <ul className="list-none flex flex-wrap justify-center gap-y-6 gap-x-3 md:gap-5 p-0 m-0">
+            <ul className="list-none flex flex-wrap justify-center gap-y-3 gap-x-2 md:gap-x-3 p-0 m-0">
                 {navItems.map((item) => {
                     const isActive = pathname === item.href;
                     return (
                         <li key={item.href}>
                             <Link 
                                 href={item.href} 
-                                className={`font-bold transition-all duration-200 px-3 py-2 rounded-lg border-2 text-sm ${
+                                className={`font-heading font-semibold transition-all duration-300 px-4 py-2.5 rounded-full text-sm md:text-base min-h-[44px] inline-flex items-center justify-center border-2 ${
                                     isActive 
-                                        ? "bg-yellow text-white border-yellow shadow-md" 
-                                        : "bg-white text-hot-pink border-white hover:bg-yellow hover:text-white hover:border-yellow hover:shadow-md"
+                                        ? "bg-yellow text-white border-yellow shadow-md active:scale-95" 
+                                        : "bg-white text-hot-pink border-hot-pink/20 shadow-sm active:scale-95 active:shadow-sm md:hover:border-hot-pink md:hover:shadow-md md:hover:-translate-y-0.5"
                                 }`}
                             >
                                 {item.label}
@@ -39,10 +39,10 @@ const Navigation = () => {
                 <li>
                     <Link 
                         href="/menu/order"
-                        className={`font-bold transition-all duration-200 px-4 py-2 rounded-lg border-2 flex items-center gap-2 ${
+                        className={`font-heading font-semibold transition-all duration-300 px-5 py-3 rounded-lg flex items-center gap-2 min-h-[44px] ${
                             pathname?.startsWith("/menu/order")
-                                ? "bg-yellow text-white border-yellow shadow-md" 
-                                : "bg-white text-hot-pink border-white hover:bg-yellow hover:text-white hover:border-yellow hover:shadow-md"
+                                ? "bg-yellow text-white shadow-md active:scale-95" 
+                                : "bg-white text-hot-pink shadow-soft active:scale-95 active:shadow-sm md:hover:shadow-soft-lg md:hover:-translate-y-0.5"
                         }`}
                         title="Order Online"
                     >
