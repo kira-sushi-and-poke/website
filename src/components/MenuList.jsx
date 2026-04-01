@@ -1,18 +1,6 @@
 import React from "react";
 import MenuItem from "./MenuItem";
 
-// Configuration: Subcategories that should be rendered as variant cards
-const VARIANT_SUBCATEGORIES = new Set([
-  "Nigiri",
-  "Hosomaki",
-  "Inarizushi",
-  "Onigiri",
-  "Sashimi",
-  "Japanese Curry",
-  "Teriyaki",
-  "Crispy Rice"
-]);
-
 const MenuList = ({ 
   menuItems, 
   cart = {}, 
@@ -33,16 +21,7 @@ const MenuList = ({
     drinks: menuItems.filter(item => item.category === "drinks")
   };
 
-  const categoryTitles = {
-    sushi: "Sushi",
-    poke: "Poke Bowls",
-    hot: "Main Dishes (Hot)",
-    kids: "Kids Menu",
-    solo: "Sides & Appetizers",
-    desserts: "Desserts",
-    platters: "Moriawase (Chef's Selection)",
-    drinks: "Drinks & Beverages"
-  };
+
 
   // Group items by subcategory within a category
   const groupBySubcategory = (items) => {
@@ -55,62 +34,8 @@ const MenuList = ({
       subcategories[subcategory].push(item);
     });
 
-    // Don't sort - preserve original order from API/data
+    // Items are already sorted by ordinals from API
     return subcategories;
-  };
-
-  // Define subcategory order for sushi
-  const sushiSubcategoryOrder = [
-    "Makizushi (Rolls)",
-    "Inarizushi",
-    "Onigiri",
-    "Nigiri",
-    "Hosomaki",
-    "Sashimi",
-  ];
-
-  // Define subcategory order for hot dishes
-  const hotSubcategoryOrder = [
-    "Japanese Curry",
-    "Teriyaki",
-    "Crispy Rice"
-  ];
-
-  // Sort subcategories for sushi and hot categories
-  const sortSubcategories = (subcategoryEntries, category) => {
-    let suborder = null;
-
-    if (category === "sushi") {
-      suborder = sushiSubcategoryOrder;
-    } else if (category === "hot") {
-      suborder = hotSubcategoryOrder;
-    } else {
-      return subcategoryEntries;
-    }
-
-    return subcategoryEntries.sort((a, b) => {
-      const [subA] = a;
-      const [subB] = b;
-
-      // Handle null/undefined subcategories (items without subcategory go first)
-      if (subA === "null" || subA === null || !subA) return -1;
-      if (subB === "null" || subB === null || !subB) return 1;
-
-      const indexA = suborder.indexOf(subA);
-      const indexB = suborder.indexOf(subB);
-
-      // If both are in the order list, sort by order
-      if (indexA !== -1 && indexB !== -1) {
-        return indexA - indexB;
-      }
-
-      // If only one is in the list, it comes first
-      if (indexA !== -1) return -1;
-      if (indexB !== -1) return 1;
-
-      // If neither is in the list, maintain original order
-      return 0;
-    });
   };
 
   // Helper: Render a variant card for subcategories with multiple variants
@@ -138,8 +63,8 @@ const MenuList = ({
   const renderRegularItems = (subcategory, subcategoryItems) => (
     <>
       {subcategory !== "null" && subcategory && (
-        <div className="col-span-full mb-2">
-          <h3 className="text-lg md:text-2xl font-semibold text-gray-800 flex items-center">
+        <div className="col-span-full -mb-1.5 md:-mb-2">
+          <h3 className="text-lg md:text-2xl font-semibold text-gray-800 flex items-center m-0">
             <span className="bg-hot-pink/10 text-hot-pink px-3 py-1 rounded-full text-base md:text-lg">
               {subcategory}
             </span>
@@ -174,32 +99,37 @@ const MenuList = ({
         if (items.length === 0) return null;
 
         const subcategories = groupBySubcategory(items);
-        const sortedSubcategories = sortSubcategories(Object.entries(subcategories), category);
+        // Items are already sorted by ordinals from getMenuData
+        const subcategoryEntries = Object.entries(subcategories);
 
+        // Get display name from first item (all items in category have same categoryDisplayName)
+        const categoryDisplayName = items[0]?.categoryDisplayName || category;
+        
         return (
           <div key={category} id={category} className="category-section scroll-mt-32">
             <h2 className="text-xl md:text-3xl font-bold text-hot-pink mb-3 md:mb-6 border-b-2 border-yellow pb-1.5 md:pb-2">
-              {categoryTitles[category]}
+              {categoryDisplayName}
             </h2>
 
             {/* Render variant cards and regular items in a unified grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 md:gap-4 mb-4 md:mb-6">
-              {sortedSubcategories.map(([subcategory, subcategoryItems], index) => {
-                // Check if this subcategory should be a variant card
-                const isVariantSubcategory = VARIANT_SUBCATEGORIES.has(subcategory);
+              {subcategoryEntries.map(([subcategory, subcategoryItems], index) => {
+                // Check if this subcategory should be a variant card (based on displayType from API)
+                // displayType is already normalized to lowercase in getMenuData
+                const isVariantSubcategory = subcategoryItems[0]?.displayType === "combined";
                 
                 // Check if we need to show "Sushi with Variants" heading before this subcategory
                 const showSushiVariantsHeading = category === "sushi" && 
                   isVariantSubcategory && 
                   index > 0 && 
-                  sortedSubcategories[index - 1][0] === "Makizushi (Rolls)";
+                  subcategoryEntries[index - 1][1][0]?.displayType === "separate";
                 
                 return (
                   <React.Fragment key={subcategory}>
                     {/* Show Sushi with Variants heading */}
                     {showSushiVariantsHeading && (
                       <div className="col-span-full mb-2 mt-4 hidden lg:block">
-                        <h3 className="text-lg flex font-semibold text-gray-800 mb-2 items-center">
+                        <h3 className="text-lg flex font-semibold text-gray-800 m-0 items-center">
                           <span className="bg-hot-pink/10 text-hot-pink px-3 py-1 rounded-full text-base md:text-lg">
                             And more...
                           </span>

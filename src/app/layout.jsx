@@ -9,6 +9,21 @@ import { checkRestaurantStatus } from "../lib/checkRestaurantStatus";
 import Image from "next/image";
 import KiraLogo from "../../public/kira-sushi-and-poke-logo.png";
 import Link from "next/link";
+import { Inter, Poppins } from "next/font/google";
+
+// Configure Google Fonts
+const inter = Inter({ 
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
+
+const poppins = Poppins({ 
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+  variable: "--font-poppins",
+});
 
 export const metadata = {
     title: {
@@ -124,9 +139,9 @@ const Layout = async ({ children }) => {
                     }}
                 />
             </head>
-            <body suppressHydrationWarning>
-                <header className="bg-hot-pink text-white p-5">
-                    <div className="flex flex-col items-center gap-4">
+            <body suppressHydrationWarning className={`${inter.variable} ${poppins.variable}`}>
+                <header className="bg-hot-pink text-white p-4 md:p-5 shadow-md">
+                    <div className="flex flex-col items-center gap-4 md:gap-5">
                         <div className="flex items-center">
                             <Image 
                                 src={KiraLogo} 

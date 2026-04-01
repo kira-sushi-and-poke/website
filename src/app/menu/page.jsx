@@ -10,34 +10,34 @@ export const metadata = {
 
 export default function MenuPage() {
     return (
-        <div className="py-8 md:py-12 px-5 md:px-10 max-w-7xl mx-auto overflow-visible">
-            <h1 className="text-2xl md:text-4xl font-bold mb-4 md:mb-6 text-hot-pink">Menu | Kira Sushi & Poke</h1>
+        <div className="py-8 md:py-12 px-4 md:px-10 max-w-7xl mx-auto overflow-visible">
+            <h1 className="font-heading text-hot-pink mb-4 md:mb-6">Menu | Kira Sushi & Poke</h1>
 
             {/* Menu Choice Section */}
-            <div className="mb-6 md:mb-8 p-4 md:p-6 bg-gray-50 rounded-lg border-2 border-hot-pink/20">
-                <p className="text-gray-700 text-sm md:text-base mb-4">
+            <div className="mb-6 md:mb-8 p-5 md:p-6 bg-gray-50 rounded-lg shadow-soft">
+                <p className="text-gray-700 text-base md:text-base mb-5">
                     What brings you here today?
                 </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-4">
                     <Link 
                         href="/menu/view" 
-                        className="block p-4 bg-white border-2 border-hot-pink rounded-lg hover:bg-hot-pink/5 transition-colors"
+                        className="p-5 bg-white rounded-lg shadow-soft active:shadow-md md:hover:shadow-soft-lg transition-all min-h-[100px] flex flex-col justify-center"
                     >
                         <div className="flex items-center gap-3 mb-2">
-                            <i className="fas fa-book-open text-hot-pink text-xl"></i>
-                            <h3 className="font-bold text-hot-pink text-lg">Just browsing?</h3>
+                            <i className="fas fa-book-open text-hot-pink text-2xl"></i>
+                            <h3 className="font-heading text-hot-pink text-lg">Just browsing?</h3>
                         </div>
-                        <p className="text-gray-600 text-sm">View our menu here</p>
+                        <p className="text-gray-600 text-sm md:text-base">View our menu here</p>
                     </Link>
                     <Link 
                         href="/menu/order" 
-                        className="block p-4 bg-hot-pink text-white border-2 border-hot-pink rounded-lg hover:bg-hot-pink/90 transition-colors"
+                        className="p-5 bg-hot-pink text-white rounded-lg shadow-soft-lg active:shadow-md md:hover:shadow-soft-lg transition-all min-h-[100px] flex flex-col justify-center"
                     >
                         <div className="flex items-center gap-3 mb-2">
-                            <i className="fas fa-shopping-cart text-white text-xl"></i>
-                            <h3 className="font-bold text-lg">Ready to order?</h3>
+                            <i className="fas fa-shopping-cart text-white text-2xl"></i>
+                            <h3 className="font-heading text-white text-lg">Ready to order?</h3>
                         </div>
-                        <p className="text-white/90 text-sm">Start your order for pickup</p>
+                        <p className="text-white/95 text-sm md:text-base">Start your order for pickup</p>
                     </Link>
                 </div>
             </div>

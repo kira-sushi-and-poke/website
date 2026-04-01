@@ -17,24 +17,28 @@ const ContactPage = async () => {
     const restaurantStatus = checkRestaurantStatus(openingHours, mobileLocationData, isFallback);
 
     return (
-        <div className="py-8 md:py-12 px-5 md:px-10 max-w-6xl mx-auto">
-            <h1 className="text-2xl md:text-4xl font-bold mb-6 md:mb-8 text-hot-pink text-center">
+        <div className="py-8 md:py-12 px-4 md:px-10 max-w-6xl mx-auto">
+            <h1 className="font-heading text-hot-pink mb-6 md:mb-8 text-center">
                 Contact | Kira Sushi & Poke
             </h1>
 
+            <p className="text-center text-gray-600 mb-8 md:mb-10 max-w-2xl mx-auto">
+                We'd love to hear from you! Whether you have questions about our menu, want to make a reservation, or just want to say hello, feel free to reach out.
+            </p>
+            
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
                 {/* Location & Hours */}
                 <div>
-                    <h2 className="text-2xl md:text-3xl font-bold text-hot-pink mb-4">
-                        <i className="fas fa-map-marker-alt"></i> Location and hours
+                    <h2 className="font-heading text-hot-pink mb-4">
+                        Location and hours
                     </h2>
                     <LocationInfo openingHoursText={openingHoursText} restaurantStatus={restaurantStatus} />
                 </div>
 
                 {/* Contact Methods */}
                 <div>
-                    <h2 className="text-2xl md:text-3xl font-bold text-hot-pink mb-4">
-                        <i className="fas fa-comments"></i> Get in touch
+                    <h2 className="font-heading text-hot-pink mb-4">
+                        Get in touch
                     </h2>
                     <ContactUs />
                 </div>

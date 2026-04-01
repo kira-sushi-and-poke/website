@@ -389,7 +389,7 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
                     removeItemCompletely={removeItemCompletely}
                     clearCart={clearCart}
                     updatingItems={updatingItems}
-                    onCheckout={handleCheckout}
+                    orderId={orderId}
                 />
             )}
             

@@ -41,8 +41,8 @@ const Breadcrumbs = () => {
                     __html: JSON.stringify(breadcrumbSchema)
                 }}
             />
-            <nav aria-label="Breadcrumb" className="bg-gray-100 py-3 px-5 md:px-10">
-                <ol className="flex items-center gap-2 text-sm max-w-7xl mx-auto">
+            <nav aria-label="Breadcrumb" className="bg-white border-b border-gray-200 py-3.5 px-4 md:px-10">
+                <ol className="flex items-center gap-2 text-sm max-w-7xl mx-auto flex-wrap">
                     {breadcrumbs.map((crumb, index) => {
                         const isLast = index === breadcrumbs.length - 1;
                         return (
@@ -51,14 +51,14 @@ const Breadcrumbs = () => {
                                     <>
                                         <Link 
                                             href={crumb.href}
-                                            className="text-hot-pink hover:text-yellow transition-colors"
+                                            className="text-gray-600 hover:text-hot-pink transition-colors"
                                         >
                                             {crumb.label}
                                         </Link>
-                                        <i className="fas fa-chevron-right text-gray-400 text-xs"></i>
+                                        <span className="text-gray-400">/</span>
                                     </>
                                 ) : (
-                                    <span className="text-hot-pink font-bold">
+                                    <span className="text-gray-900 font-semibold">
                                         {crumb.label}
                                     </span>
                                 )}
