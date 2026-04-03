@@ -79,6 +79,8 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
   };
   
   const cardTokenizeResponseReceived = async (token, verifiedBuyer) => {
+    console.log('🔵 Payment callback triggered');
+    
     // Clear timeout since callback was triggered
     if (paymentTimeoutRef.current) {
       clearTimeout(paymentTimeoutRef.current);
@@ -94,12 +96,14 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
     try {
       // Check token status - handle cancel/error cases
       if (token.status === 'Cancel') {
+        console.log('❌ User cancelled payment');
         // User cancelled the payment sheet
         setIsProcessing(false);
         return;
       }
       
       if (token.status === 'Error' || token.status === 'Invalid') {
+        console.log('❌ Tokenization error');
         // Tokenization error
         setIsProcessing(false);
         const errorMessage = token.errors?.[0]?.message || "Payment failed. Please try again.";
@@ -108,12 +112,14 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
       }
       
       if (token.status !== 'OK') {
+        console.log('❌ Unknown token status');
         // Unknown/Abort status
         setIsProcessing(false);
         toast.error("Payment processing failed. Please try again.", { duration: 10000 });
         return;
       }
       
+      console.log('✅ Token status OK');
       // Update message to show we're now processing the payment
       setLoadingMessage("Processing Payment...");
       
@@ -123,19 +129,25 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
                              paymentMethod === "Google Pay" ||
                              token.token.includes("cnon:");
       
+      console.log(isWalletPayment ? '📱 Wallet payment' : '💳 Credit card payment');
+      
       // Extract contact info
       let contactInfo = null;
       
       if (isWalletPayment) {
+        console.log('🔍 Extracting wallet contact info');
         // Try to get contact from wallet
         const walletContact = extractWalletContact(token);
         
         if (walletContact) {
+          console.log('✅ Wallet provided complete contact info');
           // Wallet provided complete info
           contactInfo = walletContact;
         } else {
+          console.log('⚠️ Wallet did not provide complete info, using manual form');
           // Wallet didn"t provide complete info - use manual form
           if (!contactDetails.email || !contactDetails.name || !contactDetails.phone) {
+            console.log('❌ Manual form incomplete');
             setIsProcessing(false);
             toast.error("Please fill in all contact details below before paying.", { duration: 10000 });
             return;
@@ -145,6 +157,7 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
         
         // Always validate pickup time for all payments
         if (!contactDetails.pickupTime) {
+          console.log('❌ No pickup time selected');
           setIsProcessing(false);
           setFormErrors(prev => ({
             ...prev,
@@ -154,9 +167,12 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
           return;
         }
         
+        console.log('✅ Pickup time selected');
+        
         // Validate pickup time is at least 45 minutes from now
         const pickupError = validatePickupTime(contactDetails.pickupTime);
         if (pickupError) {
+          console.log('❌ Pickup time validation failed');
           setIsProcessing(false);
           setFormErrors(prev => ({
             ...prev,
@@ -165,15 +181,22 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
           toast.error(pickupError, { duration: 10000 });
           return;
         }
+        
+        console.log('✅ Pickup time valid');
       } else {
+        console.log('🔍 Validating credit card form');
         // Credit card - validate manual form
         if (!validateContactForm()) {
+          console.log('❌ Contact form validation failed');
           setIsProcessing(false);
           toast.error("Please check all required fields", { duration: 10000 });
           return;
         }
+        console.log('✅ Contact form valid');
         contactInfo = contactDetails;
       }
+      
+      console.log('🚀 Calling processPayment');
       
       // Process payment
       const result = await processPayment(
@@ -187,6 +210,8 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
         tipAmount
       );
       
+      console.log(result.success ? '✅ Payment successful' : '❌ Payment failed');
+      
       if (result.success) {
         // Payment successful - redirect to confirmation
         toast.success("Payment successful! Redirecting...");
@@ -197,6 +222,7 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
         setIsProcessing(false);
       }
     } catch (err) {
+      console.log('💥 Exception in payment flow');
       toast.error("Payment failed. Please try again.", { duration: 10000 });
       setIsProcessing(false);
     }
@@ -328,11 +354,6 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
         cardTokenizeResponseReceived={cardTokenizeResponseReceived}
         createPaymentRequest={createPaymentRequest}
         createVerificationDetails={createVerificationDetails}
-        formProps={{
-          onSubmit: (e) => {
-            // Form submission handled by Square SDK
-          }
-        }}
       >
         <h1 className="text-xl font-bold text-hot-pink mb-4">
           <i className="fas fa-credit-card mr-2"></i>Payment
