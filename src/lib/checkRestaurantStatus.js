@@ -1,5 +1,5 @@
 import { DAYS_OF_WEEK, CLOSING_SOON_THRESHOLD, UK_TZ } from "./constants";
-import { toZonedTime } from 'date-fns-tz';
+import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 import { format, getHours, getMinutes, addDays, startOfDay, isBefore, setHours, setMinutes } from 'date-fns';
 
 /**
@@ -138,7 +138,9 @@ export function checkRestaurantStatus(openingHours, mobileLocationData = null, i
     // Set opening time if provided
     if (openTime) {
       const [hours, minutes] = openTime.split(':').map(Number);
-      return setHours(setMinutes(nextDate, minutes), hours);
+      const dateWithTime = setHours(setMinutes(nextDate, minutes), hours);
+      // Convert from UK time to proper UTC Date
+      return fromZonedTime(dateWithTime, UK_TZ);
     }
     
     return nextDate;
@@ -177,10 +179,9 @@ export function checkRestaurantStatus(openingHours, mobileLocationData = null, i
         const openTime = earliestPeriod.start_local_time.substring(0, 5);
         const [hours, minutes] = openTime.split(':').map(Number);
         
-        // Set the time on the UK-zoned date
-        const openDate = setHours(setMinutes(nowUK, minutes), hours);
-        
-        return openDate;
+        // Set the time and convert from UK time to proper UTC Date
+        const dateWithTime = setHours(setMinutes(nowUK, minutes), hours);
+        return fromZonedTime(dateWithTime, UK_TZ);
       }
     }
 
@@ -219,8 +220,8 @@ export function checkRestaurantStatus(openingHours, mobileLocationData = null, i
       if (todayOpenTime > currentTime) {
         const openTime = physicalHours[todayName].open;
         const [hours, minutes] = openTime.split(':').map(Number);
-        const openDate = setHours(setMinutes(nowUK, minutes), hours);
-        return openDate;
+        const dateWithTime = setHours(setMinutes(nowUK, minutes), hours);
+        return fromZonedTime(dateWithTime, UK_TZ);
       }
     }
     
@@ -232,8 +233,8 @@ export function checkRestaurantStatus(openingHours, mobileLocationData = null, i
         const openTime = physicalHours[dayName].open;
         if (openTime) {
           const [hours, minutes] = openTime.split(':').map(Number);
-          const openDate = setHours(setMinutes(checkDate, minutes), hours);
-          return openDate;
+          const dateWithTime = setHours(setMinutes(checkDate, minutes), hours);
+          return fromZonedTime(dateWithTime, UK_TZ);
         }
         return startOfDay(checkDate);
       }
