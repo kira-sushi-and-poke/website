@@ -12,7 +12,7 @@ export async function getMenuData() {
     const catalogUrl = process.env.API_CATALOG_URL;
 
     const response = await fetch(
-      `${catalogUrl}/list?types=ITEM,CATEGORY,IMAGE&include_related_objects=true`,
+      `${catalogUrl}/list?types=ITEM,CATEGORY,IMAGE,MODIFIER_LIST&include_related_objects=true`,
       {
         method: "GET",
         headers: {
@@ -68,12 +68,13 @@ function transformCatalog(catalogData) {
     return [];
   }
 
-  // Separate items, categories, and images
+  // Separate items, categories, images, and modifier lists
   const categories = {};
   const images = {};
+  const modifierLists = {};
   const menuItems = [];
 
-  // First pass: collect categories and images
+  // First pass: collect categories, images, and modifier lists
   catalogData.objects.forEach(obj => {
     if (obj.type === "CATEGORY") {
       // Store both name and ordinal for category ordering
@@ -84,6 +85,22 @@ function transformCatalog(catalogData) {
       };
     } else if (obj.type === "IMAGE") {
       images[obj.id] = obj.image_data.url;
+    } else if (obj.type === "MODIFIER_LIST") {
+      // Parse modifier list with its options
+      const modifierListData = obj.modifier_list_data;
+      if (modifierListData && modifierListData.modifiers) {
+        modifierLists[obj.id] = {
+          id: obj.id,
+          name: modifierListData.name,
+          selectionType: modifierListData.selection_type,
+          modifiers: modifierListData.modifiers.map(mod => ({
+            id: mod.id,
+            name: mod.modifier_data?.name || "",
+            price: mod.modifier_data?.price_money?.amount ? mod.modifier_data.price_money.amount / 100 : 0,
+            ordinal: mod.modifier_data?.ordinal ?? 999999
+          })).sort((a, b) => a.ordinal - b.ordinal)
+        };
+      }
     }
   });
 
@@ -126,6 +143,17 @@ function transformCatalog(catalogData) {
       const imageItemLinks = (itemData.image_ids || [])
         .map(imageId => images[imageId])
         .filter(Boolean);
+
+      // Get modifier lists for this item
+      const itemModifiers = [];
+      if (itemData.modifier_list_info && Array.isArray(itemData.modifier_list_info)) {
+        itemData.modifier_list_info.forEach(modListInfo => {
+          if (modListInfo.enabled !== false && modifierLists[modListInfo.modifier_list_id]) {
+            const modList = modifierLists[modListInfo.modifier_list_id];
+            itemModifiers.push(...modList.modifiers);
+          }
+        });
+      }
 
       // Loop through each VARIATION and create a menu item
       const variations = itemData.variations || [];
@@ -220,6 +248,7 @@ function transformCatalog(catalogData) {
           description: finalDescription,
           variationDescription: finalVariationDescription,
           imageLink: allImageLinks.length > 0 ? allImageLinks : [],
+          modifiers: itemModifiers.length > 0 ? itemModifiers : undefined,
           apiData: {
             itemId: obj.id,
             variationId: variation.id,

@@ -33,7 +33,7 @@ export default function StickyCartSummary({
     
     const handleConfirmRemove = () => {
         if (confirmRemove) {
-            removeItemCompletely(confirmRemove.variationId);
+            removeItemCompletely(confirmRemove.variationId, confirmRemove.modifiers);
             setConfirmRemove(null);
         }
     };
@@ -44,18 +44,20 @@ export default function StickyCartSummary({
         setIsExpanded(false);
     };
 
-    const handleDecreaseQuantity = (variationId, currentQuantity, itemName) => {
+    const handleDecreaseQuantity = (variationId, modifiers, currentQuantity, itemName) => {
         if (currentQuantity === 1) {
             // Show confirmation modal
-            setConfirmRemove({ variationId, name: itemName });
+            setConfirmRemove({ variationId, modifiers, name: itemName });
         } else {
             // Decrease normally
-            removeItem(variationId);
+            removeItem(variationId, modifiers);
         }
     };
     
     // Calculate order details
-    const items = Object.entries(cart).map(([variationId, quantity]) => {
+    const items = [];
+    
+    Object.entries(cart).forEach(([variationId, value]) => {
         const menuItem = menuData.find(item => item.variationId === variationId);
         
         // Get image, handling arrays and empty values
@@ -68,13 +70,42 @@ export default function StickyCartSummary({
             }
         }
         
-        return {
-            variationId,
-            quantity,
-            name: menuItem?.displayName || menuItem?.name || "Unknown Item",
-            price: menuItem?.discountedPrice || menuItem?.originalPrice || 0,
-            image,
-        };
+        const baseName = menuItem?.displayName || menuItem?.name || "Unknown Item";
+        const basePrice = menuItem?.discountedPrice || menuItem?.originalPrice || 0;
+        
+        // Handle simple number case (no modifiers)
+        if (typeof value === 'number') {
+            items.push({
+                variationId,
+                quantity: value,
+                modifiers: undefined,
+                name: baseName,
+                price: basePrice,
+                image,
+            });
+        }
+        // Handle array case (with modifiers)
+        else if (Array.isArray(value)) {
+            value.forEach((entry, index) => {
+                // Get modifier names
+                const modifierNames = entry.modifiers?.map(modId => {
+                    const modifier = menuItem?.modifiers?.find(m => m.id === modId);
+                    return modifier?.name || modId;
+                }).join(", ") || "";
+                
+                const displayName = modifierNames ? `${baseName} (${modifierNames})` : baseName;
+                
+                items.push({
+                    variationId,
+                    quantity: entry.quantity,
+                    modifiers: entry.modifiers,
+                    name: displayName,
+                    price: basePrice,
+                    image,
+                    cartIndex: index, // Track position in array for removal
+                });
+            });
+        }
     });
 
     const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -141,11 +172,12 @@ export default function StickyCartSummary({
                                 </div>
                             ) : (
                             <div className="space-y-4">
-                                {items.map((item) => {
+                                {items.map((item, idx) => {
                                     const isUpdating = updatingItems.has(item.variationId);
+                                    const itemKey = item.modifiers ? `${item.variationId}-${item.modifiers.join('-')}-${idx}` : item.variationId;
                                     
                                     return (
-                                        <div key={item.variationId} className="flex gap-4 items-start border-b border-gray-100 pb-4 last:border-0">
+                                        <div key={itemKey} className="flex gap-4 items-start border-b border-gray-100 pb-4 last:border-0">
                                             <img 
                                                 src={item.image}
                                                 alt={item.name}
@@ -164,7 +196,7 @@ export default function StickyCartSummary({
                                                 {/* Quantity Controls */}
                                                 <div className="flex items-center gap-2">
                                                     <button
-                                                        onClick={() => handleDecreaseQuantity(item.variationId, item.quantity, item.name)}
+                                                        onClick={() => handleDecreaseQuantity(item.variationId, item.modifiers, item.quantity, item.name)}
                                                         disabled={isUpdating}
                                                         className="w-7 h-7 rounded-full bg-gray-200 hover:bg-hot-pink hover:text-white font-bold text-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                                                     >
@@ -180,7 +212,7 @@ export default function StickyCartSummary({
                                                     </div>
                                                     
                                                     <button
-                                                        onClick={() => addItem(item.variationId)}
+                                                        onClick={() => addItem(item.variationId, item.modifiers)}
                                                         disabled={isUpdating}
                                                         className="w-7 h-7 rounded-full bg-hot-pink text-white hover:bg-opacity-90 font-bold text-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                                                     >
@@ -188,7 +220,7 @@ export default function StickyCartSummary({
                                                     </button>
                                                     
                                                     <button
-                                                        onClick={() => setConfirmRemove({ variationId: item.variationId, name: item.name })}
+                                                        onClick={() => setConfirmRemove({ variationId: item.variationId, modifiers: item.modifiers, name: item.name })}
                                                         disabled={isUpdating}
                                                         className="ml-2 px-2 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-500 hover:text-white disabled:opacity-40 transition-colors flex items-center gap-1"
                                                         title="Remove item from cart"

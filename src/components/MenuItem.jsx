@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import SauceSelector from "./SauceSelector";
 
 const MenuItem = ({ 
     name, 
@@ -19,14 +20,40 @@ const MenuItem = ({
     isCompact = false,
     hideImage = false,
     isVariantCard = false,
-    variants = []
+    variants = [],
+    modifiers
 }) => {
     const [showLightbox, setShowLightbox] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [selectedModifierIndex, setSelectedModifierIndex] = useState(0);
     
-    // Get quantity from cart
-    const quantity = cart[variationId] || 0;
+    // Get quantity from cart - handle both number and array cases
+    const getQuantity = () => {
+        const cartValue = cart[variationId];
+        
+        // Simple number case (no modifiers)
+        if (typeof cartValue === 'number') {
+            return cartValue;
+        }
+        
+        // Array case (with modifiers) - find matching entry
+        if (Array.isArray(cartValue) && modifiers && modifiers.length > 0) {
+            const selectedModifiers = [modifiers[selectedModifierIndex].id];
+            const modifiersMatch = (a, b) => 
+                a.length === b.length && a.every(id => b.includes(id));
+            
+            const matchingEntry = cartValue.find(entry => 
+                modifiersMatch(entry.modifiers, selectedModifiers)
+            );
+            
+            return matchingEntry ? matchingEntry.quantity : 0;
+        }
+        
+        return 0;
+    };
+    
+    const quantity = getQuantity();
     const isUpdating = updatingItems.has(variationId);
 
     // Convert single image to array for consistent handling
@@ -171,6 +198,18 @@ const MenuItem = ({
                         </p>
                     )}
                     
+                    {/* Sauce Selector for items with modifiers in order mode */}
+                    {!isVariantCard && isOrderMode && modifiers && modifiers.length > 0 && (
+                        <div className="mt-2 md:mt-3 mb-2 md:mb-3">
+                            <SauceSelector
+                                modifiers={modifiers}
+                                selectedIndex={selectedModifierIndex}
+                                onSelect={setSelectedModifierIndex}
+                                label="Sauce"
+                            />
+                        </div>
+                    )}
+                    
                     {/* Variant Cards - Order Mode: Grid with Controls */}
                     {isVariantCard && variants.length > 0 && isOrderMode && (
                         <div className="grid grid-cols-2 gap-1.5 md:gap-3">
@@ -243,7 +282,12 @@ const MenuItem = ({
                         <div className={`${isCompact ? 'mt-1.5 md:mt-2' : 'mt-2 md:mt-3'} flex flex-col items-center gap-1.5 md:gap-2`}>
                             <div className={`flex items-center ${isCompact ? 'gap-2 md:gap-2' : 'gap-3 md:gap-3'}`}>
                                 <button
-                                    onClick={() => removeItem(variationId)}
+                                    onClick={() => {
+                                        const selectedModifiers = modifiers && modifiers.length > 0 
+                                            ? [modifiers[selectedModifierIndex].id] 
+                                            : undefined;
+                                        removeItem(variationId, selectedModifiers);
+                                    }}
                                     disabled={isUpdating || quantity === 0}
                                     className={`${isCompact ? 'min-w-[44px] min-h-[44px] w-11 h-11 md:w-10 md:h-10 text-lg' : 'min-w-[44px] min-h-[44px] w-12 h-12 md:w-11 md:h-11 text-xl'} rounded-full bg-gray-200 active:bg-hot-pink active:text-white md:hover:bg-hot-pink md:hover:text-white font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center`}
                                     aria-label="Decrease quantity"
@@ -260,7 +304,12 @@ const MenuItem = ({
                                 </div>
                                 
                                 <button
-                                    onClick={() => addItem(variationId)}
+                                    onClick={() => {
+                                        const selectedModifiers = modifiers && modifiers.length > 0 
+                                            ? [modifiers[selectedModifierIndex].id] 
+                                            : undefined;
+                                        addItem(variationId, selectedModifiers);
+                                    }}
                                     disabled={isUpdating}
                                     className={`${isCompact ? 'min-w-[44px] min-h-[44px] w-11 h-11 md:w-10 md:h-10 text-lg' : 'min-w-[44px] min-h-[44px] w-12 h-12 md:w-11 md:h-11 text-xl'} rounded-full bg-hot-pink text-white active:bg-opacity-80 md:hover:bg-opacity-90 font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center`}
                                     aria-label="Increase quantity"

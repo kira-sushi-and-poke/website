@@ -22,9 +22,16 @@ export default function OrderSummary({ lineItems, total }) {
         <div className="space-y-2">
           {lineItems.map((item, index) => (
             <div key={index} className="flex justify-between items-center py-1.5 border-b border-gray-100 last:border-0">
-              <span className="text-sm text-gray-700">
-                {item.displayName || item.name} <span className="text-hot-pink font-semibold">×{item.quantity}</span>
-              </span>
+              <div className="flex flex-col">
+                <span className="text-sm text-gray-700">
+                  {item.displayName || item.name} <span className="text-hot-pink font-semibold">×{item.quantity}</span>
+                </span>
+                {item.modifiers && item.modifiers.length > 0 && (
+                  <span className="text-xs text-gray-500 ml-1">
+                    {item.modifiers.map(mod => mod.name).join(", ")}
+                  </span>
+                )}
+              </div>
               <span className="text-sm font-semibold text-gray-900">£{(parseFloat(item.base_price_money?.amount || 0) * parseInt(item.quantity) / 100).toFixed(2)}</span>
             </div>
           ))}

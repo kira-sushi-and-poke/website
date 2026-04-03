@@ -182,9 +182,11 @@ export default function TrackOrderClient({ initialData }) {
               <i className={`fas ${statusConfig.icon} text-5xl text-${statusConfig.color}`}></i>
             </div>
           </div>
+
           <h1 className="text-3xl font-bold text-hot-pink mb-3">
             {statusConfig.title}
           </h1>
+          
           <p className="text-md text-gray-600 mb-4">
             {statusConfig.message}
           </p>

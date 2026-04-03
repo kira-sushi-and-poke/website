@@ -155,94 +155,142 @@ export async function getOrder(orderId) {
  * Updates line items in an order
  * @param {string} orderId - The Square order ID
  * @param {number} version - The current version of the order
- * @param {Object} cart - Cart state: { variationId: quantity }
+ * @param {Object} cart - Cart state: { variationId: number | Array<{quantity, modifiers}> }
  * @returns {Promise<{success: boolean, version?: number, order?: object, error?: string, isConflict?: boolean}>}
  */
 export async function updateOrderItems(orderId, version, cart) {
   try {
-    // First, fetch the current order to get existing line items with UIDs
     const currentOrderData = await fetchSquare(`${API_ORDERS_URL}/${orderId}`, {
       method: "GET",
     });
 
     const existingLineItems = currentOrderData.order.line_items || [];
 
-    // Build map of catalog_object_id -> line item UID from existing order
-    const existingItemsMap = new Map();
-    existingLineItems.forEach(item => {
-      if (item.catalog_object_id) {
-        existingItemsMap.set(item.catalog_object_id, item.uid);
+    const modifiersMatch = (a = [], b = []) => {
+      const aIds = a.map(m => typeof m === 'string' ? m : m.catalog_object_id);
+      const bIds = b.map(m => typeof m === 'string' ? m : m.catalog_object_id);
+      return aIds.length === bIds.length && aIds.every(id => bIds.includes(id));
+    };
+
+    const findMatchingLineItem = (variationId, modifiers = []) => {
+      return existingLineItems.find(item => 
+        item.catalog_object_id === variationId &&
+        modifiersMatch(item.modifiers || [], modifiers)
+      );
+    };
+
+    const desiredItems = [];
+    const processedLineItems = new Set();
+    
+    Object.entries(cart).forEach(([variationId, value]) => {
+      if (typeof value === 'number' && value > 0) {
+        const matchingItem = findMatchingLineItem(variationId, []);
+        
+        if (!matchingItem || parseInt(matchingItem.quantity) !== value) {
+          const lineItem = {
+            quantity: value.toString(),
+          };
+          
+          if (matchingItem) {
+            lineItem.uid = matchingItem.uid;
+          } else {
+            lineItem.catalog_object_id = variationId;
+          }
+          
+          desiredItems.push(lineItem);
+        }
+        
+        if (matchingItem) {
+          processedLineItems.add(matchingItem.uid);
+        }
+      }
+      else if (Array.isArray(value)) {
+        value.forEach(entry => {
+          if (entry.quantity > 0) {
+            const matchingItem = findMatchingLineItem(variationId, entry.modifiers || []);
+            
+            if (!matchingItem || parseInt(matchingItem.quantity) !== entry.quantity) {
+              const lineItem = {
+                quantity: entry.quantity.toString(),
+              };
+              
+              if (matchingItem) {
+                lineItem.uid = matchingItem.uid;
+                if (!modifiersMatch(matchingItem.modifiers || [], entry.modifiers || [])) {
+                  if (entry.modifiers && entry.modifiers.length > 0) {
+                    lineItem.modifiers = entry.modifiers.map(modId => ({
+                      catalog_object_id: modId,
+                      quantity: "1"
+                    }));
+                  }
+                }
+              } else {
+                lineItem.catalog_object_id = variationId;
+                if (entry.modifiers && entry.modifiers.length > 0) {
+                  lineItem.modifiers = entry.modifiers.map(modId => ({
+                    catalog_object_id: modId,
+                    quantity: "1"
+                  }));
+                }
+              }
+              
+              desiredItems.push(lineItem);
+            }
+            
+            if (matchingItem) {
+              processedLineItems.add(matchingItem.uid);
+            }
+          }
+        });
       }
     });
 
-    // Convert cart to desired line items
-    const desiredItems = Object.entries(cart)
-      .filter(([variationId, quantity]) => quantity > 0)
-      .map(([variationId, quantity]) => ({
-        catalog_object_id: variationId,
-        quantity: quantity.toString(),
-        ...(existingItemsMap.has(variationId) && { uid: existingItemsMap.get(variationId) })
-      }));
-
-    // Identify items to remove (exist in order but not in cart)
     const itemsToRemove = existingLineItems
-      .filter(item => {
-        const catalogId = item.catalog_object_id;
-        return catalogId && !cart[catalogId];
-      })
+      .filter(item => !processedLineItems.has(item.uid))
       .map(item => item.uid);
 
     const requestBody = {
+      idempotency_key: crypto.randomUUID(),
       order: {
         location_id: LOCATION_ID,
-        version: version, // Use version from client state for conflict detection
+        version: version,
         line_items: desiredItems,
       },
     };
 
-    // Clear line items that should be removed
     if (itemsToRemove.length > 0) {
       requestBody.fields_to_clear = itemsToRemove.map(uid => `line_items[${uid}]`);
     }
 
-    try {
-      const data = await fetchSquare(`${API_ORDERS_URL}/${orderId}`, {
-        method: "PUT",
-        body: JSON.stringify(requestBody),
-      });
+    const data = await fetchSquare(`${API_ORDERS_URL}/${orderId}`, {
+      method: "PUT",
+      body: JSON.stringify(requestBody),
+    });
 
-      if (data.order) {
-        return {
-          success: true,
-          version: data.order.version,
-          order: sanitizeOrderForClient(data.order),
-        };
-      }
-
+    if (data.order) {
       return {
-        success: false,
-        error: "Failed to update order",
-      };
-    } catch (error) {
-      // Check if it's a 409 conflict error
-      if (error.response?.status === 409 || error.data?.errors?.[0]?.code === "VERSION_MISMATCH") {
-        return {
-          success: false,
-          error: "Version conflict - order was modified",
-          isConflict: true,
-        };
-      }
-
-      return {
-        success: false,
-        error: "Failed to update order",
-        isConflict: false,
+        success: true,
+        version: data.order.version,
+        order: sanitizeOrderForClient(data.order),
       };
     }
-  } catch (error) {
+
     return {
       success: false,
       error: "Failed to update order",
+    };
+  } catch (error) {
+    if (error.response?.status === 409 || error.data?.errors?.[0]?.code === "VERSION_MISMATCH") {
+      return {
+        success: false,
+        error: "Version conflict - order was modified",
+        isConflict: true,
+      };
+    }
+
+    return {
+      success: false,
+      error: error.data?.errors?.[0]?.detail || error.message || "Failed to update order",
       isConflict: false,
     };
   }
