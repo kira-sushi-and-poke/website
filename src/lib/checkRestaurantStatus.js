@@ -1,6 +1,6 @@
 import { DAYS_OF_WEEK, CLOSING_SOON_THRESHOLD, UK_TZ } from "./constants";
 import { toZonedTime } from 'date-fns-tz';
-import { format, getHours, getMinutes, addDays, startOfDay, isBefore } from 'date-fns';
+import { format, getHours, getMinutes, addDays, startOfDay, isBefore, setHours, setMinutes } from 'date-fns';
 
 /**
  * Check if restaurant is currently open based on opening hours and optional mobile override
@@ -137,8 +137,8 @@ export function checkRestaurantStatus(openingHours, mobileLocationData = null, i
     
     // Set opening time if provided
     if (openTime) {
-      const dateString = `${format(nextDate, 'yyyy-MM-dd')}T${openTime}:00`;
-      return toZonedTime(new Date(dateString), UK_TZ);
+      const [hours, minutes] = openTime.split(':').map(Number);
+      return setHours(setMinutes(nextDate, minutes), hours);
     }
     
     return nextDate;
@@ -177,9 +177,8 @@ export function checkRestaurantStatus(openingHours, mobileLocationData = null, i
         const openTime = earliestPeriod.start_local_time.substring(0, 5);
         const [hours, minutes] = openTime.split(':').map(Number);
         
-        // Create a date string in UK timezone and parse it
-        const dateString = `${format(nowUK, 'yyyy-MM-dd')}T${openTime}:00`;
-        const openDate = toZonedTime(new Date(dateString), UK_TZ);
+        // Set the time on the UK-zoned date
+        const openDate = setHours(setMinutes(nowUK, minutes), hours);
         
         return openDate;
       }
@@ -219,8 +218,8 @@ export function checkRestaurantStatus(openingHours, mobileLocationData = null, i
       const todayOpenTime = timeToMinutes(physicalHours[todayName].open);
       if (todayOpenTime > currentTime) {
         const openTime = physicalHours[todayName].open;
-        const dateString = `${format(nowUK, 'yyyy-MM-dd')}T${openTime}:00`;
-        const openDate = toZonedTime(new Date(dateString), UK_TZ);
+        const [hours, minutes] = openTime.split(':').map(Number);
+        const openDate = setHours(setMinutes(nowUK, minutes), hours);
         return openDate;
       }
     }
@@ -232,8 +231,8 @@ export function checkRestaurantStatus(openingHours, mobileLocationData = null, i
       if (physicalHours[dayName]) {
         const openTime = physicalHours[dayName].open;
         if (openTime) {
-          const dateString = `${format(checkDate, 'yyyy-MM-dd')}T${openTime}:00`;
-          const openDate = toZonedTime(new Date(dateString), UK_TZ);
+          const [hours, minutes] = openTime.split(':').map(Number);
+          const openDate = setHours(setMinutes(checkDate, minutes), hours);
           return openDate;
         }
         return startOfDay(checkDate);
