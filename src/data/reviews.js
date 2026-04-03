@@ -2,7 +2,14 @@
 // Used by both Reviews.jsx (grid layout) and CarouselReviews.jsx (carousel)
 
 export const reviews = {
-    google: [],
+    google: [{
+        id: 1,
+        name: "Duncan",
+        rating: 5,
+        comment: "Ordered from here for the first time tonight and very much enjoyed! Well-sized portions, reasonable prices and delicious food - we will happily visit again",
+        date: "3 April 2026",
+        platform: "google"
+    }],
     facebook: [
         {
             id: 4,
@@ -82,7 +89,7 @@ export const allReviews = [...reviews.google, ...reviews.facebook, ...reviews.tr
 
 // Helper function to get platform icon class
 export const getPlatformIcon = (platform) => {
-    switch(platform) {
+    switch (platform) {
         case "google": return "fa-google";
         case "facebook": return "fa-facebook";
         case "tripadvisor": return "fa-kiwi-bird";
@@ -92,7 +99,7 @@ export const getPlatformIcon = (platform) => {
 
 // Helper function to get platform color class
 export const getPlatformColor = (platform) => {
-    switch(platform) {
+    switch (platform) {
         case "google": return "text-blue-600";
         case "facebook": return "text-blue-700";
         case "tripadvisor": return "text-green-600";

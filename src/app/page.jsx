@@ -5,6 +5,9 @@ import ContactUs from "../components/ContactUs";
 import { getLocationData } from "../lib/getLocationData";
 import { checkRestaurantStatus } from "../lib/checkRestaurantStatus";
 
+// Revalidate every 3 minutes to keep opening hours fresh
+export const revalidate = 180;
+
 export const metadata = {
     title: "Home | Fresh Japanese Sushi & Poke Bowls in Chester-le-Street",
     description: "Welcome to Kira Sushi and Poke in Chester-le-Street. Authentic Japanese sushi and poke bowls made fresh daily. Visit us at 148 Front Street for the best sushi experience.",

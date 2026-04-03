@@ -8,6 +8,9 @@ import { getLocationData } from "@/lib/getLocationData";
 import { checkRestaurantStatus } from "@/lib/checkRestaurantStatus";
 import { enrichLineItems } from "@/lib/enrichLineItems";
 
+// Revalidate every 3 minutes to keep opening hours fresh
+export const revalidate = 180;
+
 export const metadata = {
   title: "Pay Order | Kira Sushi & Poke",
   description: "Complete your payment for your order",
