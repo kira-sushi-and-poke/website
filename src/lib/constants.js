@@ -43,6 +43,7 @@ export const PAYMENT_STATUS_COMPLETED = "COMPLETED";
 /**
  * Time Configuration
  */
+export const UK_TZ = 'Europe/London'; // Restaurant timezone for consistent time display
 export const TIME_LOCALE = "en-GB";
 export const TIME_FORMAT_OPTIONS = {
   hour: "2-digit",

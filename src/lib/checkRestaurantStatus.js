@@ -1,8 +1,6 @@
-import { DAYS_OF_WEEK, CLOSING_SOON_THRESHOLD } from "./constants";
+import { DAYS_OF_WEEK, CLOSING_SOON_THRESHOLD, UK_TZ } from "./constants";
 import { toZonedTime } from 'date-fns-tz';
 import { format, getHours, getMinutes, addDays, startOfDay, isBefore } from 'date-fns';
-
-const UK_TZ = 'Europe/London';
 
 /**
  * Check if restaurant is currently open based on opening hours and optional mobile override

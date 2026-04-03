@@ -1,9 +1,10 @@
 "use client";
 import React, { useState } from "react";
 import { usePathname } from "next/navigation";
-import { DAYS_OF_WEEK, CLOSING_SOON_THRESHOLD } from "@/lib/constants";
+import { DAYS_OF_WEEK, CLOSING_SOON_THRESHOLD, UK_TZ } from "@/lib/constants";
 import { convertTo12Hour } from "@/lib/formatTime";
-import { format, isToday, isTomorrow } from 'date-fns';
+import { isToday, isTomorrow } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 
 const OpeningHoursChat = ({ openingHours, isFallback = false, restaurantStatus }) => {
     const [showModal, setShowModal] = useState(false);
@@ -118,10 +119,10 @@ const OpeningHoursChat = ({ openingHours, isFallback = false, restaurantStatus }
                                 {!restaurantOpen && nextOpenDate && (
                                     <span className="text-sm text-gray-600">
                                         Next open: {isToday(new Date(nextOpenDate)) 
-                                            ? `Today at ${format(new Date(nextOpenDate), 'h:mm a')}` 
+                                            ? `Today at ${formatInTimeZone(new Date(nextOpenDate), UK_TZ, 'h:mm a')}` 
                                             : isTomorrow(new Date(nextOpenDate))
-                                            ? `Tomorrow at ${format(new Date(nextOpenDate), 'h:mm a')}`
-                                            : format(new Date(nextOpenDate), 'EEEE d MMM')}
+                                            ? `Tomorrow at ${formatInTimeZone(new Date(nextOpenDate), UK_TZ, 'h:mm a')}`
+                                            : formatInTimeZone(new Date(nextOpenDate), UK_TZ, 'EEEE d MMM')}
                                     </span>
                                 )}
                                 {!restaurantOpen && !nextOpenDate && overrideActive && (

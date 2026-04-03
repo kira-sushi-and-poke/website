@@ -1,8 +1,6 @@
 import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 import { addDays, addMinutes, setHours, setMinutes, format, startOfDay } from 'date-fns';
-import { PICKUP_LEAD_TIME_MINUTES } from './constants';
-
-const UK_TZ = 'Europe/London';
+import { PICKUP_LEAD_TIME_MINUTES, UK_TZ } from './constants';
 
 /**
  * Generate pickup time options with 15-minute intervals based on actual opening hours
