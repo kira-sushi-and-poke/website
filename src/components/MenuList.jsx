@@ -88,6 +88,7 @@ const MenuList = ({
           removeItem={removeItem}
           updatingItems={updatingItems}
           isOrderMode={isOrderMode}
+          modifiers={item.modifiers}
         />
       ))}
     </>

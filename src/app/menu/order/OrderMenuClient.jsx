@@ -98,20 +98,89 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
         }
     };
 
-    const rehydrateCartFromOrder = (order) => 
-        order.line_items?.reduce((cart, item) => {
-            if (item.catalog_object_id) {
-                cart[item.catalog_object_id] = parseInt(item.quantity);
+    const rehydrateCartFromOrder = (order) => {
+        if (!order.line_items) return {};
+        
+        const cart = {};
+        
+        order.line_items.forEach(item => {
+            if (!item.catalog_object_id) return;
+            
+            const variationId = item.catalog_object_id;
+            const quantity = parseInt(item.quantity);
+            const modifiers = item.modifiers?.map(m => m.catalog_object_id) || [];
+            
+            // If no modifiers, store as simple number (backward compatible)
+            if (modifiers.length === 0) {
+                cart[variationId] = (cart[variationId] || 0) + quantity;
+            } else {
+                // If has modifiers, store as array
+                if (!cart[variationId]) {
+                    cart[variationId] = [];
+                } else if (typeof cart[variationId] === 'number') {
+                    // Convert existing number to array
+                    cart[variationId] = [];
+                }
+                
+                cart[variationId].push({ quantity, modifiers });
             }
-            return cart;
-        }, {}) ?? {};
+        });
+        
+        return cart;
+    };
 
-    const addItem = async (variationId) => {
+    const addItem = async (variationId, modifiers = undefined) => {
         if (!orderId || updatingItems.has(variationId)) return;
         
         // Optimistically update cart
         const newCart = { ...cart };
-        newCart[variationId] = (newCart[variationId] || 0) + 1;
+        
+        // If no modifiers, simple increment (existing behavior)
+        if (!modifiers || modifiers.length === 0) {
+            if (typeof newCart[variationId] === 'number' || !newCart[variationId]) {
+                newCart[variationId] = (newCart[variationId] || 0) + 1;
+            } else {
+                // Cart has array (modifiers), but adding without modifiers
+                // Add to array with empty modifiers
+                newCart[variationId] = Array.isArray(newCart[variationId]) ? [...newCart[variationId]] : [];
+                const existingIndex = newCart[variationId].findIndex(entry => entry.modifiers.length === 0);
+                if (existingIndex >= 0) {
+                    newCart[variationId][existingIndex] = {
+                        ...newCart[variationId][existingIndex],
+                        quantity: newCart[variationId][existingIndex].quantity + 1
+                    };
+                } else {
+                    newCart[variationId].push({ quantity: 1, modifiers: [] });
+                }
+            }
+        } else {
+            // Has modifiers - use array structure
+            if (!newCart[variationId] || typeof newCart[variationId] === 'number') {
+                newCart[variationId] = [];
+            } else {
+                newCart[variationId] = [...newCart[variationId]];
+            }
+            
+            // Find matching modifiers entry
+            const modifiersMatch = (a, b) => 
+                a.length === b.length && a.every(id => b.includes(id));
+            
+            const existingIndex = newCart[variationId].findIndex(entry => 
+                modifiersMatch(entry.modifiers, modifiers)
+            );
+            
+            if (existingIndex >= 0) {
+                // Increment existing entry
+                newCart[variationId][existingIndex] = {
+                    ...newCart[variationId][existingIndex],
+                    quantity: newCart[variationId][existingIndex].quantity + 1
+                };
+            } else {
+                // Create new entry
+                newCart[variationId].push({ quantity: 1, modifiers });
+            }
+        }
+        
         setCart(newCart);
         
         // Mark item as updating
@@ -148,16 +217,60 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
         }
     };
 
-    const removeItem = async (variationId) => {
+    const removeItem = async (variationId, modifiers = undefined) => {
         if (!orderId || !cart[variationId] || updatingItems.has(variationId)) return;
         
         // Optimistically update cart
         const newCart = { ...cart };
-        newCart[variationId] = Math.max(0, (newCart[variationId] || 0) - 1);
         
-        // Remove from cart if quantity is 0
-        if (newCart[variationId] === 0) {
-            delete newCart[variationId];
+        // Handle simple number case (no modifiers)
+        if (typeof newCart[variationId] === 'number') {
+            newCart[variationId] = Math.max(0, newCart[variationId] - 1);
+            if (newCart[variationId] === 0) {
+                delete newCart[variationId];
+            }
+        } else if (Array.isArray(newCart[variationId])) {
+            // Handle array case (with modifiers)
+            newCart[variationId] = [...newCart[variationId]];
+            
+            if (!modifiers || modifiers.length === 0) {
+                // Remove from entry without modifiers
+                const existingIndex = newCart[variationId].findIndex(entry => entry.modifiers.length === 0);
+                if (existingIndex >= 0) {
+                    newCart[variationId][existingIndex] = {
+                        ...newCart[variationId][existingIndex],
+                        quantity: newCart[variationId][existingIndex].quantity - 1
+                    };
+                    
+                    if (newCart[variationId][existingIndex].quantity <= 0) {
+                        newCart[variationId].splice(existingIndex, 1);
+                    }
+                }
+            } else {
+                // Remove from entry with matching modifiers
+                const modifiersMatch = (a, b) => 
+                    a.length === b.length && a.every(id => b.includes(id));
+                
+                const existingIndex = newCart[variationId].findIndex(entry => 
+                    modifiersMatch(entry.modifiers, modifiers)
+                );
+                
+                if (existingIndex >= 0) {
+                    newCart[variationId][existingIndex] = {
+                        ...newCart[variationId][existingIndex],
+                        quantity: newCart[variationId][existingIndex].quantity - 1
+                    };
+                    
+                    if (newCart[variationId][existingIndex].quantity <= 0) {
+                        newCart[variationId].splice(existingIndex, 1);
+                    }
+                }
+            }
+            
+            // Remove key if array is empty
+            if (newCart[variationId].length === 0) {
+                delete newCart[variationId];
+            }
         }
         
         setCart(newCart);
@@ -196,12 +309,40 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
         }
     };
 
-    const removeItemCompletely = async (variationId) => {
+    const removeItemCompletely = async (variationId, modifiers = undefined) => {
         if (!orderId || !cart[variationId] || updatingItems.has(variationId)) return;
         
         // Optimistically remove item from cart
         const newCart = { ...cart };
-        delete newCart[variationId];
+        
+        // If value is number, delete completely
+        if (typeof newCart[variationId] === 'number') {
+            delete newCart[variationId];
+        }
+        // If value is array and modifiers specified, remove only matching entry
+        else if (Array.isArray(newCart[variationId]) && modifiers) {
+            newCart[variationId] = [...newCart[variationId]];
+            const modifiersMatch = (a, b) => 
+                a.length === b.length && a.every(id => b.includes(id));
+            
+            const existingIndex = newCart[variationId].findIndex(entry => 
+                modifiersMatch(entry.modifiers, modifiers)
+            );
+            
+            if (existingIndex >= 0) {
+                newCart[variationId].splice(existingIndex, 1);
+            }
+            
+            // Remove key if array is empty
+            if (newCart[variationId].length === 0) {
+                delete newCart[variationId];
+            }
+        }
+        // If no modifiers specified, delete completely
+        else {
+            delete newCart[variationId];
+        }
+        
         setCart(newCart);
         
         // Mark item as updating
