@@ -69,12 +69,17 @@ export function generatePickupTimes(
     let currentHour = openHour;
     let currentMinute = openMinute;
     
+    // Calculate minimum time for this day
+    const minTimeForDay = dayOffset === 0 
+      ? minPickupUK  // Today: now + lead time
+      : addMinutes(setHours(setMinutes(targetDay, openMinute), openHour), minLeadTimeMinutes); // Tomorrow: opening + lead time
+    
     while (currentHour < closeHour || (currentHour === closeHour && currentMinute < closeMinute)) {
       // Create time in UK timezone
       let timeUK = setHours(setMinutes(targetDay, currentMinute), currentHour);
       
-      // Skip if before minimum pickup time
-      if (timeUK >= minPickupUK) {
+      // Skip if before minimum pickup time for this day
+      if (timeUK >= minTimeForDay) {
         // Convert UK time to UTC for storage
         const timeUTC = fromZonedTime(timeUK, UK_TZ);
         
