@@ -65,8 +65,8 @@ module.exports = {
               "frame-src 'self' https://web.squarecdn.com https://sandbox.web.squarecdn.com https://*.google.com https://google.com https://*.apple.com https://apple.com https://www.facebook.com",
               "object-src 'none'",
               "base-uri 'self'",
-              // Allow form submissions to Square checkout
-              "form-action 'self' https://connect.squareup.com https://connect.squareupsandbox.com",
+              // Allow form submissions to Square checkout and 3D Secure authentication
+              "form-action 'self' https://connect.squareup.com https://connect.squareupsandbox.com https://www.securesuite.co.uk https://www.rsa3dsauth.co.uk",
               // Prevent your site from being embedded in external iframes
               "frame-ancestors 'self'",
             ].join('; '),
