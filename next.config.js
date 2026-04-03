@@ -62,7 +62,7 @@ module.exports = {
               // Allow API connections to Square, Google Pay, Apple Pay, Facebook, and monitoring services (Datadog, Sentry)
               "connect-src 'self' https://web.squarecdn.com https://sandbox.web.squarecdn.com https://connect.squareup.com https://connect.squareupsandbox.com https://pci-connect.squareup.com https://pci-connect.squareupsandbox.com https://*.google.com https://google.com https://*.apple.com https://apple.com https://apple-pay-gateway.apple.com https://*.facebook.com https://*.facebook.net https://*.browser-intake-datadoghq.com https://*.ingest.sentry.io",
               // Allow iframes from Square payments, Google (Pay, Maps), Apple Pay, Facebook embeds, and 3D Secure authentication
-              "frame-src 'self' https://web.squarecdn.com https://sandbox.web.squarecdn.com https://*.google.com https://google.com https://*.apple.com https://apple.com https://www.facebook.com https://www.securesuite.co.uk https://www.rsa3dsauth.co.uk",
+              "frame-src 'self' https://web.squarecdn.com https://sandbox.web.squarecdn.com https://*.google.com https://google.com https://*.apple.com https://apple.com https://www.facebook.com https://api.squareup.com https://www.securesuite.co.uk https://www.rsa3dsauth.co.uk https://channel-cards-html.lloydsbankinggroup.com",
               "object-src 'none'",
               "base-uri 'self'",
               // Allow form submissions to Square checkout and 3D Secure authentication
