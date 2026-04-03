@@ -2,6 +2,8 @@
  * Validation utilities for contact forms and user input
  */
 
+import { PICKUP_LEAD_TIME_MINUTES } from './constants';
+
 // Validation regex patterns
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const PHONE_REGEX = /^[\d\s\+\-\(\)]+$/;
@@ -25,7 +27,7 @@ export function validatePhone(phone) {
 }
 
 /**
- * Validate that pickup time is at least 45 minutes from now
+ * Validate that pickup time is at least the required lead time from now
  * Note: Uses UTC timestamps (getTime()) for timezone-safe comparisons.
  * Both client and server parse ISO strings correctly regardless of their local timezone.
  * @param {string} pickupTime - ISO string of pickup time
@@ -45,10 +47,10 @@ export function validatePickupTime(pickupTime) {
   
   // Get current time and minimum allowed time
   const now = new Date();
-  const minTime = new Date(now.getTime() + 45 * 60000); // 45 minutes from now
+  const minTime = new Date(now.getTime() + PICKUP_LEAD_TIME_MINUTES * 60000);
   
   if (pickupDate.getTime() < minTime.getTime()) {
-    return "Pickup time must be at least 45 minutes from now";
+    return `Pickup time must be at least ${PICKUP_LEAD_TIME_MINUTES} minutes from now`;
   }
   
   return null;

@@ -5,7 +5,7 @@ export default function PickupOnlyNotice() {
       <div className="text-xs text-gray-700">
         <p className="font-semibold text-gray-800 mb-1">Pickup Only</p>
         <p>
-          We're pickup-only for now (delivery coming soon!). Your freshly prepared order will typically be ready in 45 minutes to an hour. On busy days, it may take a little longer. Collect from 148 Front Street, Chester-le-Street.
+          We're pickup-only for now (delivery coming soon!). Your freshly prepared order will typically be ready in 40 minutes to an hour. <em className="font-bold not-italic">On busy days, it may take longer than an hour</em>. Collect from 148 Front Street, Chester-le-Street.
         </p>
       </div>
     </div>
