@@ -5,6 +5,9 @@ import { getLocationData } from "@/lib/getLocationData";
 import { checkRestaurantStatus } from "@/lib/checkRestaurantStatus";
 import OrderMenuClient from "./OrderMenuClient";
 
+// Revalidate every 3 minutes to keep opening hours fresh
+export const revalidate = 180;
+
 // Generate metadata for SEO
 export const metadata = {
     title: "Order Online | Kira Sushi & Poke",

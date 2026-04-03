@@ -2,6 +2,9 @@ import React from "react";
 import FAQAccordion from "./FAQAccordion";
 import { getLocationData } from "@/lib/getLocationData";
 
+// Revalidate every 3 minutes to keep opening hours fresh
+export const revalidate = 180;
+
 const FAQPage = async () => {
     const { openingHoursText } = await getLocationData();
 

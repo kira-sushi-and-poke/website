@@ -1,8 +1,6 @@
-import { DAYS_OF_WEEK, CLOSING_SOON_THRESHOLD } from "./constants";
-import { toZonedTime } from 'date-fns-tz';
-import { format, getHours, getMinutes, addDays, startOfDay, isBefore } from 'date-fns';
-
-const UK_TZ = 'Europe/London';
+import { DAYS_OF_WEEK, CLOSING_SOON_THRESHOLD, UK_TZ } from "./constants";
+import { toZonedTime, fromZonedTime } from 'date-fns-tz';
+import { format, getHours, getMinutes, addDays, startOfDay, isBefore, setHours, setMinutes } from 'date-fns';
 
 /**
  * Check if restaurant is currently open based on opening hours and optional mobile override
@@ -140,7 +138,9 @@ export function checkRestaurantStatus(openingHours, mobileLocationData = null, i
     // Set opening time if provided
     if (openTime) {
       const [hours, minutes] = openTime.split(':').map(Number);
-      nextDate.setHours(hours, minutes, 0, 0);
+      const dateWithTime = setHours(setMinutes(nextDate, minutes), hours);
+      // Convert from UK time to proper UTC Date
+      return fromZonedTime(dateWithTime, UK_TZ);
     }
     
     return nextDate;
@@ -174,11 +174,14 @@ export function checkRestaurantStatus(openingHours, mobileLocationData = null, i
           return currentTime < earliestTime ? current : earliest;
         });
 
-        const todayDate = startOfDay(getCurrentDateUK());
+        // Create date in UK timezone
+        const nowUK = getCurrentDateUK();
         const openTime = earliestPeriod.start_local_time.substring(0, 5);
         const [hours, minutes] = openTime.split(':').map(Number);
-        todayDate.setHours(hours, minutes, 0, 0);
-        return todayDate;
+        
+        // Set the time and convert from UK time to proper UTC Date
+        const dateWithTime = setHours(setMinutes(nowUK, minutes), hours);
+        return fromZonedTime(dateWithTime, UK_TZ);
       }
     }
 
@@ -215,10 +218,10 @@ export function checkRestaurantStatus(openingHours, mobileLocationData = null, i
     if (currentTime !== null && physicalHours[todayName]) {
       const todayOpenTime = timeToMinutes(physicalHours[todayName].open);
       if (todayOpenTime > currentTime) {
-        const todayDate = startOfDay(nowUK);
-        const [hours, minutes] = physicalHours[todayName].open.split(':').map(Number);
-        todayDate.setHours(hours, minutes, 0, 0);
-        return todayDate;
+        const openTime = physicalHours[todayName].open;
+        const [hours, minutes] = openTime.split(':').map(Number);
+        const dateWithTime = setHours(setMinutes(nowUK, minutes), hours);
+        return fromZonedTime(dateWithTime, UK_TZ);
       }
     }
     
@@ -227,14 +230,13 @@ export function checkRestaurantStatus(openingHours, mobileLocationData = null, i
       const checkDate = addDays(nowUK, i);
       const dayName = format(checkDate, 'EEEE');
       if (physicalHours[dayName]) {
-        const nextDate = startOfDay(checkDate);
-        // Set opening time from physical hours
         const openTime = physicalHours[dayName].open;
         if (openTime) {
           const [hours, minutes] = openTime.split(':').map(Number);
-          nextDate.setHours(hours, minutes, 0, 0);
+          const dateWithTime = setHours(setMinutes(checkDate, minutes), hours);
+          return fromZonedTime(dateWithTime, UK_TZ);
         }
-        return nextDate;
+        return startOfDay(checkDate);
       }
     }
     

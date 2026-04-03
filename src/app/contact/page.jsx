@@ -3,6 +3,9 @@ import ContactUs from "@/components/ContactUs";
 import { getLocationData } from "@/lib/getLocationData";
 import { checkRestaurantStatus } from "@/lib/checkRestaurantStatus";
 
+// Revalidate every 3 minutes to keep opening hours fresh
+export const revalidate = 180;
+
 export const metadata = {
     title: "Contact | Kira Sushi & Poke | Chester-le-Street",
     description: "Get in touch with Kira Sushi and Poke. Find our location at 148 Front Street, Chester-le-Street, opening hours, and connect with us on social media.",

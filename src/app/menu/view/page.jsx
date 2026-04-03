@@ -10,6 +10,9 @@ import { checkRestaurantStatus } from "@/lib/checkRestaurantStatus";
 import { generateMenuSchema } from "../menuSchema";
 import ScrollCTABanner from "./ScrollCTABanner";
 
+// Revalidate every 3 minutes to keep opening hours fresh
+export const revalidate = 180;
+
 // Generate metadata for SEO
 export const metadata = {
     title: "Menu | Kira Sushi & Poke",

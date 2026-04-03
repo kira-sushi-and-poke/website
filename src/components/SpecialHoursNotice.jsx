@@ -35,8 +35,10 @@ const SpecialHoursNotice = ({ restaurantStatus }) => {
   return (
     <div className="bg-gradient-to-r from-hot-pink/10 to-yellow/10 border-2 border-hot-pink/30 rounded-lg p-6 shadow-md">
       <div className="flex items-center justify-center gap-3 mb-4">
-        <i className="fas fa-calendar-alt text-hot-pink text-2xl"></i>
-        <h3 className="text-2xl font-bold text-hot-pink">{mobileLocationName || 'Special Hours Notice'}</h3>
+        <h3 className="text-lg font-bold text-hot-pink mb-3 flex items-center gap-2">
+            <i className="fas fa-calendar-alt"></i>
+            {mobileLocationName || 'Special Hours'}
+        </h3>
       </div>
       
       <p className="text-gray-700 text-center mb-4">

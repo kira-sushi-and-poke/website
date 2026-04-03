@@ -169,7 +169,7 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
         
         console.log('✅ Pickup time selected');
         
-        // Validate pickup time is at least 45 minutes from now
+        // Validate pickup time meets minimum lead time
         const pickupError = validatePickupTime(contactDetails.pickupTime);
         if (pickupError) {
           console.log('❌ Pickup time validation failed');

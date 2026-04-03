@@ -1,7 +1,8 @@
 import React from "react";
-import { DEFAULT_OPENING_HOURS_TEXT } from "@/lib/constants";
+import { DEFAULT_OPENING_HOURS_TEXT, UK_TZ } from "@/lib/constants";
 import SpecialHoursNotice from "./SpecialHoursNotice";
-import { format, isToday, isTomorrow } from 'date-fns';
+import { isToday, isTomorrow } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 
 const LocationInfo = ({ openingHoursText, restaurantStatus }) => {
     // Use provided text or fallback to centralized default
@@ -59,10 +60,10 @@ const LocationInfo = ({ openingHoursText, restaurantStatus }) => {
                                 {!isOpen && nextOpenDate && (
                                     <span className="text-sm md:text-base text-gray-600">
                                         Next open: {isToday(new Date(nextOpenDate)) 
-                                            ? `Today at ${format(new Date(nextOpenDate), 'h:mm a')}` 
+                                            ? `Today at ${formatInTimeZone(new Date(nextOpenDate), UK_TZ, 'h:mm a')}` 
                                             : isTomorrow(new Date(nextOpenDate))
-                                            ? `Tomorrow at ${format(new Date(nextOpenDate), 'h:mm a')}`
-                                            : format(new Date(nextOpenDate), 'EEEE d MMM')}
+                                            ? `Tomorrow at ${formatInTimeZone(new Date(nextOpenDate), UK_TZ, 'h:mm a')}`
+                                            : formatInTimeZone(new Date(nextOpenDate), UK_TZ, 'EEEE d MMM')}
                                     </span>
                                 )}
                                 {!isOpen && !nextOpenDate && overrideActive && (

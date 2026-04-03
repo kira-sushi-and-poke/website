@@ -11,6 +11,9 @@ import KiraLogo from "../../public/kira-sushi-and-poke-logo.png";
 import Link from "next/link";
 import { Inter, Poppins } from "next/font/google";
 
+// Revalidate every 3 minutes to keep opening hours fresh
+export const revalidate = 180;
+
 // Configure Google Fonts
 const inter = Inter({ 
   subsets: ["latin"],
