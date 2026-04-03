@@ -61,8 +61,8 @@ module.exports = {
               "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com https://*.squarecdn.com https://square-fonts-production-f.squarecdn.com https://cash-f.squarecdn.com https://d1g145x70srn7h.cloudfront.net",
               // Allow API connections to Square, Google Pay, Apple Pay, Facebook, and monitoring services (Datadog, Sentry)
               "connect-src 'self' https://web.squarecdn.com https://sandbox.web.squarecdn.com https://connect.squareup.com https://connect.squareupsandbox.com https://pci-connect.squareup.com https://pci-connect.squareupsandbox.com https://*.google.com https://google.com https://*.apple.com https://apple.com https://apple-pay-gateway.apple.com https://*.facebook.com https://*.facebook.net https://*.browser-intake-datadoghq.com https://*.ingest.sentry.io",
-              // Allow iframes from Square payments, Google (Pay, Maps), Apple Pay, and Facebook embeds
-              "frame-src 'self' https://web.squarecdn.com https://sandbox.web.squarecdn.com https://*.google.com https://google.com https://*.apple.com https://apple.com https://www.facebook.com",
+              // Allow iframes from Square payments, Google (Pay, Maps), Apple Pay, Facebook embeds, and 3D Secure authentication
+              "frame-src 'self' https://web.squarecdn.com https://sandbox.web.squarecdn.com https://*.google.com https://google.com https://*.apple.com https://apple.com https://www.facebook.com https://www.securesuite.co.uk https://www.rsa3dsauth.co.uk",
               "object-src 'none'",
               "base-uri 'self'",
               // Allow form submissions to Square checkout and 3D Secure authentication
