@@ -1,6 +1,5 @@
 import TrackOrderClient from "./TrackOrderClient";
 import { getOrder } from "../actions";
-import OrderIdValidator from "../OrderIdValidator";
 import { getMenuData } from "@/lib/getMenuData";
 import { enrichLineItems } from "@/lib/enrichLineItems";
 
@@ -40,8 +39,6 @@ export default async function TrackOrderPage({ searchParams }) {
   }
   
   return (
-    <OrderIdValidator currentPath="/menu/order/track">
-      <TrackOrderClient initialData={orderData} />
-    </OrderIdValidator>
+    <TrackOrderClient initialData={orderData} />
   );
 }

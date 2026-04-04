@@ -8,6 +8,48 @@ module.exports = {
   async headers() {
     return [
       {
+        // Relaxed CSP for payment page to allow all iframes
+        source: '/menu/order/payment',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://web.squarecdn.com https://sandbox.web.squarecdn.com https://connect.squareup.com https://connect.squareupsandbox.com https://*.google.com https://google.com https://*.apple.com https://apple.com https://connect.facebook.net",
+              "style-src 'self' 'unsafe-inline' https://web.squarecdn.com https://sandbox.web.squarecdn.com https://fonts.googleapis.com https://cdnjs.cloudflare.com",
+              "img-src 'self' data: blob: https: http:",
+              "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com https://*.squarecdn.com https://square-fonts-production-f.squarecdn.com https://cash-f.squarecdn.com https://d1g145x70srn7h.cloudfront.net",
+              "connect-src 'self' https://web.squarecdn.com https://sandbox.web.squarecdn.com https://connect.squareup.com https://connect.squareupsandbox.com https://pci-connect.squareup.com https://pci-connect.squareupsandbox.com https://*.google.com https://google.com https://*.apple.com https://apple.com https://apple-pay-gateway.apple.com https://*.facebook.com https://*.facebook.net https://*.browser-intake-datadoghq.com https://*.ingest.sentry.io",
+              "frame-src *",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action *",
+              "frame-ancestors 'self'",
+            ].join('; '),
+          },
+        ],
+      },
+      {
         // Apply security headers to all routes
         source: '/(.*)',
         headers: [

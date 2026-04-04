@@ -12,7 +12,8 @@ export default function StickyCartSummary({
     removeItemCompletely,
     clearCart,
     updatingItems,
-    orderId
+    orderId,
+    restaurantStatus
 }) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [confirmRemove, setConfirmRemove] = useState(null);
@@ -270,7 +271,7 @@ export default function StickyCartSummary({
                                     className={`flex-1 px-6 py-3 bg-hot-pink text-white rounded-lg font-bold hover:bg-opacity-90 transition-colors flex items-center justify-center gap-2 ${isEmpty ? 'opacity-50 pointer-events-none' : ''}`}
                                     aria-disabled={isEmpty}
                                 >
-                                    Confirm & Pay
+                                    {restaurantStatus?.isOpen ? "Confirm & Pay" : "Schedule Pickup"}
                                 </Link>
                             </div>
                         </div>

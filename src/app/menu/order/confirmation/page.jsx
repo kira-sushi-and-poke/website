@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { getOrder } from "../actions";
 import ConfirmationClient from "./ConfirmationClient";
-import OrderIdValidator from "../OrderIdValidator";
 import Link from "next/link";
 import { getMenuData } from "@/lib/getMenuData";
 import { enrichLineItems } from "@/lib/enrichLineItems";
@@ -33,8 +32,7 @@ export default async function ConfirmationPage({ searchParams }) {
   // Handle fetch failure
   if (!success || !order) {
     return (
-      <OrderIdValidator currentPath="/menu/order/confirmation">
-        <div className="min-h-screen bg-[#fffef9] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[#fffef9] flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center border-t-4 border-hot-pink">
             <div className="mb-4">
               <i className="fas fa-exclamation-triangle text-hot-pink text-6xl"></i>
@@ -62,7 +60,6 @@ export default async function ConfirmationPage({ searchParams }) {
             </div>
           </div>
         </div>
-      </OrderIdValidator>
     );
   }
 
@@ -87,13 +84,11 @@ export default async function ConfirmationPage({ searchParams }) {
     if (hasPaid) {
       // Payment completed - show confirmation (order awaiting fulfillment)
       return (
-        <OrderIdValidator currentPath="/menu/order/confirmation">
-          <ConfirmationClient
-            orderId={orderId}
-            status="completed"
-            order={enrichedOrder}
-          />
-        </OrderIdValidator>
+        <ConfirmationClient
+          orderId={orderId}
+          status="completed"
+          order={enrichedOrder}
+        />
       );
     } else {
       // No payment - user abandoned checkout
@@ -104,26 +99,22 @@ export default async function ConfirmationPage({ searchParams }) {
   // CANCELED - order was cancelled
   if (orderState === "CANCELED") {
     return (
-      <OrderIdValidator currentPath="/menu/order/confirmation">
-        <ConfirmationClient
-          orderId={orderId}
-          status="canceled"
-          order={null}
-        />
-      </OrderIdValidator>
+      <ConfirmationClient
+        orderId={orderId}
+        status="canceled"
+        order={null}
+      />
     );
   }
 
   // COMPLETED - successful payment
   if (orderState === "COMPLETED") {
     return (
-      <OrderIdValidator currentPath="/menu/order/confirmation">
-        <ConfirmationClient
-          orderId={orderId}
-          status="completed"
-          order={enrichedOrder}
-        />
-      </OrderIdValidator>
+      <ConfirmationClient
+        orderId={orderId}
+        status="completed"
+        order={enrichedOrder}
+      />
     );
   }
 

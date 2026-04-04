@@ -23,8 +23,8 @@ export function generatePickupTimes(
   const nowUK = toZonedTime(nowUTC, UK_TZ);
   const minPickupUK = addMinutes(nowUK, minLeadTimeMinutes);
   
-  // Try today and tomorrow
-  for (let dayOffset = 0; dayOffset <= 1; dayOffset++) {
+  // Try up to 7 days ahead to find available pickup times
+  for (let dayOffset = 0; dayOffset <= 7; dayOffset++) {
     const targetDay = addDays(nowUK, dayOffset);
     const targetDayStart = startOfDay(targetDay);
     const dayName = format(targetDay, 'EEEE'); // "Monday", "Tuesday", etc.
@@ -81,9 +81,21 @@ export function generatePickupTimes(
         // Convert UK time to UTC for storage
         const timeUTC = fromZonedTime(timeUK, UK_TZ);
         
-        // Format label
+        // Format label with day name
         const timeLabel = format(timeUK, 'HH:mm');
-        const label = timeLabel + (dayOffset === 1 ? ' (Tomorrow)' : '');
+        let label = timeLabel;
+        
+        if (dayOffset === 0) {
+          // Today - no suffix
+          label = timeLabel;
+        } else if (dayOffset === 1) {
+          // Tomorrow
+          label = timeLabel + ' (Tomorrow)';
+        } else {
+          // Future days - show day name
+          const dayNameShort = format(targetDay, 'EEEE'); // "Monday", "Tuesday", etc.
+          label = `${timeLabel} (${dayNameShort})`;
+        }
         
         times.push({
           label: label,
@@ -99,7 +111,7 @@ export function generatePickupTimes(
       }
     }
     
-    // If we have times for today, don't generate tomorrow
+    // If we have times for this day, stop searching (we found available pickup times)
     if (times.length > 0) break;
   }
   
