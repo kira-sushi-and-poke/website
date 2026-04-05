@@ -15,11 +15,10 @@ const OpeningHoursChat = ({ openingHours, isFallback = false, restaurantStatus }
     const { isOpen, closingSoon, nextOpenDate, overrideActive, overridePeriods, isTodayOnly, mobileLocationName } = restaurantStatus;
     const restaurantOpen = isOpen;
 
-    // Hide on menu/order pages ONLY when restaurant is open
+    // Hide on menu/order pages
     const isOrderPage = pathname?.startsWith("/menu/order") || pathname === "/menu/order";
-    const shouldHide = isOrderPage && restaurantOpen;
     
-    if (shouldHide) {
+    if (isOrderPage) {
         return null;
     }
 

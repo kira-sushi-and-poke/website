@@ -10,6 +10,7 @@ import AllergenNotice from "../AllergenNotice";
 import { createOrder, getOrder, updateOrderItems } from "./actions";
 import StickyCartSummary from "./StickyCartSummary";
 import LocalStorageModal from "@/components/LocalStorageModal";
+import PreOrderBanner from "@/components/PreOrderBanner";
 import { getOrderFromStorage, saveOrderToStorage, clearOrderFromStorage } from "@/lib/storage";
 
 export default function OrderMenuClient({ menuData, restaurantStatus }) {
@@ -31,18 +32,11 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
     }, []);
 
     // Initialize order after mount to avoid hydration issues with localStorage
-    // Skip initialization if restaurant is closed
     useEffect(() => {
         if (!isMounted) return;
 
-        // If closed, just stop initializing to show the modal
-        if (!isOpen) {
-            setIsInitializing(false);
-            return;
-        }
-
         initializeOrder();
-    }, [isMounted, isOpen]);
+    }, [isMounted]);
 
     const initializeOrder = async () => {
         try {
@@ -421,38 +415,6 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
         );
     }
 
-    // Show closed modal immediately if restaurant is closed (don't wait for initialization)
-    if (!isOpen) {
-        return (
-            <>
-                <LocalStorageModal />
-                <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg p-6 md:p-8 max-w-md w-full relative">
-                        <div className="text-center mb-6">
-                            <div className="mx-auto h-16 w-16 bg-yellow/20 rounded-full flex items-center justify-center mb-4">
-                                <i className="fas fa-moon text-yellow text-4xl"></i>
-                            </div>
-                            <h2 className="text-2xl md:text-3xl font-bold text-hot-pink mb-3">
-                                Sorry, We're Closed Now
-                            </h2>
-                            <p className="text-gray-700 mb-4">
-                                You can still view our menu, but you'll have to wait until we're open to place an order.
-                            </p>
-                        </div>
-                        <div className="flex justify-center">
-                            <Link
-                                href="/menu/view"
-                                className="bg-hot-pink text-white py-3 px-6 rounded-lg hover:bg-hot-pink/90 transition-colors text-center font-semibold"
-                            >
-                                View Menu
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </>
-        );
-    }
-
     if (isInitializing) {
         return (
             <div className="flex items-center justify-center py-12">
@@ -464,6 +426,9 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
     return (
         <>
             <LocalStorageModal />
+
+            {/* Pre-order Banner - Show when closed */}
+            <PreOrderBanner restaurantStatus={restaurantStatus} />
 
             {/* Paid Order Banner */}
             {isPaidOrder && (
@@ -507,21 +472,21 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
             )}
 
             {/* Add padding to bottom if cart has items - extra space for collapsed cart */}
-            <div className={Object.keys(cart).length > 0 && isOpen ? "pb-24 md:pb-28" : ""}>
+            <div className={Object.keys(cart).length > 0 ? "pb-24 md:pb-28" : ""}>
                 <AllergenNotice />
                 <CategoryNavigation />
                 <MenuList 
                     menuItems={menuData} 
                     cart={cart}
-                    addItem={(isPaidOrder || !isOpen) ? () => {} : addItem}
-                    removeItem={(isPaidOrder || !isOpen) ? () => {} : removeItem}
+                    addItem={isPaidOrder ? () => {} : addItem}
+                    removeItem={isPaidOrder ? () => {} : removeItem}
                     updatingItems={updatingItems}
                     isOrderMode={true}
                 />
             </div>
 
-            {/* Sticky Cart Summary - Hide when closed or paid order */}
-            {!isPaidOrder && isOpen && (
+            {/* Sticky Cart Summary - Hide when paid order */}
+            {!isPaidOrder && (
                 <StickyCartSummary 
                     cart={cart}
                     menuData={menuData}
@@ -531,6 +496,7 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
                     clearCart={clearCart}
                     updatingItems={updatingItems}
                     orderId={orderId}
+                    restaurantStatus={restaurantStatus}
                 />
             )}
             

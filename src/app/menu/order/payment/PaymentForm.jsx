@@ -9,7 +9,7 @@ import { validateContactDetails, validatePickupTime } from "@/lib/validation";
 import { processPayment } from "../actions";
 import PickupDetails from "./PickupDetails";
 
-export default function PaymentFormComponent({ orderId, totalAmount, openingHours, overridePeriods = [] }) {
+export default function PaymentFormComponent({ orderId, totalAmount, openingHours, overridePeriods = [], restaurantStatus }) {
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("Processing Payment...");
@@ -344,6 +344,7 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
       formErrors={formErrors}
       isProcessing={isProcessing}
       pickupTimeOptions={pickupTimeOptions}
+      restaurantStatus={restaurantStatus}
     />
     
     <div className="bg-white rounded-lg shadow-lg p-8 border-t-4 border-hot-pink">

@@ -8,7 +8,8 @@ export default function PickupDetails({
   handleInputChange, 
   formErrors, 
   isProcessing, 
-  pickupTimeOptions 
+  pickupTimeOptions,
+  restaurantStatus 
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const containerRef = useRef(null);
@@ -40,7 +41,7 @@ export default function PickupDetails({
       {isExpanded && (
         <div className="space-y-3">
           {/* Pickup Only Notice */}
-          <PickupOnlyNotice />
+          <PickupOnlyNotice restaurantStatus={restaurantStatus} />
           
           <div>
             <label htmlFor="pickupTime" className="block text-sm font-medium mb-2">

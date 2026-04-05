@@ -1,12 +1,12 @@
 import { redirect } from "next/navigation";
 import { getOrder } from "../actions";
 import PaymentForm from "./PaymentForm";
-import OrderIdValidator from "../OrderIdValidator";
 import OrderSummary from "./OrderSummary";
 import { getMenuData } from "@/lib/getMenuData";
 import { getLocationData } from "@/lib/getLocationData";
 import { checkRestaurantStatus } from "@/lib/checkRestaurantStatus";
 import { enrichLineItems } from "@/lib/enrichLineItems";
+import { formatDistance } from "date-fns";
 
 // Revalidate every 3 minutes to keep opening hours fresh
 export const revalidate = 180;
@@ -54,13 +54,18 @@ export default async function PaymentPage({ searchParams }) {
     redirect(`/menu/order/confirmation?orderId=${orderId}`);
   }
   
-  // Check restaurant status - redirect if closed
+  // Check fulfillment status
+  if (order.fulfillment_status === "PREPARED") {
+    redirect(`/menu/order/confirmation?orderId=${orderId}`); // Already prepared
+  }
+  
+  if (order.fulfillment_status === "CANCELED") {
+    redirect("/menu/order?error=order-canceled"); // Fulfillment canceled
+  }
+  
+  // Check restaurant status (for pickup time generation, not blocking)
   const { openingHours, isFallback, mobileLocationData } = await getLocationData();
   const restaurantStatus = checkRestaurantStatus(openingHours, mobileLocationData, isFallback);
-  
-  if (!restaurantStatus.isOpen) {
-    redirect("/menu/order"); // Redirects to page with closed modal
-  }
   
   // Pass override periods to payment form for accurate pickup time generation
   const overridePeriods = restaurantStatus.overrideActive ? restaurantStatus.overridePeriods : [];
@@ -77,35 +82,44 @@ export default async function PaymentPage({ searchParams }) {
   }, 0);
   
   return (
-    <OrderIdValidator currentPath="/menu/order/payment">
-      <div className="min-h-screen bg-[#fffef9] py-10 px-4">
-        <div className="max-w-3xl mx-auto">
-          {/* Header */}
-          <div className="mb-5">
-            <h1 className="text-2xl md:text-3xl font-bold text-hot-pink text-center">
-              <i className="fas fa-credit-card mr-2"></i>Almost There!
-            </h1>
-            <p className="text-gray-700 text-center text-base mt-2 mb-1">
-              Complete your order and we'll have it ready for you to pickup
+    <div className="min-h-screen bg-[#fffef9] py-10 px-4">
+      <div className="max-w-3xl mx-auto">
+        {/* Header */}
+        <div className="mb-5">
+          {/* Order Verification Display */}
+          <div className="text-center mb-2">
+            <p className="text-sm text-gray-500">
+              Order #{orderId.slice(0, 8)}...
             </p>
-            <p className="text-green-600 text-center text-sm">
-              <i className="fas fa-lock mr-1"></i>
-              Safe & secure checkout powered by Square
+            <p className="text-xs text-gray-400">
+              Created {formatDistance(new Date(order.created_at), new Date(), { addSuffix: true })}
             </p>
           </div>
-        
-          {/* Order Summary */}
-          <OrderSummary lineItems={enrichedLineItems} total={total} />
           
-          {/* Payment Form */}
-          <PaymentForm 
-            orderId={orderId} 
-            totalAmount={total} 
-            openingHours={openingHours}
-            overridePeriods={overridePeriods}
-          />
+          <h1 className="text-2xl md:text-3xl font-bold text-hot-pink text-center">
+            <i className="fas fa-credit-card mr-2"></i>Review & Pay
+          </h1>
+          <p className="text-gray-700 text-center text-base mt-2 mb-1">
+            Complete your order and we'll have it ready for you to pickup
+          </p>
+          <p className="text-green-600 text-center text-sm">
+            <i className="fas fa-lock mr-1"></i>
+            Safe & secure checkout powered by Square
+          </p>
         </div>
+        
+        {/* Order Summary */}
+        <OrderSummary lineItems={enrichedLineItems} total={total} />
+        
+        {/* Payment Form */}
+        <PaymentForm 
+          orderId={orderId} 
+          totalAmount={total} 
+          openingHours={openingHours}
+          overridePeriods={overridePeriods}
+          restaurantStatus={restaurantStatus}
+        />
       </div>
-    </OrderIdValidator>
+    </div>
   );
 }
