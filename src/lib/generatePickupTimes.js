@@ -67,10 +67,10 @@ export function generatePickupTimes(
     let currentHour = openHour;
     let currentMinute = openMinute;
     
-    // Calculate minimum time for this day
-    const minTimeForDay = dayOffset === 0 
-      ? minPickupUK  // Today: now + lead time
-      : addMinutes(setHours(setMinutes(targetDay, openMinute), openHour), minLeadTimeMinutes); // Tomorrow: opening + lead time
+    // Calculate minimum time: MAX(current time + lead, opening time + lead)
+    // For future days, opening + lead is always later than current + lead
+    const openingTimeWithLead = addMinutes(setHours(setMinutes(targetDay, openMinute), openHour), minLeadTimeMinutes);
+    const minTimeForDay = new Date(Math.max(minPickupUK.getTime(), openingTimeWithLead.getTime()));
     
     while (currentHour < closeHour || (currentHour === closeHour && currentMinute < closeMinute)) {
       // Create time in UK timezone

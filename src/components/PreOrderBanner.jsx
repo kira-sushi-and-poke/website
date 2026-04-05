@@ -16,7 +16,7 @@ export default function PreOrderBanner({ restaurantStatus }) {
           <i className="fas fa-moon text-yellow-600 text-2xl"></i>
         </div>
         <div className="flex-1">
-          <h3 className="font-bold text-yellow-900 mb-1">We're Currently Closed</h3>
+          <h4 className="font-bold text-yellow-900 mb-1">We're currently closed</h4>
           <p className="text-sm text-yellow-800">
             No worries! You can still add items to your cart. You'll be able to schedule your pickup time at checkout.
           </p>
