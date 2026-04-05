@@ -117,6 +117,7 @@ export default async function PaymentPage({ searchParams }) {
           totalAmount={total} 
           openingHours={openingHours}
           overridePeriods={overridePeriods}
+          restaurantStatus={restaurantStatus}
         />
       </div>
     </div>

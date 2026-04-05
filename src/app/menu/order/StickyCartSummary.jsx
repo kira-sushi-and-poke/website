@@ -247,7 +247,7 @@ export default function StickyCartSummary({
                             {/* Pickup Only Notice */}
                             {!isEmpty && (
                                 <div className="mb-4 md:mb-6">
-                                    <PickupOnlyNotice />
+                                    <PickupOnlyNotice restaurantStatus={restaurantStatus} />
                                 </div>
                             )}
                             

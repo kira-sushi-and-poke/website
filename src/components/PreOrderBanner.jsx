@@ -1,4 +1,4 @@
-import { format } from 'date-fns';
+import { formatNextOpenDate } from '@/lib/formatTime';
 
 export default function PreOrderBanner({ restaurantStatus }) {
   // Only show when closed
@@ -6,7 +6,7 @@ export default function PreOrderBanner({ restaurantStatus }) {
 
   // Format next open date if available
   const nextOpenText = restaurantStatus?.nextOpenDate 
-    ? format(new Date(restaurantStatus.nextOpenDate), 'EEEE, MMMM d \'at\' h:mm a')
+    ? formatNextOpenDate(restaurantStatus.nextOpenDate)
     : null;
 
   return (
@@ -23,7 +23,7 @@ export default function PreOrderBanner({ restaurantStatus }) {
           {nextOpenText && (
             <p className="text-sm text-yellow-700 mt-2 font-semibold">
               <i className="fas fa-calendar-alt mr-1"></i>
-              Next open: {nextOpenText}
+              Earliest pickup: {nextOpenText}
             </p>
           )}
         </div>
