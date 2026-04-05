@@ -16,6 +16,9 @@ export default function PickupDetails({
   const [pickupMode, setPickupMode] = useState("asap"); // "asap" or "scheduled"
   const containerRef = useRef(null);
   
+  // Show ASAP option when restaurant is open
+  const showAsapOption = restaurantStatus?.isOpen === true;
+  
   // Auto-expand if pickup time has an error
   useEffect(() => {
     if (formErrors.pickupTime) {
@@ -30,11 +33,20 @@ export default function PickupDetails({
   // Initialize pickupMode based on existing pickupTime value
   useEffect(() => {
     if (contactDetails.pickupTime === PICKUP_ASAP) {
-      setPickupMode("asap");
+      // If ASAP is selected but not available anymore, switch to scheduled
+      if (!showAsapOption) {
+        setPickupMode("scheduled");
+        handleInputChange({ target: { name: "pickupTime", value: "" } });
+      } else {
+        setPickupMode("asap");
+      }
     } else if (contactDetails.pickupTime && contactDetails.pickupTime !== "") {
       setPickupMode("scheduled");
+    } else if (!showAsapOption) {
+      // Default to scheduled if ASAP not available
+      setPickupMode("scheduled");
     }
-  }, [contactDetails.pickupTime]);
+  }, [contactDetails.pickupTime, showAsapOption]);
   
   const handlePickupModeChange = (mode) => {
     setPickupMode(mode);
@@ -73,27 +85,29 @@ export default function PickupDetails({
             
             {/* Radio buttons for ASAP vs Scheduled */}
             <div className="space-y-3 mb-4">
-              <label 
-                className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all ${
-                  pickupMode === "asap" 
-                    ? "border-hot-pink bg-hot-pink/5" 
-                    : "border-gray-300 hover:border-gray-400"
-                } ${isProcessing ? "opacity-50 cursor-not-allowed" : ""}`}
-              >
-                <input
-                  type="radio"
-                  name="pickupMode"
-                  value="asap"
-                  checked={pickupMode === "asap"}
-                  onChange={() => handlePickupModeChange("asap")}
-                  disabled={isProcessing}
-                  className="h-4 w-4 text-hot-pink focus:ring-hot-pink shrink-0"
-                />
-                <div className="ml-3">
-                  <span className="text-sm font-medium text-gray-900">ASAP (approx. 30 minutes)</span>
-                  <p className="text-xs text-gray-600 mt-0.5">We'll start preparing your order right away</p>
-                </div>
-              </label>
+              {showAsapOption && (
+                <label 
+                  className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                    pickupMode === "asap" 
+                      ? "border-hot-pink bg-hot-pink/5" 
+                      : "border-gray-300 hover:border-gray-400"
+                  } ${isProcessing ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  <input
+                    type="radio"
+                    name="pickupMode"
+                    value="asap"
+                    checked={pickupMode === "asap"}
+                    onChange={() => handlePickupModeChange("asap")}
+                    disabled={isProcessing}
+                    className="h-4 w-4 text-hot-pink focus:ring-hot-pink shrink-0"
+                  />
+                  <div className="ml-3">
+                    <span className="text-sm font-medium text-gray-900">ASAP (approx. 30 minutes)</span>
+                    <p className="text-xs text-gray-600 mt-0.5">We'll start preparing your order right away</p>
+                  </div>
+                </label>
+              )}
               
               <label 
                 className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all ${

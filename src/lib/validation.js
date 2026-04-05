@@ -2,7 +2,7 @@
  * Validation utilities for contact forms and user input
  */
 
-import { SCHEDULED_PICKUP_LEAD_TIME_MINUTES, PICKUP_ASAP } from './constants';
+import { PICKUP_LEAD_TIME_MINUTES, PICKUP_ASAP } from './constants';
 
 // Validation regex patterns
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -50,12 +50,12 @@ export function validatePickupTime(pickupTime) {
     return "Invalid pickup time";
   }
   
-  // Get current time and minimum allowed time (45 minutes for scheduled orders)
+  // Get current time and minimum allowed time (30 minutes for scheduled orders)
   const now = new Date();
-  const minTime = new Date(now.getTime() + SCHEDULED_PICKUP_LEAD_TIME_MINUTES * 60000);
+  const minTime = new Date(now.getTime() + PICKUP_LEAD_TIME_MINUTES * 60000);
   
   if (pickupDate.getTime() < minTime.getTime()) {
-    return `Pickup time must be at least ${SCHEDULED_PICKUP_LEAD_TIME_MINUTES} minutes from now`;
+    return `Pickup time must be at least ${PICKUP_LEAD_TIME_MINUTES} minutes from now`;
   }
   
   return null;

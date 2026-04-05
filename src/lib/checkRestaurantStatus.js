@@ -415,10 +415,23 @@ export function checkRestaurantStatus(openingHours, mobileLocationData = null, i
       const timeUntilClose = closingSoonTime - currentTime;
       const closingSoon = timeUntilClose > 0 && timeUntilClose <= CLOSING_SOON_THRESHOLD;
       
+      // Find the current active period to get accurate hours
+      const activePeriod = todayMobilePeriods.find(period => {
+        const openTime = timeToMinutes(period.start_local_time.substring(0, 5));
+        const closeTime = timeToMinutes(period.end_local_time.substring(0, 5));
+        return currentTime >= openTime && currentTime < closeTime;
+      });
+      
+      // Use mobile hours from active period, fall back to physical if not found
+      const actualTodayHours = activePeriod ? {
+        open: activePeriod.start_local_time.substring(0, 5),
+        close: activePeriod.end_local_time.substring(0, 5)
+      } : openingHours[currentDay];
+      
       return {
         isOpen: true,
         closingSoon,
-        todayHours: openingHours[currentDay], // Still show physical hours for display
+        todayHours: actualTodayHours, // Use actual mobile hours
         nextOpenDate: null, // Open today, no need for next open date
         overrideActive: true,
         overridePeriods: transformPeriodsToDateRange(mobilePeriods, openingHours),

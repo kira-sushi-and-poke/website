@@ -13,7 +13,7 @@ export default function PickupOnlyNotice({ restaurantStatus }) {
           <p className="font-semibold text-gray-800">Pickup Only</p>
         </div>
         <p>
-          We're pickup-only for now (delivery coming soon!). Your freshly prepared order will typically be ready in 40 minutes to an hour. <em className="font-bold not-italic">On peak times, it may take longer than an hour</em>. Collect from 148 Front Street, Chester-le-Street.
+          We're pickup-only for now (delivery coming soon!). Your freshly prepared order will typically be ready in 30 minutes to an hour. <em className="font-bold not-italic">On peak times, it may take longer than an hour</em>. Collect from 148 Front Street, Chester-le-Street.
         </p>
       </div>
       {nextOpenText && !restaurantStatus?.isOpen && (
