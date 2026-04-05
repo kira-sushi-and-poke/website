@@ -8,7 +8,7 @@ import { PICKUP_LEAD_TIME_MINUTES, UK_TZ } from './constants';
  * Users anywhere in the world will see UK times to avoid confusion.
  * @param {Object} openingHours - Physical opening hours by day {Monday: {open: "11:00", close: "19:00"}, ...}
  * @param {Array} overridePeriods - Optional mobile override periods from checkRestaurantStatus [{date, dayName, periods}, ...]
- * @param {number} minLeadTimeMinutes - Minimum lead time from now (default: from constants)
+ * @param {number} minLeadTimeMinutes - Minimum lead time from now (default: 30 minutes)
  * @returns {Array<{label: string, value: string}>} Array of time options
  */
 export function generatePickupTimes(

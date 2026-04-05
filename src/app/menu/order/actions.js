@@ -14,7 +14,9 @@ import {
   ORDER_STATE_OPEN,
   PAYMENT_METHOD_CUSTOM,
   PAYMENT_METHOD_SQUARE_CHECKOUT,
-  PAYMENT_STATUS_COMPLETED
+  PAYMENT_STATUS_COMPLETED,
+  PICKUP_ASAP,
+  PICKUP_LEAD_TIME_MINUTES
 } from "@/lib/constants";
 import { fetchSquare } from "@/lib/squareApi";
 import { splitName } from "@/lib/splitName";
@@ -398,11 +400,14 @@ export async function processPayment(sourceId, orderId, amount, verificationToke
     }
     
     // Validate restaurant will be open at pickup time (considering mobile overrides)
-    try {
-      const { openingHours, mobileLocationData } = await getLocationData();
-      const pickupTimeUTC = new Date(pickupTime);
-      const pickupTimeUK = toZonedTime(pickupTimeUTC, 'Europe/London');
-      const pickupDayName = format(pickupTimeUK, 'EEEE'); // "Monday", "Tuesday", etc.
+    // Skip validation for ASAP orders - Square will handle timing
+    const isAsapOrder = pickupTime === PICKUP_ASAP;
+    if (!isAsapOrder) {
+      try {
+        const { openingHours, mobileLocationData } = await getLocationData();
+        const pickupTimeUTC = new Date(pickupTime);
+        const pickupTimeUK = toZonedTime(pickupTimeUTC, 'Europe/London');
+        const pickupDayName = format(pickupTimeUK, 'EEEE'); // "Monday", "Tuesday", etc.
       
       // Check if mobile override is active
       if (mobileLocationData?.status === 'ACTIVE') {
@@ -451,8 +456,9 @@ export async function processPayment(sourceId, orderId, amount, verificationToke
           };
         }
       }
-    } catch (error) {
-      // Continue - don't block payment if validation fails
+      } catch (error) {
+        // Continue - don't block payment if validation fails
+      }
     }
     
     // Validate contact details are provided
@@ -563,6 +569,8 @@ export async function processPayment(sourceId, orderId, amount, verificationToke
         
         // Build fulfillment object (for both DRAFT and OPEN)
         const fulfillmentNote = specialInstructions?.trim() || "No special instructions";
+        const isAsapOrder = pickupTime === PICKUP_ASAP;
+        
         const fulfillment = {
           type: FULFILLMENT_TYPE_PICKUP,
           state: FULFILLMENT_STATE_PROPOSED,
@@ -572,9 +580,15 @@ export async function processPayment(sourceId, orderId, amount, verificationToke
               email_address: contactDetails.email,
               phone_number: contactDetails.phone,
             },
-            schedule_type: "SCHEDULED",
-            pickup_at: pickupTime,
-            pickup_window_duration: PICKUP_WINDOW_DURATION,
+            schedule_type: isAsapOrder ? "ASAP" : "SCHEDULED",
+            ...(isAsapOrder ? {
+              // For ASAP orders, include prep time duration
+              prep_time_duration: `PT${PICKUP_LEAD_TIME_MINUTES}M`
+            } : {
+              // For scheduled orders, include pickup time and window
+              pickup_at: pickupTime,
+              pickup_window_duration: PICKUP_WINDOW_DURATION
+            }),
             note: fulfillmentNote,
           },
         };
