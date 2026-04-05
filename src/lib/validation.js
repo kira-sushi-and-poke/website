@@ -2,7 +2,7 @@
  * Validation utilities for contact forms and user input
  */
 
-import { PICKUP_LEAD_TIME_MINUTES } from './constants';
+import { SCHEDULED_PICKUP_LEAD_TIME_MINUTES, PICKUP_ASAP } from './constants';
 
 // Validation regex patterns
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -30,12 +30,17 @@ export function validatePhone(phone) {
  * Validate that pickup time is at least the required lead time from now
  * Note: Uses UTC timestamps (getTime()) for timezone-safe comparisons.
  * Both client and server parse ISO strings correctly regardless of their local timezone.
- * @param {string} pickupTime - ISO string of pickup time
+ * @param {string} pickupTime - ISO string of pickup time or ASAP constant
  * @returns {string|null} Error message if invalid, null if valid
  */
 export function validatePickupTime(pickupTime) {
   if (!pickupTime) {
     return "Pickup time is required";
+  }
+  
+  // ASAP is always valid (Square handles the timing)
+  if (pickupTime === PICKUP_ASAP) {
+    return null;
   }
 
   const pickupDate = new Date(pickupTime);
@@ -45,12 +50,12 @@ export function validatePickupTime(pickupTime) {
     return "Invalid pickup time";
   }
   
-  // Get current time and minimum allowed time
+  // Get current time and minimum allowed time (45 minutes for scheduled orders)
   const now = new Date();
-  const minTime = new Date(now.getTime() + PICKUP_LEAD_TIME_MINUTES * 60000);
+  const minTime = new Date(now.getTime() + SCHEDULED_PICKUP_LEAD_TIME_MINUTES * 60000);
   
   if (pickupDate.getTime() < minTime.getTime()) {
-    return `Pickup time must be at least ${PICKUP_LEAD_TIME_MINUTES} minutes from now`;
+    return `Pickup time must be at least ${SCHEDULED_PICKUP_LEAD_TIME_MINUTES} minutes from now`;
   }
   
   return null;

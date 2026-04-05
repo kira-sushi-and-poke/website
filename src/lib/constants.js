@@ -95,7 +95,9 @@ export const DEFAULT_OPENING_HOURS_TEXT = {
  */
 export const DAYS_OF_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 export const CLOSING_SOON_THRESHOLD = 30; // minutes before closing to show "closing soon"
-export const PICKUP_LEAD_TIME_MINUTES = 30; // minimum lead time for pickup orders
+export const PICKUP_LEAD_TIME_MINUTES = 30; // minimum lead time for ASAP orders (prep time)
+export const SCHEDULED_PICKUP_LEAD_TIME_MINUTES = 45; // minimum lead time for scheduled pickup orders
+export const PICKUP_ASAP = "ASAP"; // Special value for ASAP pickup orders
 
 /**
  * Location IDs

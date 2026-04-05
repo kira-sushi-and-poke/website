@@ -7,6 +7,7 @@ import { PaymentForm, CreditCard, GooglePay, ApplePay } from "react-square-web-p
 import { generatePickupTimes } from "@/lib/generatePickupTimes";
 import { validateContactDetails, validatePickupTime } from "@/lib/validation";
 import { processPayment } from "../actions";
+import { PICKUP_ASAP } from "@/lib/constants";
 import PickupDetails from "./PickupDetails";
 
 export default function PaymentFormComponent({ orderId, totalAmount, openingHours, overridePeriods = [], restaurantStatus }) {
@@ -155,15 +156,16 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
           contactInfo = contactDetails;
         }
         
-        // Always validate pickup time for all payments
-        if (!contactDetails.pickupTime) {
+        // Always validate pickup time for all payments (ASAP or scheduled)
+        const hasValidPickupTime = contactDetails.pickupTime && contactDetails.pickupTime !== "";
+        if (!hasValidPickupTime) {
           console.log('❌ No pickup time selected');
           setIsProcessing(false);
           setFormErrors(prev => ({
             ...prev,
-            pickupTime: "Pickup time is required"
+            pickupTime: "Please select ASAP or choose a pickup time"
           }));
-          toast.error("Please select a pickup time", { duration: 10000 });
+          toast.error("Please select a pickup time (ASAP or schedule for later)", { duration: 10000 });
           return;
         }
         
@@ -268,8 +270,9 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
   }, [totalAmount, tipAmount, contactDetails.name, contactDetails.email, contactDetails.phone]);
   
   const handleWalletPayClick = () => {
-    // Set loading state when pickup time is selected
-    if (contactDetails.pickupTime && !isProcessing) {
+    // Set loading state when pickup time is selected (ASAP or scheduled)
+    const hasValidPickupTime = contactDetails.pickupTime && contactDetails.pickupTime !== "";
+    if (hasValidPickupTime && !isProcessing) {
       setIsProcessing(true);
       setLoadingMessage("Please wait while we process your payment");
       
@@ -284,7 +287,8 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
   };
   
   const handleClickForValidation = (e) => {
-    if (!contactDetails.pickupTime) {
+    const hasValidPickupTime = contactDetails.pickupTime && contactDetails.pickupTime !== "";
+    if (!hasValidPickupTime) {
       e.preventDefault();
       e.stopPropagation();
 
@@ -298,11 +302,11 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
       setTimeout(() => {
         setFormErrors(prev => ({
           ...prev,
-          pickupTime: "Pickup time is required"
+          pickupTime: "Please select ASAP or choose a pickup time"
         }));
       }, 10);
       
-      toast.error("Please select a pickup time", { duration: 10000 });
+      toast.error("Please select a pickup time (ASAP or schedule for later)", { duration: 10000 });
     }
   };
   
@@ -423,7 +427,7 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
             <div className="mb-3 relative" onClickCapture={handleWalletPayClick}>
               <ApplePay />
 
-              {!contactDetails.pickupTime && (
+              {(!contactDetails.pickupTime || contactDetails.pickupTime === "") && (
                 <div
                   className="absolute inset-0 cursor-pointer z-10"
                   onClick={handleClickForValidation}
@@ -436,7 +440,7 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
           <div className="mb-3 relative" onClickCapture={handleWalletPayClick}>
             <GooglePay />
 
-            {!contactDetails.pickupTime && (
+            {(!contactDetails.pickupTime || contactDetails.pickupTime === "") && (
               <div
                 className="absolute inset-0 cursor-pointer z-10"
                 onClick={handleClickForValidation}
@@ -551,7 +555,7 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
                 {isProcessing ? "Processing..." : `Pay £${((totalAmount + tipAmount) / 100).toFixed(2)}`}
               </Button>
 
-              {!contactDetails.pickupTime && (
+              {(!contactDetails.pickupTime || contactDetails.pickupTime === "") && (
                 <div
                   className="absolute inset-0 cursor-pointer z-10"
                   onClick={handleClickForValidation}

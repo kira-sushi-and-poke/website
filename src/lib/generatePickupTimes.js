@@ -1,6 +1,6 @@
 import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 import { addDays, addMinutes, setHours, setMinutes, format, startOfDay } from 'date-fns';
-import { PICKUP_LEAD_TIME_MINUTES, UK_TZ } from './constants';
+import { SCHEDULED_PICKUP_LEAD_TIME_MINUTES, UK_TZ } from './constants';
 
 /**
  * Generate pickup time options with 15-minute intervals based on actual opening hours
@@ -8,13 +8,13 @@ import { PICKUP_LEAD_TIME_MINUTES, UK_TZ } from './constants';
  * Users anywhere in the world will see UK times to avoid confusion.
  * @param {Object} openingHours - Physical opening hours by day {Monday: {open: "11:00", close: "19:00"}, ...}
  * @param {Array} overridePeriods - Optional mobile override periods from checkRestaurantStatus [{date, dayName, periods}, ...]
- * @param {number} minLeadTimeMinutes - Minimum lead time from now (default: from constants)
+ * @param {number} minLeadTimeMinutes - Minimum lead time from now (default: 45 minutes for scheduled orders)
  * @returns {Array<{label: string, value: string}>} Array of time options
  */
 export function generatePickupTimes(
   openingHours,
   overridePeriods = [],
-  minLeadTimeMinutes = PICKUP_LEAD_TIME_MINUTES
+  minLeadTimeMinutes = SCHEDULED_PICKUP_LEAD_TIME_MINUTES
 ) {
   const times = [];
   
