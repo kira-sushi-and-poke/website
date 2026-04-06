@@ -13,7 +13,7 @@ export default function PickupDetails({
   restaurantStatus 
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [pickupMode, setPickupMode] = useState("asap"); // "asap" or "scheduled"
+  const [pickupMode, setPickupMode] = useState(null); // null, "asap" or "scheduled"
   const containerRef = useRef(null);
   
   // Show ASAP option when restaurant is open
@@ -30,20 +30,17 @@ export default function PickupDetails({
     }
   }, [formErrors.pickupTime]);
   
-  // Initialize pickupMode based on existing pickupTime value
+  // Sync pickupMode based on existing pickupTime value (e.g., when navigating back)
   useEffect(() => {
     if (contactDetails.pickupTime === PICKUP_ASAP) {
-      // If ASAP is selected but not available anymore, switch to scheduled
+      // If ASAP is selected but not available anymore, clear it
       if (!showAsapOption) {
-        setPickupMode("scheduled");
+        setPickupMode(null);
         handleInputChange({ target: { name: "pickupTime", value: "" } });
       } else {
         setPickupMode("asap");
       }
     } else if (contactDetails.pickupTime && contactDetails.pickupTime !== "") {
-      setPickupMode("scheduled");
-    } else if (!showAsapOption) {
-      // Default to scheduled if ASAP not available
       setPickupMode("scheduled");
     }
   }, [contactDetails.pickupTime, showAsapOption]);
