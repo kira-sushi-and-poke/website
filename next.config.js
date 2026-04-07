@@ -1,4 +1,6 @@
-module.exports = {
+const { withSentryConfig } = require('@sentry/nextjs');
+
+const nextConfig = {
   reactStrictMode: true,
   images: {
     formats: ['image/webp'],
@@ -118,3 +120,40 @@ module.exports = {
     ];
   },
 };
+
+// Wrap with Sentry config for source map uploads
+module.exports = withSentryConfig(nextConfig, {
+  // For all available options, see:
+  // https://github.com/getsentry/sentry-webpack-plugin#options
+
+  org: "kira-sushi-poke",
+  project: "javascript-nextjs",
+
+  // Only upload source maps in production builds
+  silent: !process.env.CI,
+
+  // Upload source maps during production build
+  widenClientFileUpload: true,
+
+  // Automatically annotate React components to show their full name in breadcrumbs and session replay
+  reactComponentAnnotation: {
+    enabled: true,
+  },
+
+  // Disable logger in production to reduce bundle size
+  hideSourceMaps: true,
+
+  // Disable Sentry SDK debug logs in production
+  disableLogger: true,
+  
+  webpack: {
+    // Enables automatic instrumentation of Vercel Cron Monitors
+    automaticVercelMonitors: true,
+
+    // Tree-shaking options for reducing bundle size
+    treeshake: {
+      // Automatically tree-shake Sentry logger statements to reduce bundle size
+      removeDebugLogging: true,
+    },
+  },
+});

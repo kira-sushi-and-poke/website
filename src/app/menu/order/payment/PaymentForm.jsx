@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
+import * as Sentry from '@sentry/nextjs';
 import { PaymentForm, CreditCard, GooglePay, ApplePay } from "react-square-web-payments-sdk";
 import { generatePickupTimes } from "@/lib/generatePickupTimes";
 import { validateContactDetails, validatePickupTime } from "@/lib/validation";
@@ -82,6 +83,20 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
   const cardTokenizeResponseReceived = async (token, verifiedBuyer) => {
     console.log('🔵 Payment callback triggered');
     
+    // Add Sentry breadcrumb for payment verification start
+    if (process.env.NODE_ENV === 'production') {
+      Sentry.addBreadcrumb({
+        message: 'Payment verification started',
+        category: 'payment',
+        level: 'info',
+        data: {
+          order_id: orderId,
+          amount: totalAmount,
+          method: token.details?.method
+        }
+      });
+    }
+    
     // Clear timeout since callback was triggered
     if (paymentTimeoutRef.current) {
       clearTimeout(paymentTimeoutRef.current);
@@ -105,6 +120,20 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
       
       if (token.status === 'Error' || token.status === 'Invalid') {
         console.log('❌ Tokenization error');
+        
+        // Add Sentry breadcrumb for tokenization error
+        if (process.env.NODE_ENV === 'production') {
+          Sentry.addBreadcrumb({
+            message: 'Payment tokenization failed',
+            category: 'payment',
+            level: 'error',
+            data: {
+              order_id: orderId,
+              error: token.errors?.[0]?.code
+            }
+          });
+        }
+        
         // Tokenization error
         setIsProcessing(false);
         const errorMessage = token.errors?.[0]?.message || "Payment failed. Please try again.";
@@ -121,6 +150,20 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
       }
       
       console.log('✅ Token status OK');
+      
+      // Add Sentry breadcrumb for successful tokenization
+      if (process.env.NODE_ENV === 'production') {
+        Sentry.addBreadcrumb({
+          message: 'Payment tokenization successful',
+          category: 'payment',
+          level: 'info',
+          data: {
+            order_id: orderId,
+            status: 'tokenized'
+          }
+        });
+      }
+      
       // Update message to show we're now processing the payment
       setLoadingMessage("Processing Payment...");
       
@@ -225,6 +268,21 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
       }
     } catch (err) {
       console.log('💥 Exception in payment flow');
+      
+      // Capture unexpected client-side errors
+      if (process.env.NODE_ENV === 'production') {
+        Sentry.captureException(err, {
+          tags: { component: 'PaymentForm' },
+          contexts: {
+            payment: {
+              order_id: orderId,
+              amount: totalAmount,
+              // Do NOT include: token, verificationToken, contactDetails
+            }
+          }
+        });
+      }
+      
       toast.error("Payment failed. Please try again.", { duration: 10000 });
       setIsProcessing(false);
     }
