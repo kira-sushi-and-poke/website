@@ -1,11 +1,12 @@
 "use client";
 
 import React from "react";
+import * as Sentry from '@sentry/nextjs';
 
 export default function GlobalError({ error, reset }) {
     React.useEffect(() => {
-        // In production, send to error tracking service
-        // Example: Sentry.captureException(error, { level: "fatal" });
+        // Capture fatal errors in Sentry
+        Sentry.captureException(error, { level: "fatal" });
     }, [error]);
 
     return (

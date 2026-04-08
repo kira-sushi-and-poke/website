@@ -1,10 +1,14 @@
 "use client";
 
 import React from "react";
+import * as Sentry from '@sentry/nextjs';
 
 export default function MenuError({ error, reset }) {
     React.useEffect(() => {
-        // Error tracking would go here
+        // Capture menu errors in Sentry
+        Sentry.captureException(error, {
+            tags: { page: 'menu' }
+        });
     }, [error]);
 
     return (

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import toast, { Toaster } from "react-hot-toast";
+import * as Sentry from '@sentry/nextjs';
 import MenuList from "@/components/MenuList";
 import CategoryNavigation from "../CategoryNavigation";
 import AllergenNotice from "../AllergenNotice";
@@ -85,6 +86,12 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
                 setOrderInitError(createError || "Failed to initialize order.");
             }
         } catch (err) {
+            // Capture order initialization errors
+            if (process.env.NODE_ENV === 'production') {
+                Sentry.captureException(err, {
+                    tags: { component: 'OrderMenuClient', action: 'initialize' }
+                });
+            }
             toast.error("Failed to initialize order. Please refresh the page.");
             setOrderInitError("Failed to initialize order.");
         } finally {
@@ -395,12 +402,32 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
                 toast.error(createError || "Failed to create new order", { duration: 10000 });
             }
         } catch (err) {
+            // Capture cart clear errors
+            if (process.env.NODE_ENV === 'production') {
+                Sentry.captureException(err, {
+                    tags: { component: 'OrderMenuClient', action: 'clear_cart' },
+                    contexts: { cart: { order_id: orderId } }
+                });
+            }
             toast.error("Failed to clear cart", { duration: 10000 });
         }
     };
 
     const handleCheckout = () => {
         if (!orderId) return;
+        
+        // Add Sentry breadcrumb for proceed to checkout
+        if (process.env.NODE_ENV === 'production') {
+            Sentry.addBreadcrumb({
+                message: 'Proceed to checkout clicked',
+                category: 'cart',
+                level: 'info',
+                data: {
+                    order_id: orderId,
+                    item_count: Object.keys(cart).length
+                }
+            });
+        }
         
         // Navigate directly to payment page
         router.push(`/menu/order/payment?orderId=${orderId}`);

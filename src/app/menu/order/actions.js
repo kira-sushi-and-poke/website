@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import crypto from "crypto";
+import * as Sentry from '@sentry/nextjs';
 import {
   SQUARE_API_VERSION,
   CURRENCY,
@@ -104,6 +105,18 @@ export async function createOrder() {
     });
 
     if (data.order) {
+      // Add breadcrumb for successful order creation
+      if (process.env.NODE_ENV === 'production') {
+        Sentry.addBreadcrumb({
+          message: 'Order created',
+          category: 'order',
+          level: 'info',
+          data: {
+            order_id: data.order.id,
+          }
+        });
+      }
+      
       return {
         success: true,
         orderId: data.order.id,
@@ -116,6 +129,14 @@ export async function createOrder() {
       error: "Failed to create order",
     };
   } catch (error) {
+    // Capture error in Sentry with safe context
+    if (process.env.NODE_ENV === 'production') {
+      Sentry.withScope((scope) => {
+        scope.setTag('action', 'create_order');
+        Sentry.captureException(error);
+      });
+    }
+    
     return {
       success: false,
       error: "Failed to create order",
@@ -270,6 +291,19 @@ export async function updateOrderItems(orderId, version, cart) {
     });
 
     if (data.order) {
+      // Add breadcrumb for successful order update
+      if (process.env.NODE_ENV === 'production') {
+        Sentry.addBreadcrumb({
+          message: 'Order items updated',
+          category: 'order',
+          level: 'info',
+          data: {
+            order_id: orderId,
+            item_count: desiredItems.length,
+          }
+        });
+      }
+      
       return {
         success: true,
         version: data.order.version,
@@ -282,6 +316,18 @@ export async function updateOrderItems(orderId, version, cart) {
       error: "Failed to update order",
     };
   } catch (error) {
+    // Capture error in  Sentry with safe context
+    if (process.env.NODE_ENV === 'production') {
+      Sentry.withScope((scope) => {
+        scope.setTag('action', 'update_order_items');
+        scope.setTag('order_id', orderId);
+        scope.setContext('update_error', {
+          is_conflict: error.response?.status === 409
+        });
+        Sentry.captureException(error);
+      });
+    }
+    
     if (error.response?.status === 409 || error.data?.errors?.[0]?.code === "VERSION_MISMATCH") {
       return {
         success: false,
@@ -352,6 +398,18 @@ export async function checkout(orderId) {
     });
 
     if (data.payment_link && data.payment_link.url) {
+      // Add breadcrumb for successful checkout initiation
+      if (process.env.NODE_ENV === 'production') {
+        Sentry.addBreadcrumb({
+          message: 'Checkout initiated',
+          category: 'order',
+          level: 'info',
+          data: {
+            order_id: orderId,
+          }
+        });
+      }
+      
       // Redirect to Square's hosted checkout page
       // Note: redirect() throws a special Next.js error - don't catch it
       redirect(data.payment_link.url);
@@ -362,6 +420,15 @@ export async function checkout(orderId) {
     // Re-throw if it's a Next.js redirect (NEXT_REDIRECT)
     if (error.digest && error.digest.startsWith("NEXT_REDIRECT")) {
       throw error;
+    }
+    
+    // Capture error in Sentry with safe context
+    if (process.env.NODE_ENV === 'production') {
+      Sentry.withScope((scope) => {
+        scope.setTag('action', 'checkout');
+        scope.setTag('order_id', orderId);
+        Sentry.captureException(error);
+      });
     }
     
     throw new Error("Failed to initiate checkout. Please try again.");
@@ -505,6 +572,16 @@ export async function processPayment(sourceId, orderId, amount, verificationToke
     // Create customer in background - don't block payment on this
     if (contactDetails.email && contactDetails.name) {
       try {
+        // Add breadcrumb before customer creation
+        if (process.env.NODE_ENV === 'production') {
+          Sentry.addBreadcrumb({
+            message: 'Creating customer record',
+            category: 'payment',
+            level: 'info',
+            data: { order_id: orderId }
+          });
+        }
+        
         const { firstName, lastName } = splitName(contactDetails.name);
         const customerData = await fetchSquare(API_CUSTOMERS_URL, {
           method: "POST",
@@ -518,6 +595,16 @@ export async function processPayment(sourceId, orderId, amount, verificationToke
         });
         
         customerId = customerData.customer?.id;
+        
+        // Add breadcrumb after customer created
+        if (process.env.NODE_ENV === 'production' && customerId) {
+          Sentry.addBreadcrumb({
+            message: 'Customer created',
+            category: 'payment',
+            level: 'info',
+            data: { order_id: orderId }
+          });
+        }
       } catch (customerError) {
         // Continue with payment even if customer creation fails
       }
@@ -630,6 +717,19 @@ export async function processPayment(sourceId, orderId, amount, verificationToke
         };
       }
       
+      // Add breadcrumb before payment submission
+      if (process.env.NODE_ENV === 'production') {
+        Sentry.addBreadcrumb({
+          message: 'Submitting payment to Square',
+          category: 'payment',
+          level: 'info',
+          data: { 
+            order_id: orderId,
+            amount: orderTotal 
+          }
+        });
+      }
+      
       const paymentData = await fetchSquare(API_PAYMENTS_URL, {
         method: "POST",
         body: JSON.stringify({
@@ -658,6 +758,19 @@ export async function processPayment(sourceId, orderId, amount, verificationToke
         };
       }
       
+      // Add breadcrumb for successful payment
+      if (process.env.NODE_ENV === 'production') {
+        Sentry.addBreadcrumb({
+          message: 'Payment processed successfully',
+          category: 'payment',
+          level: 'info',
+          data: { 
+            order_id: orderId,
+            payment_status: payment.status 
+          }
+        });
+      }
+      
       return {
         success: true,
         paymentId: payment.id,
@@ -665,6 +778,20 @@ export async function processPayment(sourceId, orderId, amount, verificationToke
         receiptUrl: payment.receipt_url,
       };
     } catch (error) {
+      // Capture payment error in Sentry with safe context
+      if (process.env.NODE_ENV === 'production') {
+        Sentry.withScope((scope) => {
+          scope.setTag('action', 'process_payment');
+          scope.setTag('order_id', orderId);
+          scope.setContext('payment_error', {
+            code: error.data?.errors?.[0]?.code || 'UNKNOWN',
+            amount: amount
+          });
+          // Do NOT include: sourceId, verificationToken, contactDetails
+          Sentry.captureException(error);
+        });
+      }
+      
       // Check if it's a payment error with specific error codes
       if (error.data?.errors) {
         const squareError = error.data.errors[0];
@@ -696,6 +823,20 @@ export async function processPayment(sourceId, orderId, amount, verificationToke
       };
     }
   } catch (error) {
+    // Capture unexpected errors in payment flow (validation, order state, etc.)
+    if (process.env.NODE_ENV === 'production') {
+      Sentry.withScope((scope) => {
+        scope.setTag('action', 'process_payment_validation');
+        scope.setTag('order_id', orderId);
+        scope.setContext('error_details', {
+          message: error.message,
+          amount: amount
+        });
+        // Do NOT include: sourceId, verificationToken, contactDetails
+        Sentry.captureException(error);
+      });
+    }
+    
     return {
       success: false,
       error: "Payment processing failed. Please try again.",
