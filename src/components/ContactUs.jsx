@@ -11,7 +11,7 @@ const ContactUs = () => {
             </div>
 
             <p className="text-gray-700 mb-5 leading-relaxed text-base">
-                Connect with us for daily specials, updates, and quick responses to your questions.
+                Connepct with us for daily specials, updates, and quick responses to your questions.
             </p>
             <div className="space-y-3 mb-6">
                 <a 

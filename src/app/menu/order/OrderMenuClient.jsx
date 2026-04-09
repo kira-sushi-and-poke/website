@@ -14,8 +14,9 @@ import LocalStorageModal from "@/components/LocalStorageModal";
 import PreOrderBanner from "@/components/PreOrderBanner";
 import { getOrderFromStorage, saveOrderToStorage, clearOrderFromStorage } from "@/lib/storage";
 import { TOASTER_CONFIG, TOAST_MESSAGES } from "@/lib/constants";
-import { matchModifiers } from "@/lib/arrayUtils";
 import { useCartMutation } from "@/hooks/useCartMutation";
+import { addToCartEntry, removeFromCartEntry, removeEntireCartEntry } from "@/lib/cartOperations";
+import { rehydrateCartFromOrder } from "@/lib/cartUtils";
 
 export default function OrderMenuClient({ menuData, restaurantStatus }) {
     const router = useRouter();
@@ -99,9 +100,9 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
             }
         } catch (err) {
             // Capture order initialization errors
-            if (process.env.NODE_ENV === 'production') {
+            if (process.env.NODE_ENV === "production") {
                 Sentry.captureException(err, {
-                    tags: { component: 'OrderMenuClient', action: 'initialize' }
+                    tags: { component: "OrderMenuClient", action: "initialize" }
                 });
             }
             toast.error(TOAST_MESSAGES.ORDER_INIT_FAILED);
@@ -111,85 +112,13 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
         }
     };
 
-    const rehydrateCartFromOrder = (order) => {
-        if (!order.line_items) return {};
-        
-        const cart = {};
-        
-        order.line_items.forEach(item => {
-            if (!item.catalog_object_id) return;
-            
-            const variationId = item.catalog_object_id;
-            const quantity = parseInt(item.quantity);
-            const modifiers = item.modifiers?.map(m => m.catalog_object_id) || [];
-            
-            // If no modifiers, store as simple number (backward compatible)
-            if (modifiers.length === 0) {
-                cart[variationId] = (cart[variationId] || 0) + quantity;
-            } else {
-                // If has modifiers, store as array
-                if (!cart[variationId]) {
-                    cart[variationId] = [];
-                } else if (typeof cart[variationId] === 'number') {
-                    // Convert existing number to array
-                    cart[variationId] = [];
-                }
-                
-                cart[variationId].push({ quantity, modifiers });
-            }
-        });
-        
-        return cart;
-    };
+
 
     const addItem = async (variationId, modifiers = undefined) => {
-        // Compute new cart state
+        // Compute new cart state using utility function
         const computeNewCart = (currentCart) => {
             const newCart = { ...currentCart };
-            
-            // If no modifiers, simple increment (existing behavior)
-            if (!modifiers || modifiers.length === 0) {
-                if (typeof newCart[variationId] === 'number' || !newCart[variationId]) {
-                    newCart[variationId] = (newCart[variationId] || 0) + 1;
-                } else {
-                    // Cart has array (modifiers), but adding without modifiers
-                    // Add to array with empty modifiers
-                    newCart[variationId] = Array.isArray(newCart[variationId]) ? [...newCart[variationId]] : [];
-                    const existingIndex = newCart[variationId].findIndex(entry => entry.modifiers.length === 0);
-                    if (existingIndex >= 0) {
-                        newCart[variationId][existingIndex] = {
-                            ...newCart[variationId][existingIndex],
-                            quantity: newCart[variationId][existingIndex].quantity + 1
-                        };
-                    } else {
-                        newCart[variationId].push({ quantity: 1, modifiers: [] });
-                    }
-                }
-            } else {
-                // Has modifiers - use array structure
-                if (!newCart[variationId] || typeof newCart[variationId] === 'number') {
-                    newCart[variationId] = [];
-                } else {
-                    newCart[variationId] = [...newCart[variationId]];
-                }
-                
-                // Find matching modifiers entry
-                const existingIndex = newCart[variationId].findIndex(entry => 
-                    matchModifiers(entry.modifiers, modifiers)
-                );
-                
-                if (existingIndex >= 0) {
-                    // Increment existing entry
-                    newCart[variationId][existingIndex] = {
-                        ...newCart[variationId][existingIndex],
-                        quantity: newCart[variationId][existingIndex].quantity + 1
-                    };
-                } else {
-                    // Create new entry
-                    newCart[variationId].push({ quantity: 1, modifiers });
-                }
-            }
-            
+            newCart[variationId] = addToCartEntry(newCart[variationId], modifiers);
             return newCart;
         };
         
@@ -201,55 +130,15 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
         // Guard: don't remove if item doesn't exist in cart
         if (!cart[variationId]) return;
         
-        // Compute new cart state
+        // Compute new cart state using utility function
         const computeNewCart = (currentCart) => {
             const newCart = { ...currentCart };
+            const updatedValue = removeFromCartEntry(newCart[variationId], modifiers);
             
-            // Handle simple number case (no modifiers)
-            if (typeof newCart[variationId] === 'number') {
-                newCart[variationId] = Math.max(0, newCart[variationId] - 1);
-                if (newCart[variationId] === 0) {
-                    delete newCart[variationId];
-                }
-            } else if (Array.isArray(newCart[variationId])) {
-                // Handle array case (with modifiers)
-                newCart[variationId] = [...newCart[variationId]];
-                
-                if (!modifiers || modifiers.length === 0) {
-                    // Remove from entry without modifiers
-                    const existingIndex = newCart[variationId].findIndex(entry => entry.modifiers.length === 0);
-                    if (existingIndex >= 0) {
-                        newCart[variationId][existingIndex] = {
-                            ...newCart[variationId][existingIndex],
-                            quantity: newCart[variationId][existingIndex].quantity - 1
-                        };
-                        
-                        if (newCart[variationId][existingIndex].quantity <= 0) {
-                            newCart[variationId].splice(existingIndex, 1);
-                        }
-                    }
-                } else {
-                    // Remove from entry with matching modifiers
-                    const existingIndex = newCart[variationId].findIndex(entry => 
-                        matchModifiers(entry.modifiers, modifiers)
-                    );
-                    
-                    if (existingIndex >= 0) {
-                        newCart[variationId][existingIndex] = {
-                            ...newCart[variationId][existingIndex],
-                            quantity: newCart[variationId][existingIndex].quantity - 1
-                        };
-                        
-                        if (newCart[variationId][existingIndex].quantity <= 0) {
-                            newCart[variationId].splice(existingIndex, 1);
-                        }
-                    }
-                }
-                
-                // Remove key if array is empty
-                if (newCart[variationId].length === 0) {
-                    delete newCart[variationId];
-                }
+            if (updatedValue === null) {
+                delete newCart[variationId];
+            } else {
+                newCart[variationId] = updatedValue;
             }
             
             return newCart;
@@ -263,33 +152,15 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
         // Guard: don't remove if item doesn't exist in cart
         if (!cart[variationId]) return;
         
-        // Compute new cart state
+        // Compute new cart state using utility function
         const computeNewCart = (currentCart) => {
             const newCart = { ...currentCart };
+            const updatedValue = removeEntireCartEntry(newCart[variationId], modifiers);
             
-            // If value is number, delete completely
-            if (typeof newCart[variationId] === 'number') {
+            if (updatedValue === null) {
                 delete newCart[variationId];
-            }
-            // If value is array and modifiers specified, remove only matching entry
-            else if (Array.isArray(newCart[variationId]) && modifiers) {
-                newCart[variationId] = [...newCart[variationId]];
-                const existingIndex = newCart[variationId].findIndex(entry => 
-                    matchModifiers(entry.modifiers, modifiers)
-                );
-                
-                if (existingIndex >= 0) {
-                    newCart[variationId].splice(existingIndex, 1);
-                }
-                
-                // Remove key if array is empty
-                if (newCart[variationId].length === 0) {
-                    delete newCart[variationId];
-                }
-            }
-            // If no modifiers specified, delete completely
-            else {
-                delete newCart[variationId];
+            } else {
+                newCart[variationId] = updatedValue;
             }
             
             return newCart;
@@ -322,9 +193,9 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
             }
         } catch (err) {
             // Capture cart clear errors
-            if (process.env.NODE_ENV === 'production') {
+            if (process.env.NODE_ENV === "production") {
                 Sentry.captureException(err, {
-                    tags: { component: 'OrderMenuClient', action: 'clear_cart' },
+                    tags: { component: "OrderMenuClient", action: "clear_cart" },
                     contexts: { cart: { order_id: orderId } }
                 });
             }
@@ -336,11 +207,11 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
         if (!orderId) return;
         
         // Add Sentry breadcrumb for proceed to checkout
-        if (process.env.NODE_ENV === 'production') {
+        if (process.env.NODE_ENV === "production") {
             Sentry.addBreadcrumb({
-                message: 'Proceed to checkout clicked',
-                category: 'cart',
-                level: 'info',
+                message: "Proceed to checkout clicked",
+                category: "cart",
+                level: "info",
                 data: {
                     order_id: orderId,
                     item_count: Object.keys(cart).length
