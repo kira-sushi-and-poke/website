@@ -15,6 +15,7 @@ import PreOrderBanner from "@/components/PreOrderBanner";
 import { getOrderFromStorage, saveOrderToStorage, clearOrderFromStorage } from "@/lib/storage";
 import { TOASTER_CONFIG, TOAST_MESSAGES } from "@/lib/constants";
 import { matchModifiers } from "@/lib/arrayUtils";
+import { useCartMutation } from "@/hooks/useCartMutation";
 
 export default function OrderMenuClient({ menuData, restaurantStatus }) {
     const router = useRouter();
@@ -22,10 +23,19 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
     const [orderId, setOrderId] = useState(null);
     const [version, setVersion] = useState(null);
     const [orderInitError, setOrderInitError] = useState(null);
-    const [updatingItems, setUpdatingItems] = useState(new Set());
     const [isInitializing, setIsInitializing] = useState(true);
     const [isPaidOrder, setIsPaidOrder] = useState(false); // Flag for already paid orders
     const [isMounted, setIsMounted] = useState(false);
+
+    // Initialize cart mutation hook
+    const { executeMutation, updatingItems } = useCartMutation(
+        cart,
+        setCart,
+        version,
+        setVersion,
+        orderId,
+        updateOrderItems
+    );
 
     const { isOpen } = restaurantStatus;
 
@@ -133,244 +143,160 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
     };
 
     const addItem = async (variationId, modifiers = undefined) => {
-        if (!orderId || updatingItems.has(variationId)) return;
-        
-        // Optimistically update cart
-        const newCart = { ...cart };
-        
-        // If no modifiers, simple increment (existing behavior)
-        if (!modifiers || modifiers.length === 0) {
-            if (typeof newCart[variationId] === 'number' || !newCart[variationId]) {
-                newCart[variationId] = (newCart[variationId] || 0) + 1;
-            } else {
-                // Cart has array (modifiers), but adding without modifiers
-                // Add to array with empty modifiers
-                newCart[variationId] = Array.isArray(newCart[variationId]) ? [...newCart[variationId]] : [];
-                const existingIndex = newCart[variationId].findIndex(entry => entry.modifiers.length === 0);
-                if (existingIndex >= 0) {
-                    newCart[variationId][existingIndex] = {
-                        ...newCart[variationId][existingIndex],
-                        quantity: newCart[variationId][existingIndex].quantity + 1
-                    };
-                } else {
-                    newCart[variationId].push({ quantity: 1, modifiers: [] });
-                }
-            }
-        } else {
-            // Has modifiers - use array structure
-            if (!newCart[variationId] || typeof newCart[variationId] === 'number') {
-                newCart[variationId] = [];
-            } else {
-                newCart[variationId] = [...newCart[variationId]];
-            }
+        // Compute new cart state
+        const computeNewCart = (currentCart) => {
+            const newCart = { ...currentCart };
             
-            // Find matching modifiers entry
-            const existingIndex = newCart[variationId].findIndex(entry => 
-                matchModifiers(entry.modifiers, modifiers)
-            );
-            
-            if (existingIndex >= 0) {
-                // Increment existing entry
-                newCart[variationId][existingIndex] = {
-                    ...newCart[variationId][existingIndex],
-                    quantity: newCart[variationId][existingIndex].quantity + 1
-                };
-            } else {
-                // Create new entry
-                newCart[variationId].push({ quantity: 1, modifiers });
-            }
-        }
-        
-        setCart(newCart);
-        
-        // Mark item as updating
-        setUpdatingItems(prev => new Set(prev).add(variationId));
-        
-        try {
-            const result = await updateOrderItems(orderId, version, newCart);
-            
-            if (result.success) {
-                // Update version in state and localStorage
-                setVersion(result.version);
-                saveOrderToStorage(orderId, result.version);
-                toast.success(TOAST_MESSAGES.CART_ITEM_ADDED);
-            } else if (result.isConflict) {
-                // Conflict detected - revert optimistic update
-                setCart(cart);
-                toast.error("Cart was modified elsewhere. Please refresh the page to see the latest.");
-            } else {
-                // Revert optimistic update
-                setCart(cart);
-                toast.error(result.error || "Failed to update cart", { duration: 10000 });
-            }
-        } catch (err) {
-            // Revert optimistic update
-            setCart(cart);
-            toast.error("Failed to update cart", { duration: 10000 });
-        } finally {
-            // Remove updating state
-            setUpdatingItems(prev => {
-                const newSet = new Set(prev);
-                newSet.delete(variationId);
-                return newSet;
-            });
-        }
-    };
-
-    const removeItem = async (variationId, modifiers = undefined) => {
-        if (!orderId || !cart[variationId] || updatingItems.has(variationId)) return;
-        
-        // Optimistically update cart
-        const newCart = { ...cart };
-        
-        // Handle simple number case (no modifiers)
-        if (typeof newCart[variationId] === 'number') {
-            newCart[variationId] = Math.max(0, newCart[variationId] - 1);
-            if (newCart[variationId] === 0) {
-                delete newCart[variationId];
-            }
-        } else if (Array.isArray(newCart[variationId])) {
-            // Handle array case (with modifiers)
-            newCart[variationId] = [...newCart[variationId]];
-            
+            // If no modifiers, simple increment (existing behavior)
             if (!modifiers || modifiers.length === 0) {
-                // Remove from entry without modifiers
-                const existingIndex = newCart[variationId].findIndex(entry => entry.modifiers.length === 0);
-                if (existingIndex >= 0) {
-                    newCart[variationId][existingIndex] = {
-                        ...newCart[variationId][existingIndex],
-                        quantity: newCart[variationId][existingIndex].quantity - 1
-                    };
-                    
-                    if (newCart[variationId][existingIndex].quantity <= 0) {
-                        newCart[variationId].splice(existingIndex, 1);
+                if (typeof newCart[variationId] === 'number' || !newCart[variationId]) {
+                    newCart[variationId] = (newCart[variationId] || 0) + 1;
+                } else {
+                    // Cart has array (modifiers), but adding without modifiers
+                    // Add to array with empty modifiers
+                    newCart[variationId] = Array.isArray(newCart[variationId]) ? [...newCart[variationId]] : [];
+                    const existingIndex = newCart[variationId].findIndex(entry => entry.modifiers.length === 0);
+                    if (existingIndex >= 0) {
+                        newCart[variationId][existingIndex] = {
+                            ...newCart[variationId][existingIndex],
+                            quantity: newCart[variationId][existingIndex].quantity + 1
+                        };
+                    } else {
+                        newCart[variationId].push({ quantity: 1, modifiers: [] });
                     }
                 }
             } else {
-                // Remove from entry with matching modifiers
+                // Has modifiers - use array structure
+                if (!newCart[variationId] || typeof newCart[variationId] === 'number') {
+                    newCart[variationId] = [];
+                } else {
+                    newCart[variationId] = [...newCart[variationId]];
+                }
+                
+                // Find matching modifiers entry
                 const existingIndex = newCart[variationId].findIndex(entry => 
                     matchModifiers(entry.modifiers, modifiers)
                 );
                 
                 if (existingIndex >= 0) {
+                    // Increment existing entry
                     newCart[variationId][existingIndex] = {
                         ...newCart[variationId][existingIndex],
-                        quantity: newCart[variationId][existingIndex].quantity - 1
+                        quantity: newCart[variationId][existingIndex].quantity + 1
                     };
-                    
-                    if (newCart[variationId][existingIndex].quantity <= 0) {
-                        newCart[variationId].splice(existingIndex, 1);
-                    }
+                } else {
+                    // Create new entry
+                    newCart[variationId].push({ quantity: 1, modifiers });
                 }
             }
             
-            // Remove key if array is empty
-            if (newCart[variationId].length === 0) {
-                delete newCart[variationId];
-            }
-        }
+            return newCart;
+        };
         
-        setCart(newCart);
+        // Execute mutation using the hook
+        await executeMutation(variationId, computeNewCart, TOAST_MESSAGES.CART_ITEM_ADDED);
+    };
+
+    const removeItem = async (variationId, modifiers = undefined) => {
+        // Guard: don't remove if item doesn't exist in cart
+        if (!cart[variationId]) return;
         
-        // Mark item as updating
-        setUpdatingItems(prev => new Set(prev).add(variationId));
-        
-        try {
-            const result = await updateOrderItems(orderId, version, newCart);
+        // Compute new cart state
+        const computeNewCart = (currentCart) => {
+            const newCart = { ...currentCart };
             
-            if (result.success) {
-                // Update version in state and localStorage
-                setVersion(result.version);
-                saveOrderToStorage(orderId, result.version);
-                toast.success(TOAST_MESSAGES.CART_ITEM_REMOVED);
-            } else if (result.isConflict) {
-                // Conflict detected - revert optimistic update
-                setCart(cart);
-                toast.error(TOAST_MESSAGES.CART_CONFLICT);
-            } else {
-                // Revert optimistic update
-                setCart(cart);
-                toast.error(result.error || TOAST_MESSAGES.CART_UPDATE_FAILED, { duration: 10000 });
+            // Handle simple number case (no modifiers)
+            if (typeof newCart[variationId] === 'number') {
+                newCart[variationId] = Math.max(0, newCart[variationId] - 1);
+                if (newCart[variationId] === 0) {
+                    delete newCart[variationId];
+                }
+            } else if (Array.isArray(newCart[variationId])) {
+                // Handle array case (with modifiers)
+                newCart[variationId] = [...newCart[variationId]];
+                
+                if (!modifiers || modifiers.length === 0) {
+                    // Remove from entry without modifiers
+                    const existingIndex = newCart[variationId].findIndex(entry => entry.modifiers.length === 0);
+                    if (existingIndex >= 0) {
+                        newCart[variationId][existingIndex] = {
+                            ...newCart[variationId][existingIndex],
+                            quantity: newCart[variationId][existingIndex].quantity - 1
+                        };
+                        
+                        if (newCart[variationId][existingIndex].quantity <= 0) {
+                            newCart[variationId].splice(existingIndex, 1);
+                        }
+                    }
+                } else {
+                    // Remove from entry with matching modifiers
+                    const existingIndex = newCart[variationId].findIndex(entry => 
+                        matchModifiers(entry.modifiers, modifiers)
+                    );
+                    
+                    if (existingIndex >= 0) {
+                        newCart[variationId][existingIndex] = {
+                            ...newCart[variationId][existingIndex],
+                            quantity: newCart[variationId][existingIndex].quantity - 1
+                        };
+                        
+                        if (newCart[variationId][existingIndex].quantity <= 0) {
+                            newCart[variationId].splice(existingIndex, 1);
+                        }
+                    }
+                }
+                
+                // Remove key if array is empty
+                if (newCart[variationId].length === 0) {
+                    delete newCart[variationId];
+                }
             }
-        } catch (err) {
-            // Revert optimistic update
-            setCart(cart);
-            toast.error(TOAST_MESSAGES.CART_UPDATE_FAILED, { duration: 10000 });
-        } finally {
-            // Remove updating state
-            setUpdatingItems(prev => {
-                const newSet = new Set(prev);
-                newSet.delete(variationId);
-                return newSet;
-            });
-        }
+            
+            return newCart;
+        };
+        
+        // Execute mutation using the hook
+        await executeMutation(variationId, computeNewCart, TOAST_MESSAGES.CART_ITEM_REMOVED);
     };
 
     const removeItemCompletely = async (variationId, modifiers = undefined) => {
-        if (!orderId || !cart[variationId] || updatingItems.has(variationId)) return;
+        // Guard: don't remove if item doesn't exist in cart
+        if (!cart[variationId]) return;
         
-        // Optimistically remove item from cart
-        const newCart = { ...cart };
-        
-        // If value is number, delete completely
-        if (typeof newCart[variationId] === 'number') {
-            delete newCart[variationId];
-        }
-        // If value is array and modifiers specified, remove only matching entry
-        else if (Array.isArray(newCart[variationId]) && modifiers) {
-            newCart[variationId] = [...newCart[variationId]];
-            const existingIndex = newCart[variationId].findIndex(entry => 
-                matchModifiers(entry.modifiers, modifiers)
-            );
+        // Compute new cart state
+        const computeNewCart = (currentCart) => {
+            const newCart = { ...currentCart };
             
-            if (existingIndex >= 0) {
-                newCart[variationId].splice(existingIndex, 1);
-            }
-            
-            // Remove key if array is empty
-            if (newCart[variationId].length === 0) {
+            // If value is number, delete completely
+            if (typeof newCart[variationId] === 'number') {
                 delete newCart[variationId];
             }
-        }
-        // If no modifiers specified, delete completely
-        else {
-            delete newCart[variationId];
-        }
-        
-        setCart(newCart);
-        
-        // Mark item as updating
-        setUpdatingItems(prev => new Set(prev).add(variationId));
-        
-        try {
-            const result = await updateOrderItems(orderId, version, newCart);
-            
-            if (result.success) {
-                // Update version in state and localStorage
-                setVersion(result.version);
-                saveOrderToStorage(orderId, result.version);
-                toast.success(TOAST_MESSAGES.CART_ITEM_REMOVED);
-            } else if (result.isConflict) {
-                // Conflict detected - revert optimistic update
-                setCart(cart);
-                toast.error(TOAST_MESSAGES.CART_CONFLICT);
-            } else {
-                // Revert optimistic update
-                setCart(cart);
-                toast.error(result.error || TOAST_MESSAGES.CART_UPDATE_FAILED, { duration: 10000 });
+            // If value is array and modifiers specified, remove only matching entry
+            else if (Array.isArray(newCart[variationId]) && modifiers) {
+                newCart[variationId] = [...newCart[variationId]];
+                const existingIndex = newCart[variationId].findIndex(entry => 
+                    matchModifiers(entry.modifiers, modifiers)
+                );
+                
+                if (existingIndex >= 0) {
+                    newCart[variationId].splice(existingIndex, 1);
+                }
+                
+                // Remove key if array is empty
+                if (newCart[variationId].length === 0) {
+                    delete newCart[variationId];
+                }
             }
-        } catch (err) {
-            // Revert optimistic update
-            setCart(cart);
-            toast.error(TOAST_MESSAGES.CART_UPDATE_FAILED, { duration: 10000 });
-        } finally {
-            // Remove updating state
-            setUpdatingItems(prev => {
-                const newSet = new Set(prev);
-                newSet.delete(variationId);
-                return newSet;
-            });
-        }
+            // If no modifiers specified, delete completely
+            else {
+                delete newCart[variationId];
+            }
+            
+            return newCart;
+        };
+        
+        // Execute mutation using the hook
+        await executeMutation(variationId, computeNewCart, TOAST_MESSAGES.CART_ITEM_REMOVED);
     };
 
     const clearCart = async () => {
