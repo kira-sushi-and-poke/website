@@ -1,5 +1,5 @@
 import React from "react";
-import { DEFAULT_OPENING_HOURS_TEXT, UK_TZ } from "@/lib/constants";
+import { DEFAULT_OPENING_HOURS_TEXT, UK_TZ, CONTACT_INFO } from "@/lib/constants";
 import SpecialHoursNotice from "./SpecialHoursNotice";
 import { isToday, isTomorrow } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
@@ -22,14 +22,14 @@ const LocationInfo = ({ openingHoursText, restaurantStatus }) => {
                 <div>
                     <h3 className="font-heading text-hot-pink mb-3">Address</h3>
                     <address className="not-italic text-gray-700 text-base md:text-lg leading-relaxed mb-4">
-                        Kira Sushi and Poke<br />
-                        148 Front Street<br />
-                        Chester-le-Street<br />
-                        DH3 3AY<br />
-                        United Kingdom
+                        {CONTACT_INFO.name}<br />
+                        {CONTACT_INFO.address.street}<br />
+                        {CONTACT_INFO.address.city}<br />
+                        {CONTACT_INFO.address.postcode}<br />
+                        {CONTACT_INFO.address.country}
                     </address>
                     <a 
-                        href="https://www.google.com/maps/dir/?api=1&destination=148+Front+Street,Chester-le-Street,DH3+3AY,UK"
+                        href={CONTACT_INFO.maps.directions}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-2 bg-hot-pink text-white px-5 py-3 rounded-full font-semibold shadow-md active:scale-95 md:hover:bg-hot-pink/90 transition-all min-h-[44px]"
@@ -84,7 +84,7 @@ const LocationInfo = ({ openingHoursText, restaurantStatus }) => {
                 {/* Google Map */}
                 <div className="rounded-lg overflow-hidden shadow-soft">
                     <iframe 
-                        src="https://www.google.com/maps?q=148+Front+Street,+Chester-le-Street,+DH3+3AY,+UK&output=embed"
+                        src={CONTACT_INFO.maps.embed}
                         width="100%" 
                         height="300" 
                         style={{ border: 0 }}
@@ -92,6 +92,7 @@ const LocationInfo = ({ openingHoursText, restaurantStatus }) => {
                         loading="lazy" 
                         referrerPolicy="no-referrer-when-downgrade"
                         title="Kira Sushi and Poke Location"
+                        aria-label="Google Maps showing Kira Sushi and Poke location at 148 Front Street, Chester-le-Street"
                     ></iframe>
                 </div>
 

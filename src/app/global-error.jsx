@@ -3,7 +3,7 @@
 import React from "react";
 import * as Sentry from '@sentry/nextjs';
 
-export default function GlobalError({ error, reset }) {
+export default function GlobalError({ error }) {
     React.useEffect(() => {
         // Capture fatal errors in Sentry
         Sentry.captureException(error, { level: "fatal" });
@@ -74,15 +74,8 @@ export default function GlobalError({ error, reset }) {
 
                         <div className="flex gap-3 justify-center">
                             <button
-                                onClick={reset}
-                                className="bg-hot-pink text-white px-6 py-2 rounded-lg hover:bg-opacity-90 transition-colors font-medium"
-                            >
-                                Try Again
-                            </button>
-
-                            <button
                                 onClick={() => window.location.href = "/"}
-                                className="bg-gray-200 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                                className="bg-hot-pink text-white px-6 py-2 rounded-lg hover:bg-opacity-90 transition-colors font-medium"
                             >
                                 Go Home
                             </button>

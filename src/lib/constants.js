@@ -168,3 +168,110 @@ export const CATEGORY_CONFIG = {
     "drink": "drinks",
   }
 };
+
+/**
+ * Toast Notification Configuration
+ */
+export const TOASTER_CONFIG = {
+  position: "top-center",
+  toastOptions: {
+    duration: 3000,
+    style: {
+      marginTop: "100px",
+      fontSize: "14px",
+    },
+    success: {
+      duration: 3000,
+      style: {
+        background: "#D1FAE5",
+        color: "#065F46",
+        border: "1px solid #A7F3D0",
+        fontSize: "14px",
+      },
+      iconTheme: {
+        primary: "#10B981",
+        secondary: "#fff",
+      },
+    },
+    error: {
+      duration: 10000,
+      style: {
+        background: "#FEE2E2",
+        color: "#991B1B",
+        border: "1px solid #FECACA",
+        fontSize: "14px",
+      },
+      iconTheme: {
+        primary: "#EF4444",
+        secondary: "#fff",
+      },
+    },
+  },
+};
+
+/**
+ * Common Toast Messages
+ */
+export const TOAST_MESSAGES = {
+  // Cart messages
+  CART_UPDATE_FAILED: "Failed to update cart",
+  CART_CONFLICT: "Cart was modified elsewhere. Please refresh the page to see the latest.",
+  CART_ITEM_ADDED: "Item added to the cart",
+  CART_ITEM_REMOVED: "Item removed from the cart",
+  CART_CLEARED: "Cart cleared. Starting fresh order.",
+  
+  // Payment messages
+  PAYMENT_FAILED: "Payment failed. Please try again.",
+  PAYMENT_SUCCESS: "Payment successful! Redirecting...",
+  PAYMENT_PROCESSING_FAILED: "Payment processing failed. Please try again.",
+  PAYMENT_CONTACT_REQUIRED: "Please fill in all contact details below before paying.",
+  PAYMENT_PICKUP_TIME_REQUIRED: "Please select a pickup time (ASAP or schedule for later)",
+  PAYMENT_FIELDS_REQUIRED: "Please check all required fields",
+  
+  // Order messages
+  ORDER_INIT_FAILED: "Failed to initialize order. Please refresh the page.",
+  ORDER_CREATE_FAILED: "Failed to create new order",
+  ORDER_CLEAR_FAILED: "Failed to clear cart",
+};
+
+/**
+ * UI Configuration
+ */
+export const UI_CONFIG = {
+  fontWeights: {
+    semibold: "600",
+    bold: "700",
+  },
+  spacing: {
+    cardPadding: "p-4 md:p-6",
+    sectionSpacing: "space-y-4 md:space-y-6",
+  },
+};
+
+/**
+ * Contact Information
+ * Centralized restaurant contact details
+ */
+export const CONTACT_INFO = {
+  name: "Kira Sushi and Poke",
+  phone: {
+    display: "(123) 456-7890",
+    link: "tel:+1234567890",
+  },
+  address: {
+    street: "148 Front Street",
+    city: "Chester-le-Street",
+    postcode: "DH3 3AY",
+    country: "United Kingdom",
+    full: "148 Front Street, Chester-le-Street, DH3 3AY, United Kingdom",
+  },
+  social: {
+    // Add social media links here when available
+    // facebook: "https://facebook.com/...",
+    // instagram: "https://instagram.com/...",
+  },
+  maps: {
+    directions: "https://www.google.com/maps/dir/?api=1&destination=148+Front+Street,Chester-le-Street,DH3+3AY,UK",
+    embed: "https://www.google.com/maps?q=148+Front+Street,+Chester-le-Street,+DH3+3AY,+UK&output=embed",
+  },
+};

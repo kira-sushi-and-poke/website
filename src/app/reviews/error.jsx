@@ -3,7 +3,7 @@
 import React from "react";
 import * as Sentry from '@sentry/nextjs';
 
-export default function ReviewsError({ error, reset }) {
+export default function ReviewsError({ error }) {
     React.useEffect(() => {
         // Capture review errors in Sentry
         Sentry.captureException(error, {

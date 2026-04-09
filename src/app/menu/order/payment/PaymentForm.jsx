@@ -7,8 +7,9 @@ import * as Sentry from '@sentry/nextjs';
 import { PaymentForm, CreditCard, GooglePay, ApplePay } from "react-square-web-payments-sdk";
 import { generatePickupTimes } from "@/lib/generatePickupTimes";
 import { validateContactDetails, validatePickupTime } from "@/lib/validation";
+import { splitName } from "@/lib/splitName";
 import { processPayment } from "../actions";
-import { PICKUP_ASAP } from "@/lib/constants";
+import { PICKUP_ASAP, TOASTER_CONFIG, TOAST_MESSAGES } from "@/lib/constants";
 import PickupDetails from "./PickupDetails";
 
 export default function PaymentFormComponent({ orderId, totalAmount, openingHours, overridePeriods = [], restaurantStatus }) {
@@ -81,8 +82,6 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
   };
   
   const cardTokenizeResponseReceived = async (token, verifiedBuyer) => {
-    console.log('🔵 Payment callback triggered');
-    
     // Add Sentry breadcrumb for payment verification start
     if (process.env.NODE_ENV === 'production') {
       Sentry.addBreadcrumb({
@@ -112,15 +111,12 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
     try {
       // Check token status - handle cancel/error cases
       if (token.status === 'Cancel') {
-        console.log('❌ User cancelled payment');
         // User cancelled the payment sheet
         setIsProcessing(false);
         return;
       }
       
       if (token.status === 'Error' || token.status === 'Invalid') {
-        console.log('❌ Tokenization error');
-        
         // Add Sentry breadcrumb for tokenization error
         if (process.env.NODE_ENV === 'production') {
           Sentry.addBreadcrumb({
@@ -136,20 +132,17 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
         
         // Tokenization error
         setIsProcessing(false);
-        const errorMessage = token.errors?.[0]?.message || "Payment failed. Please try again.";
+        const errorMessage = token.errors?.[0]?.message || TOAST_MESSAGES.PAYMENT_FAILED;
         toast.error(errorMessage, { duration: 10000 });
         return;
       }
       
       if (token.status !== 'OK') {
-        console.log('❌ Unknown token status');
         // Unknown/Abort status
         setIsProcessing(false);
-        toast.error("Payment processing failed. Please try again.", { duration: 10000 });
+        toast.error(TOAST_MESSAGES.PAYMENT_PROCESSING_FAILED, { duration: 10000 });
         return;
       }
-      
-      console.log('✅ Token status OK');
       
       // Add Sentry breadcrumb for successful tokenization
       if (process.env.NODE_ENV === 'production') {
@@ -173,27 +166,21 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
                              paymentMethod === "Google Pay" ||
                              token.token.includes("cnon:");
       
-      console.log(isWalletPayment ? '📱 Wallet payment' : '💳 Credit card payment');
-      
       // Extract contact info
       let contactInfo = null;
       
       if (isWalletPayment) {
-        console.log('🔍 Extracting wallet contact info');
         // Try to get contact from wallet
         const walletContact = extractWalletContact(token);
         
         if (walletContact) {
-          console.log('✅ Wallet provided complete contact info');
           // Wallet provided complete info
           contactInfo = walletContact;
         } else {
-          console.log('⚠️ Wallet did not provide complete info, using manual form');
           // Wallet didn"t provide complete info - use manual form
           if (!contactDetails.email || !contactDetails.name || !contactDetails.phone) {
-            console.log('❌ Manual form incomplete');
             setIsProcessing(false);
-            toast.error("Please fill in all contact details below before paying.", { duration: 10000 });
+            toast.error(TOAST_MESSAGES.PAYMENT_CONTACT_REQUIRED, { duration: 10000 });
             return;
           }
           contactInfo = contactDetails;
@@ -202,22 +189,18 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
         // Always validate pickup time for all payments (ASAP or scheduled)
         const hasValidPickupTime = contactDetails.pickupTime && contactDetails.pickupTime !== "";
         if (!hasValidPickupTime) {
-          console.log('❌ No pickup time selected');
           setIsProcessing(false);
           setFormErrors(prev => ({
             ...prev,
             pickupTime: "Please select ASAP or choose a pickup time"
           }));
-          toast.error("Please select a pickup time (ASAP or schedule for later)", { duration: 10000 });
+          toast.error(TOAST_MESSAGES.PAYMENT_PICKUP_TIME_REQUIRED, { duration: 10000 });
           return;
         }
-        
-        console.log('✅ Pickup time selected');
         
         // Validate pickup time meets minimum lead time
         const pickupError = validatePickupTime(contactDetails.pickupTime);
         if (pickupError) {
-          console.log('❌ Pickup time validation failed');
           setIsProcessing(false);
           setFormErrors(prev => ({
             ...prev,
@@ -226,22 +209,15 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
           toast.error(pickupError, { duration: 10000 });
           return;
         }
-        
-        console.log('✅ Pickup time valid');
       } else {
-        console.log('🔍 Validating credit card form');
         // Credit card - validate manual form
         if (!validateContactForm()) {
-          console.log('❌ Contact form validation failed');
           setIsProcessing(false);
-          toast.error("Please check all required fields", { duration: 10000 });
+          toast.error(TOAST_MESSAGES.PAYMENT_FIELDS_REQUIRED, { duration: 10000 });
           return;
         }
-        console.log('✅ Contact form valid');
         contactInfo = contactDetails;
       }
-      
-      console.log('🚀 Calling processPayment');
       
       // Process payment
       const result = await processPayment(
@@ -255,20 +231,16 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
         tipAmount
       );
       
-      console.log(result.success ? '✅ Payment successful' : '❌ Payment failed');
-      
       if (result.success) {
         // Payment successful - redirect to confirmation
-        toast.success("Payment successful! Redirecting...");
+        toast.success(TOAST_MESSAGES.PAYMENT_SUCCESS);
         router.push(`/menu/order/confirmation?orderId=${orderId}`);
       } else {
         // Payment failed
-        toast.error(result.error || "Payment failed. Please try again.", { duration: 10000 });
+        toast.error(result.error || TOAST_MESSAGES.PAYMENT_FAILED, { duration: 10000 });
         setIsProcessing(false);
       }
     } catch (err) {
-      console.log('💥 Exception in payment flow');
-      
       // Capture unexpected client-side errors
       if (process.env.NODE_ENV === 'production') {
         Sentry.captureException(err, {
@@ -283,7 +255,7 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
         });
       }
       
-      toast.error("Payment failed. Please try again.", { duration: 10000 });
+      toast.error(TOAST_MESSAGES.PAYMENT_FAILED, { duration: 10000 });
       setIsProcessing(false);
     }
   };
@@ -311,13 +283,13 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
   const createVerificationDetails = useMemo(() => {
     return () => {
       const finalTotal = totalAmount + tipAmount;
-      const nameParts = contactDetails.name.trim().split(/\s+/);
+      const { firstName, lastName } = splitName(contactDetails.name);
       
       return {
         amount: (finalTotal / 100).toFixed(2),
         billingContact: {
-          givenName: nameParts.length === 1 ? nameParts[0] : nameParts.slice(0, -1).join(" "),
-          familyName: nameParts.length > 1 ? nameParts[nameParts.length - 1] : "",
+          givenName: firstName,
+          familyName: lastName,
           email: contactDetails.email,
           phone: contactDetails.phone,
         },
@@ -629,42 +601,7 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
         Payments are securely processed by Square
       </p>
       
-      <Toaster 
-        position="top-center"
-        toastOptions={{
-          duration: 3000,
-          style: {
-            marginTop: "100px",
-            fontSize: "14px",
-          },
-          success: {
-            duration: 3000,
-            style: {
-              background: "#D1FAE5",
-              color: "#065F46",
-              border: "1px solid #A7F3D0",
-              fontSize: "14px",
-            },
-            iconTheme: {
-              primary: "#10B981",
-              secondary: "#fff",
-            },
-          },
-          error: {
-            duration: Infinity,
-            style: {
-              background: "#FEE2E2",
-              color: "#991B1B",
-              border: "1px solid #FECACA",
-              fontSize: "14px",
-            },
-            iconTheme: {
-              primary: "#EF4444",
-              secondary: "#fff",
-            },
-          },
-        }}
-      />
+      <Toaster {...TOASTER_CONFIG} />
     </div>
     </>
           

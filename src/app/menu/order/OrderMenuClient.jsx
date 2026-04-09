@@ -13,6 +13,8 @@ import StickyCartSummary from "./StickyCartSummary";
 import LocalStorageModal from "@/components/LocalStorageModal";
 import PreOrderBanner from "@/components/PreOrderBanner";
 import { getOrderFromStorage, saveOrderToStorage, clearOrderFromStorage } from "@/lib/storage";
+import { TOASTER_CONFIG, TOAST_MESSAGES } from "@/lib/constants";
+import { matchModifiers } from "@/lib/arrayUtils";
 
 export default function OrderMenuClient({ menuData, restaurantStatus }) {
     const router = useRouter();
@@ -82,7 +84,7 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
                 setVersion(newVersion);
                 saveOrderToStorage(newOrderId, newVersion);
             } else {
-                toast.error(createError || "Failed to initialize order. Please refresh the page.");
+                toast.error(createError || TOAST_MESSAGES.ORDER_INIT_FAILED);
                 setOrderInitError(createError || "Failed to initialize order.");
             }
         } catch (err) {
@@ -92,7 +94,7 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
                     tags: { component: 'OrderMenuClient', action: 'initialize' }
                 });
             }
-            toast.error("Failed to initialize order. Please refresh the page.");
+            toast.error(TOAST_MESSAGES.ORDER_INIT_FAILED);
             setOrderInitError("Failed to initialize order.");
         } finally {
             setIsInitializing(false);
@@ -163,11 +165,8 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
             }
             
             // Find matching modifiers entry
-            const modifiersMatch = (a, b) => 
-                a.length === b.length && a.every(id => b.includes(id));
-            
             const existingIndex = newCart[variationId].findIndex(entry => 
-                modifiersMatch(entry.modifiers, modifiers)
+                matchModifiers(entry.modifiers, modifiers)
             );
             
             if (existingIndex >= 0) {
@@ -194,7 +193,7 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
                 // Update version in state and localStorage
                 setVersion(result.version);
                 saveOrderToStorage(orderId, result.version);
-                toast.success("Item added to the cart");
+                toast.success(TOAST_MESSAGES.CART_ITEM_ADDED);
             } else if (result.isConflict) {
                 // Conflict detected - revert optimistic update
                 setCart(cart);
@@ -249,11 +248,8 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
                 }
             } else {
                 // Remove from entry with matching modifiers
-                const modifiersMatch = (a, b) => 
-                    a.length === b.length && a.every(id => b.includes(id));
-                
                 const existingIndex = newCart[variationId].findIndex(entry => 
-                    modifiersMatch(entry.modifiers, modifiers)
+                    matchModifiers(entry.modifiers, modifiers)
                 );
                 
                 if (existingIndex >= 0) {
@@ -286,20 +282,20 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
                 // Update version in state and localStorage
                 setVersion(result.version);
                 saveOrderToStorage(orderId, result.version);
-                toast.success("Item removed from the cart");
+                toast.success(TOAST_MESSAGES.CART_ITEM_REMOVED);
             } else if (result.isConflict) {
                 // Conflict detected - revert optimistic update
                 setCart(cart);
-                toast.error("Cart was modified elsewhere. Please refresh the page to see the latest.");
+                toast.error(TOAST_MESSAGES.CART_CONFLICT);
             } else {
                 // Revert optimistic update
                 setCart(cart);
-                toast.error(result.error || "Failed to update cart", { duration: 10000 });
+                toast.error(result.error || TOAST_MESSAGES.CART_UPDATE_FAILED, { duration: 10000 });
             }
         } catch (err) {
             // Revert optimistic update
             setCart(cart);
-            toast.error("Failed to update cart", { duration: 10000 });
+            toast.error(TOAST_MESSAGES.CART_UPDATE_FAILED, { duration: 10000 });
         } finally {
             // Remove updating state
             setUpdatingItems(prev => {
@@ -323,11 +319,8 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
         // If value is array and modifiers specified, remove only matching entry
         else if (Array.isArray(newCart[variationId]) && modifiers) {
             newCart[variationId] = [...newCart[variationId]];
-            const modifiersMatch = (a, b) => 
-                a.length === b.length && a.every(id => b.includes(id));
-            
             const existingIndex = newCart[variationId].findIndex(entry => 
-                modifiersMatch(entry.modifiers, modifiers)
+                matchModifiers(entry.modifiers, modifiers)
             );
             
             if (existingIndex >= 0) {
@@ -356,20 +349,20 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
                 // Update version in state and localStorage
                 setVersion(result.version);
                 saveOrderToStorage(orderId, result.version);
-                toast.success("Item removed from the cart");
+                toast.success(TOAST_MESSAGES.CART_ITEM_REMOVED);
             } else if (result.isConflict) {
                 // Conflict detected - revert optimistic update
                 setCart(cart);
-                toast.error("Cart was modified elsewhere. Please refresh the page to see the latest.");
+                toast.error(TOAST_MESSAGES.CART_CONFLICT);
             } else {
                 // Revert optimistic update
                 setCart(cart);
-                toast.error(result.error || "Failed to update cart", { duration: 10000 });
+                toast.error(result.error || TOAST_MESSAGES.CART_UPDATE_FAILED, { duration: 10000 });
             }
         } catch (err) {
             // Revert optimistic update
             setCart(cart);
-            toast.error("Failed to update cart", { duration: 10000 });
+            toast.error(TOAST_MESSAGES.CART_UPDATE_FAILED, { duration: 10000 });
         } finally {
             // Remove updating state
             setUpdatingItems(prev => {
@@ -397,9 +390,9 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
                 setOrderId(newOrderId);
                 setVersion(newVersion);
                 saveOrderToStorage(newOrderId, newVersion);
-                toast.success("Cart cleared. Starting fresh order.");
+                toast.success(TOAST_MESSAGES.CART_CLEARED);
             } else {
-                toast.error(createError || "Failed to create new order", { duration: 10000 });
+                toast.error(createError || TOAST_MESSAGES.ORDER_CREATE_FAILED, { duration: 10000 });
             }
         } catch (err) {
             // Capture cart clear errors
@@ -409,7 +402,7 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
                     contexts: { cart: { order_id: orderId } }
                 });
             }
-            toast.error("Failed to clear cart", { duration: 10000 });
+            toast.error(TOAST_MESSAGES.ORDER_CLEAR_FAILED, { duration: 10000 });
         }
     };
 
@@ -527,42 +520,7 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
                 />
             )}
             
-            <Toaster 
-                position="top-center"
-                toastOptions={{
-                    duration: 3000,
-                    style: {
-                        marginTop: "100px",
-                        fontSize: "14px",
-                    },
-                    success: {
-                        duration: 3000,
-                        style: {
-                            background: "#D1FAE5",
-                            color: "#065F46",
-                            border: "1px solid #A7F3D0",
-                            fontSize: "14px",
-                        },
-                        iconTheme: {
-                            primary: "#10B981",
-                            secondary: "#fff",
-                        },
-                    },
-                    error: {
-                        duration: Infinity,
-                        style: {
-                            background: "#FEE2E2",
-                            color: "#991B1B",
-                            border: "1px solid #FECACA",
-                            fontSize: "14px",
-                        },
-                        iconTheme: {
-                            primary: "#EF4444",
-                            secondary: "#fff",
-                        },
-                    },
-                }}
-            />
+            <Toaster {...TOASTER_CONFIG} />
         </>
     );
 }
