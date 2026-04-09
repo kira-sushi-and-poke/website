@@ -27,51 +27,45 @@ export function addToCartEntry(currentValue, modifiers = undefined) {
   if (!modifiers || modifiers.length === 0) {
     if (typeof currentValue === "number" || !currentValue) {
       return (currentValue || 0) + 1;
-    } else {
-      // Cart has array (modifiers), but adding without modifiers
-      // Add to array with empty modifiers
-      const newArray = Array.isArray(currentValue) ? [...currentValue] : [];
-      const existingIndex = newArray.findIndex(entry => entry.modifiers.length === 0);
-      
-      if (existingIndex >= 0) {
-        newArray[existingIndex] = {
-          ...newArray[existingIndex],
-          quantity: newArray[existingIndex].quantity + 1
-        };
-      } else {
-        newArray.push({ quantity: 1, modifiers: [] });
-      }
-      
-      return newArray;
-    }
-  } else {
-    // Has modifiers - use array structure
-    let newArray;
-    
-    if (!currentValue || typeof currentValue === "number") {
-      newArray = [];
-    } else {
-      newArray = [...currentValue];
     }
     
-    // Find matching modifiers entry
-    const existingIndex = newArray.findIndex(entry => 
-      matchModifiers(entry.modifiers, modifiers)
-    );
+    // Cart has array (modifiers), but adding without modifiers
+    // Add to array with empty modifiers
+    const newArray = Array.isArray(currentValue) ? [...currentValue] : [];
+    const existingIndex = newArray.findIndex(entry => entry.modifiers.length === 0);
     
     if (existingIndex >= 0) {
-      // Increment existing entry
       newArray[existingIndex] = {
         ...newArray[existingIndex],
         quantity: newArray[existingIndex].quantity + 1
       };
     } else {
-      // Create new entry
-      newArray.push({ quantity: 1, modifiers });
+      newArray.push({ quantity: 1, modifiers: [] });
     }
     
     return newArray;
   }
+  
+  // Has modifiers - use array structure
+  const newArray = (!currentValue || typeof currentValue === "number") ? [] : [...currentValue];
+  
+  // Find matching modifiers entry
+  const existingIndex = newArray.findIndex(entry => 
+    matchModifiers(entry.modifiers, modifiers)
+  );
+  
+  if (existingIndex >= 0) {
+    // Increment existing entry
+    newArray[existingIndex] = {
+      ...newArray[existingIndex],
+      quantity: newArray[existingIndex].quantity + 1
+    };
+  } else {
+    // Create new entry
+    newArray.push({ quantity: 1, modifiers });
+  }
+  
+  return newArray;
 }
 
 /**
@@ -91,47 +85,49 @@ export function removeFromCartEntry(currentValue, modifiers = undefined) {
   if (typeof currentValue === "number") {
     const newValue = Math.max(0, currentValue - 1);
     return newValue === 0 ? null : newValue;
-  } else if (Array.isArray(currentValue)) {
-    // Handle array case (with modifiers)
-    const newArray = [...currentValue];
-    
-    if (!modifiers || modifiers.length === 0) {
-      // Remove from entry without modifiers
-      const existingIndex = newArray.findIndex(entry => entry.modifiers.length === 0);
-      
-      if (existingIndex >= 0) {
-        newArray[existingIndex] = {
-          ...newArray[existingIndex],
-          quantity: newArray[existingIndex].quantity - 1
-        };
-        
-        if (newArray[existingIndex].quantity <= 0) {
-          newArray.splice(existingIndex, 1);
-        }
-      }
-    } else {
-      // Remove from entry with matching modifiers
-      const existingIndex = newArray.findIndex(entry => 
-        matchModifiers(entry.modifiers, modifiers)
-      );
-      
-      if (existingIndex >= 0) {
-        newArray[existingIndex] = {
-          ...newArray[existingIndex],
-          quantity: newArray[existingIndex].quantity - 1
-        };
-        
-        if (newArray[existingIndex].quantity <= 0) {
-          newArray.splice(existingIndex, 1);
-        }
-      }
-    }
-    
-    // Return null if array is empty (remove from cart)
-    return newArray.length === 0 ? null : newArray;
   }
   
-  return null;
+  if (!Array.isArray(currentValue)) {
+    return null;
+  }
+  
+  // Handle array case (with modifiers)
+  const newArray = [...currentValue];
+  
+  if (!modifiers || modifiers.length === 0) {
+    // Remove from entry without modifiers
+    const existingIndex = newArray.findIndex(entry => entry.modifiers.length === 0);
+    
+    if (existingIndex >= 0) {
+      newArray[existingIndex] = {
+        ...newArray[existingIndex],
+        quantity: newArray[existingIndex].quantity - 1
+      };
+      
+      if (newArray[existingIndex].quantity <= 0) {
+        newArray.splice(existingIndex, 1);
+      }
+    }
+  } else {
+    // Remove from entry with matching modifiers
+    const existingIndex = newArray.findIndex(entry => 
+      matchModifiers(entry.modifiers, modifiers)
+    );
+    
+    if (existingIndex >= 0) {
+      newArray[existingIndex] = {
+        ...newArray[existingIndex],
+        quantity: newArray[existingIndex].quantity - 1
+      };
+      
+      if (newArray[existingIndex].quantity <= 0) {
+        newArray.splice(existingIndex, 1);
+      }
+    }
+  }
+  
+  // Return null if array is empty (remove from cart)
+  return newArray.length === 0 ? null : newArray;
 }
 
 /**
@@ -151,8 +147,14 @@ export function removeEntireCartEntry(currentValue, modifiers = undefined) {
   if (typeof currentValue === "number") {
     return null;
   }
+  
+  // If no modifiers specified, delete completely
+  if (!modifiers) {
+    return null;
+  }
+  
   // If value is array and modifiers specified, remove only matching entry
-  else if (Array.isArray(currentValue) && modifiers) {
+  if (Array.isArray(currentValue)) {
     const newArray = [...currentValue];
     const existingIndex = newArray.findIndex(entry => 
       matchModifiers(entry.modifiers, modifiers)
@@ -165,10 +167,9 @@ export function removeEntireCartEntry(currentValue, modifiers = undefined) {
     // Return null if array is empty
     return newArray.length === 0 ? null : newArray;
   }
-  // If no modifiers specified, delete completely
-  else {
-    return null;
-  }
+  
+  // Default: delete completely
+  return null;
 }
 
 /**
