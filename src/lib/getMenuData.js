@@ -168,6 +168,13 @@ function transformCatalog(catalogData) {
         // Extract VARIATION ordinal for sorting
         const variationOrdinal = variationData?.ordinal ?? 999999;
         
+        // Check if variation is sold out at current location
+        const locationOverrides = variationData?.location_overrides || [];
+        const isSoldOut = locationOverrides.some(override => override.sold_out === true);
+        
+        // Skip sold out items
+        if (isSoldOut) return;
+        
         // Only create menu item if variation has a price
         if (!priceData || !priceData.amount) return;
 

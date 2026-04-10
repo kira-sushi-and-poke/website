@@ -2,6 +2,7 @@
 
 import React from "react";
 import * as Sentry from '@sentry/nextjs';
+import { CONTACT_INFO } from "@/lib/constants";
 
 export default function MenuError({ error, reset }) {
     React.useEffect(() => {
@@ -42,7 +43,7 @@ export default function MenuError({ error, reset }) {
                 <p className="text-gray-600 mb-6">
                     You can reach us via{" "}
                     <a
-                        href="https://www.facebook.com/people/Kira-Sushi-Poke/61583413766423/"
+                        href={CONTACT_INFO.social.facebook}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-hot-pink hover:underline font-medium"
@@ -51,7 +52,7 @@ export default function MenuError({ error, reset }) {
                     </a>
                     {" "}or{" "}
                     <a
-                        href="https://www.instagram.com/kira_sushi_and_poke"
+                        href={CONTACT_INFO.social.instagram}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-hot-pink hover:underline font-medium"

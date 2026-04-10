@@ -2,6 +2,7 @@
 
 import React from "react";
 import * as Sentry from '@sentry/nextjs';
+import { CONTACT_INFO } from "@/lib/constants";
 
 export default function ReviewsError({ error }) {
     React.useEffect(() => {
@@ -59,7 +60,7 @@ export default function ReviewsError({ error }) {
                     </button>
 
                     <a
-                        href="https://www.facebook.com/people/Kira-Sushi-Poke/61583413766423/"
+                        href={CONTACT_INFO.social.facebook}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
@@ -68,7 +69,7 @@ export default function ReviewsError({ error }) {
                     </a>
 
                     <a
-                        href="https://www.instagram.com/kira_sushi_and_poke"
+                        href={CONTACT_INFO.social.instagram}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="bg-pink-600 text-white px-6 py-2 rounded-lg hover:bg-pink-700 transition-colors font-medium"

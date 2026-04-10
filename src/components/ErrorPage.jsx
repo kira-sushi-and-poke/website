@@ -1,4 +1,5 @@
 import React from "react";
+import { CONTACT_INFO } from "@/lib/constants";
 
 /**
  * Shared error page component
@@ -41,7 +42,7 @@ export default function ErrorPage({
                 <p className="text-gray-600 mb-6">
                     If the problem persists, please {buttonType === "button" ? "contact us" : "let us know"} via{" "}
                     <a
-                        href="https://www.facebook.com/people/Kira-Sushi-Poke/61583413766423/"
+                        href={CONTACT_INFO.social.facebook}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-hot-pink hover:underline font-medium"
@@ -50,7 +51,7 @@ export default function ErrorPage({
                     </a>
                     {" "}or{" "}
                     <a
-                        href="https://www.instagram.com/kira_sushi_and_poke"
+                        href={CONTACT_INFO.social.instagram}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-hot-pink hover:underline font-medium"

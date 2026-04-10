@@ -1,4 +1,5 @@
 import React from "react";
+import { CONTACT_INFO } from "@/lib/constants";
 
 export default function ErrorDisplay({ error }) {
     return (
@@ -31,7 +32,7 @@ export default function ErrorDisplay({ error }) {
             <p className="text-gray-600 mb-6">
                 You can reach us via{" "}
                 <a
-                    href="https://www.facebook.com/people/Kira-Sushi-Poke/61583413766423/"
+                    href={CONTACT_INFO.social.facebook}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-hot-pink hover:underline font-medium"
@@ -40,7 +41,7 @@ export default function ErrorDisplay({ error }) {
                 </a>
                 {" "}or{" "}
                 <a
-                    href="https://www.instagram.com/kira_sushi_and_poke"
+                    href={CONTACT_INFO.social.instagram}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-hot-pink hover:underline font-medium"

@@ -266,12 +266,13 @@ export const CONTACT_INFO = {
     full: "148 Front Street, Chester-le-Street, DH3 3AY, United Kingdom",
   },
   social: {
-    // Add social media links here when available
-    // facebook: "https://facebook.com/...",
-    // instagram: "https://instagram.com/...",
+    googleReviews: "https://www.google.com/maps/place/Kira+Sushi+%26+Poke/@54.8543708,-1.5734128,15z/data=!4m8!3m7!1s0x487e7d3063ec70ab:0x73eefb3105389bbe!8m2!3d54.8543708!4d-1.5734128!9m1!1b1!16s%2Fg%2F11y3g0dy8w",
+    facebook: "https://www.facebook.com/people/Kira-Sushi-Poke/61583413766423/",
+    tripadvisor: "https://www.tripadvisor.com/Restaurant_Review-g1156051-d34241645-Reviews-Kira_Sushi_and_Poke-Chester_le_Street_County_Durham_England.html",
+    instagram: "https://www.instagram.com/kira_sushi_and_poke",
   },
   maps: {
-    directions: "https://www.google.com/maps/dir/?api=1&destination=148+Front+Street,Chester-le-Street,DH3+3AY,UK",
-    embed: "https://www.google.com/maps?q=148+Front+Street,+Chester-le-Street,+DH3+3AY,+UK&output=embed",
+    directions: "https://www.google.com/maps/dir/?api=1&destination=Kira+Sushi+%26+Poke,+148+Front+St,+Chester-le-Street+DH3+3AY",
+    embed: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1148.3826793575272!2d-1.5734128000000687!3d54.854370800000005!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x487e7d3063ec70ab%3A0x73eefb3105389bbe!2sKira%20Sushi%20%26%20Poke!5e0!3m2!1sen!2suk!4v1775843239401!5m2!1sen!2suk",
   },
 };
