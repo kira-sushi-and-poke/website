@@ -33,11 +33,14 @@ export default function PaymentFormComponent({ orderId, totalAmount, openingHour
   const locationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID;
   const isProduction = process.env.NODE_ENV === "production";
   
+  // Check if restaurant is "closed until further notice"
+  const isClosedIndefinitely = !restaurantStatus?.nextOpenDate && restaurantStatus?.overrideActive;
+  
   // Generate pickup time options based on actual opening hours and mobile override periods
   React.useEffect(() => {
-    const times = generatePickupTimes(openingHours, overridePeriods);
+    const times = generatePickupTimes(openingHours, overridePeriods, undefined, isClosedIndefinitely);
     setPickupTimeOptions(times);
-  }, [openingHours, overridePeriods]);
+  }, [openingHours, overridePeriods, isClosedIndefinitely]);
   
   const validateContactForm = () => {
     const { isValid, errors } = validateContactDetails(contactDetails);

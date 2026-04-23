@@ -38,7 +38,10 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
         updateOrderItems
     );
 
-    const { isOpen } = restaurantStatus;
+    const { isOpen, nextOpenDate, overrideActive } = restaurantStatus;
+    
+    // Check if restaurant is "closed until further notice"
+    const isClosedIndefinitely = !nextOpenDate && overrideActive;
 
     // Set mounted state to prevent hydration mismatch
     useEffect(() => {
@@ -295,15 +298,15 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
                 <MenuList 
                     menuItems={menuData} 
                     cart={cart}
-                    addItem={isPaidOrder ? () => {} : addItem}
-                    removeItem={isPaidOrder ? () => {} : removeItem}
+                    addItem={(isPaidOrder || isClosedIndefinitely) ? () => {} : addItem}
+                    removeItem={(isPaidOrder || isClosedIndefinitely) ? () => {} : removeItem}
                     updatingItems={updatingItems}
-                    isOrderMode={true}
+                    isOrderMode={!isClosedIndefinitely}
                 />
             </div>
 
-            {/* Sticky Cart Summary - Hide when paid order */}
-            {!isPaidOrder && (
+            {/* Sticky Cart Summary - Hide when paid order or closed indefinitely */}
+            {!isPaidOrder && !isClosedIndefinitely && (
                 <StickyCartSummary 
                     cart={cart}
                     menuData={menuData}
