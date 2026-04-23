@@ -1,4 +1,4 @@
-import { DEFAULT_OPENING_HOURS_SCHEMA } from "../lib/constants";
+import { DEFAULT_OPENING_HOURS_SCHEMA, CONTACT_INFO } from "../lib/constants";
 
 // Restaurant Business Information
 export const restaurantInfo = {
@@ -19,8 +19,8 @@ export const restaurantInfo = {
   openingHours: DEFAULT_OPENING_HOURS_SCHEMA,
   
   socialMedia: {
-    facebook: "https://www.facebook.com/people/Kira-Sushi-Poke/61583413766423/",
-    instagram: "https://www.instagram.com/kira_sushi_and_poke"
+    facebook: CONTACT_INFO.social.facebook,
+    instagram: CONTACT_INFO.social.instagram
   },
   
   // SEO

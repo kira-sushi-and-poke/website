@@ -13,6 +13,10 @@ import StickyCartSummary from "./StickyCartSummary";
 import LocalStorageModal from "@/components/LocalStorageModal";
 import PreOrderBanner from "@/components/PreOrderBanner";
 import { getOrderFromStorage, saveOrderToStorage, clearOrderFromStorage } from "@/lib/storage";
+import { TOASTER_CONFIG, TOAST_MESSAGES } from "@/lib/constants";
+import { useCartMutation } from "@/hooks/useCartMutation";
+import { addToCartEntry, removeFromCartEntry, removeEntireCartEntry } from "@/lib/cartOperations";
+import { rehydrateCartFromOrder } from "@/lib/cartUtils";
 
 export default function OrderMenuClient({ menuData, restaurantStatus }) {
     const router = useRouter();
@@ -20,12 +24,24 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
     const [orderId, setOrderId] = useState(null);
     const [version, setVersion] = useState(null);
     const [orderInitError, setOrderInitError] = useState(null);
-    const [updatingItems, setUpdatingItems] = useState(new Set());
     const [isInitializing, setIsInitializing] = useState(true);
     const [isPaidOrder, setIsPaidOrder] = useState(false); // Flag for already paid orders
     const [isMounted, setIsMounted] = useState(false);
 
-    const { isOpen } = restaurantStatus;
+    // Initialize cart mutation hook
+    const { executeMutation, updatingItems } = useCartMutation(
+        cart,
+        setCart,
+        version,
+        setVersion,
+        orderId,
+        updateOrderItems
+    );
+
+    const { isOpen, nextOpenDate, overrideActive } = restaurantStatus;
+    
+    // Check if restaurant is "closed until further notice"
+    const isClosedIndefinitely = !nextOpenDate && overrideActive;
 
     // Set mounted state to prevent hydration mismatch
     useEffect(() => {
@@ -82,302 +98,79 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
                 setVersion(newVersion);
                 saveOrderToStorage(newOrderId, newVersion);
             } else {
-                toast.error(createError || "Failed to initialize order. Please refresh the page.");
+                toast.error(createError || TOAST_MESSAGES.ORDER_INIT_FAILED);
                 setOrderInitError(createError || "Failed to initialize order.");
             }
         } catch (err) {
             // Capture order initialization errors
-            if (process.env.NODE_ENV === 'production') {
+            if (process.env.NODE_ENV === "production") {
                 Sentry.captureException(err, {
-                    tags: { component: 'OrderMenuClient', action: 'initialize' }
+                    tags: { component: "OrderMenuClient", action: "initialize" }
                 });
             }
-            toast.error("Failed to initialize order. Please refresh the page.");
+            toast.error(TOAST_MESSAGES.ORDER_INIT_FAILED);
             setOrderInitError("Failed to initialize order.");
         } finally {
             setIsInitializing(false);
         }
     };
 
-    const rehydrateCartFromOrder = (order) => {
-        if (!order.line_items) return {};
-        
-        const cart = {};
-        
-        order.line_items.forEach(item => {
-            if (!item.catalog_object_id) return;
-            
-            const variationId = item.catalog_object_id;
-            const quantity = parseInt(item.quantity);
-            const modifiers = item.modifiers?.map(m => m.catalog_object_id) || [];
-            
-            // If no modifiers, store as simple number (backward compatible)
-            if (modifiers.length === 0) {
-                cart[variationId] = (cart[variationId] || 0) + quantity;
-            } else {
-                // If has modifiers, store as array
-                if (!cart[variationId]) {
-                    cart[variationId] = [];
-                } else if (typeof cart[variationId] === 'number') {
-                    // Convert existing number to array
-                    cart[variationId] = [];
-                }
-                
-                cart[variationId].push({ quantity, modifiers });
-            }
-        });
-        
-        return cart;
-    };
+
 
     const addItem = async (variationId, modifiers = undefined) => {
-        if (!orderId || updatingItems.has(variationId)) return;
+        // Compute new cart state using utility function
+        const computeNewCart = (currentCart) => {
+            const newCart = { ...currentCart };
+            newCart[variationId] = addToCartEntry(newCart[variationId], modifiers);
+            return newCart;
+        };
         
-        // Optimistically update cart
-        const newCart = { ...cart };
-        
-        // If no modifiers, simple increment (existing behavior)
-        if (!modifiers || modifiers.length === 0) {
-            if (typeof newCart[variationId] === 'number' || !newCart[variationId]) {
-                newCart[variationId] = (newCart[variationId] || 0) + 1;
-            } else {
-                // Cart has array (modifiers), but adding without modifiers
-                // Add to array with empty modifiers
-                newCart[variationId] = Array.isArray(newCart[variationId]) ? [...newCart[variationId]] : [];
-                const existingIndex = newCart[variationId].findIndex(entry => entry.modifiers.length === 0);
-                if (existingIndex >= 0) {
-                    newCart[variationId][existingIndex] = {
-                        ...newCart[variationId][existingIndex],
-                        quantity: newCart[variationId][existingIndex].quantity + 1
-                    };
-                } else {
-                    newCart[variationId].push({ quantity: 1, modifiers: [] });
-                }
-            }
-        } else {
-            // Has modifiers - use array structure
-            if (!newCart[variationId] || typeof newCart[variationId] === 'number') {
-                newCart[variationId] = [];
-            } else {
-                newCart[variationId] = [...newCart[variationId]];
-            }
-            
-            // Find matching modifiers entry
-            const modifiersMatch = (a, b) => 
-                a.length === b.length && a.every(id => b.includes(id));
-            
-            const existingIndex = newCart[variationId].findIndex(entry => 
-                modifiersMatch(entry.modifiers, modifiers)
-            );
-            
-            if (existingIndex >= 0) {
-                // Increment existing entry
-                newCart[variationId][existingIndex] = {
-                    ...newCart[variationId][existingIndex],
-                    quantity: newCart[variationId][existingIndex].quantity + 1
-                };
-            } else {
-                // Create new entry
-                newCart[variationId].push({ quantity: 1, modifiers });
-            }
-        }
-        
-        setCart(newCart);
-        
-        // Mark item as updating
-        setUpdatingItems(prev => new Set(prev).add(variationId));
-        
-        try {
-            const result = await updateOrderItems(orderId, version, newCart);
-            
-            if (result.success) {
-                // Update version in state and localStorage
-                setVersion(result.version);
-                saveOrderToStorage(orderId, result.version);
-                toast.success("Item added to the cart");
-            } else if (result.isConflict) {
-                // Conflict detected - revert optimistic update
-                setCart(cart);
-                toast.error("Cart was modified elsewhere. Please refresh the page to see the latest.");
-            } else {
-                // Revert optimistic update
-                setCart(cart);
-                toast.error(result.error || "Failed to update cart", { duration: 10000 });
-            }
-        } catch (err) {
-            // Revert optimistic update
-            setCart(cart);
-            toast.error("Failed to update cart", { duration: 10000 });
-        } finally {
-            // Remove updating state
-            setUpdatingItems(prev => {
-                const newSet = new Set(prev);
-                newSet.delete(variationId);
-                return newSet;
-            });
-        }
+        // Execute mutation using the hook
+        await executeMutation(variationId, computeNewCart, TOAST_MESSAGES.CART_ITEM_ADDED);
     };
 
     const removeItem = async (variationId, modifiers = undefined) => {
-        if (!orderId || !cart[variationId] || updatingItems.has(variationId)) return;
+        // Guard: don't remove if item doesn't exist in cart
+        if (!cart[variationId]) return;
         
-        // Optimistically update cart
-        const newCart = { ...cart };
-        
-        // Handle simple number case (no modifiers)
-        if (typeof newCart[variationId] === 'number') {
-            newCart[variationId] = Math.max(0, newCart[variationId] - 1);
-            if (newCart[variationId] === 0) {
+        // Compute new cart state using utility function
+        const computeNewCart = (currentCart) => {
+            const newCart = { ...currentCart };
+            const updatedValue = removeFromCartEntry(newCart[variationId], modifiers);
+            
+            if (updatedValue === null) {
                 delete newCart[variationId];
-            }
-        } else if (Array.isArray(newCart[variationId])) {
-            // Handle array case (with modifiers)
-            newCart[variationId] = [...newCart[variationId]];
-            
-            if (!modifiers || modifiers.length === 0) {
-                // Remove from entry without modifiers
-                const existingIndex = newCart[variationId].findIndex(entry => entry.modifiers.length === 0);
-                if (existingIndex >= 0) {
-                    newCart[variationId][existingIndex] = {
-                        ...newCart[variationId][existingIndex],
-                        quantity: newCart[variationId][existingIndex].quantity - 1
-                    };
-                    
-                    if (newCart[variationId][existingIndex].quantity <= 0) {
-                        newCart[variationId].splice(existingIndex, 1);
-                    }
-                }
             } else {
-                // Remove from entry with matching modifiers
-                const modifiersMatch = (a, b) => 
-                    a.length === b.length && a.every(id => b.includes(id));
-                
-                const existingIndex = newCart[variationId].findIndex(entry => 
-                    modifiersMatch(entry.modifiers, modifiers)
-                );
-                
-                if (existingIndex >= 0) {
-                    newCart[variationId][existingIndex] = {
-                        ...newCart[variationId][existingIndex],
-                        quantity: newCart[variationId][existingIndex].quantity - 1
-                    };
-                    
-                    if (newCart[variationId][existingIndex].quantity <= 0) {
-                        newCart[variationId].splice(existingIndex, 1);
-                    }
-                }
+                newCart[variationId] = updatedValue;
             }
             
-            // Remove key if array is empty
-            if (newCart[variationId].length === 0) {
-                delete newCart[variationId];
-            }
-        }
+            return newCart;
+        };
         
-        setCart(newCart);
-        
-        // Mark item as updating
-        setUpdatingItems(prev => new Set(prev).add(variationId));
-        
-        try {
-            const result = await updateOrderItems(orderId, version, newCart);
-            
-            if (result.success) {
-                // Update version in state and localStorage
-                setVersion(result.version);
-                saveOrderToStorage(orderId, result.version);
-                toast.success("Item removed from the cart");
-            } else if (result.isConflict) {
-                // Conflict detected - revert optimistic update
-                setCart(cart);
-                toast.error("Cart was modified elsewhere. Please refresh the page to see the latest.");
-            } else {
-                // Revert optimistic update
-                setCart(cart);
-                toast.error(result.error || "Failed to update cart", { duration: 10000 });
-            }
-        } catch (err) {
-            // Revert optimistic update
-            setCart(cart);
-            toast.error("Failed to update cart", { duration: 10000 });
-        } finally {
-            // Remove updating state
-            setUpdatingItems(prev => {
-                const newSet = new Set(prev);
-                newSet.delete(variationId);
-                return newSet;
-            });
-        }
+        // Execute mutation using the hook
+        await executeMutation(variationId, computeNewCart, TOAST_MESSAGES.CART_ITEM_REMOVED);
     };
 
     const removeItemCompletely = async (variationId, modifiers = undefined) => {
-        if (!orderId || !cart[variationId] || updatingItems.has(variationId)) return;
+        // Guard: don't remove if item doesn't exist in cart
+        if (!cart[variationId]) return;
         
-        // Optimistically remove item from cart
-        const newCart = { ...cart };
-        
-        // If value is number, delete completely
-        if (typeof newCart[variationId] === 'number') {
-            delete newCart[variationId];
-        }
-        // If value is array and modifiers specified, remove only matching entry
-        else if (Array.isArray(newCart[variationId]) && modifiers) {
-            newCart[variationId] = [...newCart[variationId]];
-            const modifiersMatch = (a, b) => 
-                a.length === b.length && a.every(id => b.includes(id));
+        // Compute new cart state using utility function
+        const computeNewCart = (currentCart) => {
+            const newCart = { ...currentCart };
+            const updatedValue = removeEntireCartEntry(newCart[variationId], modifiers);
             
-            const existingIndex = newCart[variationId].findIndex(entry => 
-                modifiersMatch(entry.modifiers, modifiers)
-            );
-            
-            if (existingIndex >= 0) {
-                newCart[variationId].splice(existingIndex, 1);
-            }
-            
-            // Remove key if array is empty
-            if (newCart[variationId].length === 0) {
+            if (updatedValue === null) {
                 delete newCart[variationId];
-            }
-        }
-        // If no modifiers specified, delete completely
-        else {
-            delete newCart[variationId];
-        }
-        
-        setCart(newCart);
-        
-        // Mark item as updating
-        setUpdatingItems(prev => new Set(prev).add(variationId));
-        
-        try {
-            const result = await updateOrderItems(orderId, version, newCart);
-            
-            if (result.success) {
-                // Update version in state and localStorage
-                setVersion(result.version);
-                saveOrderToStorage(orderId, result.version);
-                toast.success("Item removed from the cart");
-            } else if (result.isConflict) {
-                // Conflict detected - revert optimistic update
-                setCart(cart);
-                toast.error("Cart was modified elsewhere. Please refresh the page to see the latest.");
             } else {
-                // Revert optimistic update
-                setCart(cart);
-                toast.error(result.error || "Failed to update cart", { duration: 10000 });
+                newCart[variationId] = updatedValue;
             }
-        } catch (err) {
-            // Revert optimistic update
-            setCart(cart);
-            toast.error("Failed to update cart", { duration: 10000 });
-        } finally {
-            // Remove updating state
-            setUpdatingItems(prev => {
-                const newSet = new Set(prev);
-                newSet.delete(variationId);
-                return newSet;
-            });
-        }
+            
+            return newCart;
+        };
+        
+        // Execute mutation using the hook
+        await executeMutation(variationId, computeNewCart, TOAST_MESSAGES.CART_ITEM_REMOVED);
     };
 
     const clearCart = async () => {
@@ -397,19 +190,19 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
                 setOrderId(newOrderId);
                 setVersion(newVersion);
                 saveOrderToStorage(newOrderId, newVersion);
-                toast.success("Cart cleared. Starting fresh order.");
+                toast.success(TOAST_MESSAGES.CART_CLEARED);
             } else {
-                toast.error(createError || "Failed to create new order", { duration: 10000 });
+                toast.error(createError || TOAST_MESSAGES.ORDER_CREATE_FAILED, { duration: 10000 });
             }
         } catch (err) {
             // Capture cart clear errors
-            if (process.env.NODE_ENV === 'production') {
+            if (process.env.NODE_ENV === "production") {
                 Sentry.captureException(err, {
-                    tags: { component: 'OrderMenuClient', action: 'clear_cart' },
+                    tags: { component: "OrderMenuClient", action: "clear_cart" },
                     contexts: { cart: { order_id: orderId } }
                 });
             }
-            toast.error("Failed to clear cart", { duration: 10000 });
+            toast.error(TOAST_MESSAGES.ORDER_CLEAR_FAILED, { duration: 10000 });
         }
     };
 
@@ -417,11 +210,11 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
         if (!orderId) return;
         
         // Add Sentry breadcrumb for proceed to checkout
-        if (process.env.NODE_ENV === 'production') {
+        if (process.env.NODE_ENV === "production") {
             Sentry.addBreadcrumb({
-                message: 'Proceed to checkout clicked',
-                category: 'cart',
-                level: 'info',
+                message: "Proceed to checkout clicked",
+                category: "cart",
+                level: "info",
                 data: {
                     order_id: orderId,
                     item_count: Object.keys(cart).length
@@ -505,15 +298,15 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
                 <MenuList 
                     menuItems={menuData} 
                     cart={cart}
-                    addItem={isPaidOrder ? () => {} : addItem}
-                    removeItem={isPaidOrder ? () => {} : removeItem}
+                    addItem={(isPaidOrder || isClosedIndefinitely) ? () => {} : addItem}
+                    removeItem={(isPaidOrder || isClosedIndefinitely) ? () => {} : removeItem}
                     updatingItems={updatingItems}
-                    isOrderMode={true}
+                    isOrderMode={!isClosedIndefinitely}
                 />
             </div>
 
-            {/* Sticky Cart Summary - Hide when paid order */}
-            {!isPaidOrder && (
+            {/* Sticky Cart Summary - Hide when paid order or closed indefinitely */}
+            {!isPaidOrder && !isClosedIndefinitely && (
                 <StickyCartSummary 
                     cart={cart}
                     menuData={menuData}
@@ -527,42 +320,7 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
                 />
             )}
             
-            <Toaster 
-                position="top-center"
-                toastOptions={{
-                    duration: 3000,
-                    style: {
-                        marginTop: "100px",
-                        fontSize: "14px",
-                    },
-                    success: {
-                        duration: 3000,
-                        style: {
-                            background: "#D1FAE5",
-                            color: "#065F46",
-                            border: "1px solid #A7F3D0",
-                            fontSize: "14px",
-                        },
-                        iconTheme: {
-                            primary: "#10B981",
-                            secondary: "#fff",
-                        },
-                    },
-                    error: {
-                        duration: Infinity,
-                        style: {
-                            background: "#FEE2E2",
-                            color: "#991B1B",
-                            border: "1px solid #FECACA",
-                            fontSize: "14px",
-                        },
-                        iconTheme: {
-                            primary: "#EF4444",
-                            secondary: "#fff",
-                        },
-                    },
-                }}
-            />
+            <Toaster {...TOASTER_CONFIG} />
         </>
     );
 }

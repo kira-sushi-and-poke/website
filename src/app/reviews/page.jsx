@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Reviews from "@/components/Reviews";
+import { CONTACT_INFO } from "@/lib/constants";
 
 const ReviewsPage = () => {
     return (
@@ -43,7 +44,7 @@ const ReviewsPage = () => {
                 </p>
                 <div className="flex flex-wrap justify-center gap-4">
                     <a
-                        href="https://www.google.com/search?q=kira+sushi+and+poke"
+                        href={CONTACT_INFO.social.googleReviews}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-2 bg-white text-gray-700 px-6 py-3 rounded-full font-semibold border-2 border-hot-pink hover:bg-hot-pink hover:text-white transition-colors"
@@ -52,7 +53,7 @@ const ReviewsPage = () => {
                         Google
                     </a>
                     <a
-                        href="https://www.facebook.com/people/Kira-Sushi-Poke/61583413766423/"
+                        href={CONTACT_INFO.social.facebook}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-2 bg-white text-gray-700 px-6 py-3 rounded-full font-semibold border-2 border-hot-pink hover:bg-hot-pink hover:text-white transition-colors"
@@ -61,7 +62,7 @@ const ReviewsPage = () => {
                         Facebook
                     </a>
                     <a
-                        href="https://www.tripadvisor.com/Restaurant_Review-g1156051-d34241645-Reviews-Kira_Sushi_and_Poke-Chester_le_Street_County_Durham_England.html"
+                        href={CONTACT_INFO.social.tripadvisor}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-2 bg-white text-gray-700 px-6 py-3 rounded-full font-semibold border-2 border-hot-pink hover:bg-hot-pink hover:text-white transition-colors"

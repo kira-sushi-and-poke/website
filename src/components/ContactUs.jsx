@@ -1,4 +1,5 @@
 import React from "react";
+import { CONTACT_INFO } from "@/lib/constants";
 
 const ContactUs = () => {
     return (
@@ -15,7 +16,7 @@ const ContactUs = () => {
             </p>
             <div className="space-y-3 mb-6">
                 <a 
-                    href="https://www.instagram.com/kira_sushi_and_poke" 
+                    href={CONTACT_INFO.social.instagram} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg shadow-sm active:shadow-md md:hover:shadow-md transition-all group min-h-[60px] border border-purple-100"
@@ -28,7 +29,7 @@ const ContactUs = () => {
                     <i className="fas fa-arrow-right text-gray-400 group-hover:text-hot-pink transition-colors"></i>
                 </a>
                 <a 
-                    href="https://www.facebook.com/people/Kira-Sushi-Poke/61583413766423/" 
+                    href={CONTACT_INFO.social.facebook} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-sm active:shadow-md md:hover:shadow-md transition-all group min-h-[60px] border border-blue-100"

@@ -9,13 +9,20 @@ import { PICKUP_LEAD_TIME_MINUTES, UK_TZ } from './constants';
  * @param {Object} openingHours - Physical opening hours by day {Monday: {open: "11:00", close: "19:00"}, ...}
  * @param {Array} overridePeriods - Optional mobile override periods from checkRestaurantStatus [{date, dayName, periods}, ...]
  * @param {number} minLeadTimeMinutes - Minimum lead time from now (default: 30 minutes)
+ * @param {boolean} isClosedIndefinitely - True if restaurant is closed until further notice (prevents fallback to physical hours)
  * @returns {Array<{label: string, value: string}>} Array of time options
  */
 export function generatePickupTimes(
   openingHours,
   overridePeriods = [],
-  minLeadTimeMinutes = PICKUP_LEAD_TIME_MINUTES
+  minLeadTimeMinutes = PICKUP_LEAD_TIME_MINUTES,
+  isClosedIndefinitely = false
 ) {
+  // If closed until further notice, return no pickup times
+  if (isClosedIndefinitely) {
+    return [];
+  }
+  
   const times = [];
   
   // Get current time in UK timezone

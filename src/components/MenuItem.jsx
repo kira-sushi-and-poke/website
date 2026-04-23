@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import SauceSelector from "./SauceSelector";
+import { matchModifiers } from "@/lib/arrayUtils";
 
 const MenuItem = ({ 
     name, 
@@ -40,11 +41,8 @@ const MenuItem = ({
         // Array case (with modifiers) - find matching entry
         if (Array.isArray(cartValue) && modifiers && modifiers.length > 0) {
             const selectedModifiers = [modifiers[selectedModifierIndex].id];
-            const modifiersMatch = (a, b) => 
-                a.length === b.length && a.every(id => b.includes(id));
-            
             const matchingEntry = cartValue.find(entry => 
-                modifiersMatch(entry.modifiers, selectedModifiers)
+                matchModifiers(entry.modifiers, selectedModifiers)
             );
             
             return matchingEntry ? matchingEntry.quantity : 0;

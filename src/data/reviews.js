@@ -9,6 +9,14 @@ export const reviews = {
         comment: "Ordered from here for the first time tonight and very much enjoyed! Well-sized portions, reasonable prices and delicious food - we will happily visit again",
         date: "3 April 2026",
         platform: "google"
+    },
+    {
+        id: 2,
+        name: "Ash Canvin",
+        rating: 5,
+        comment: "First time trying this place and won't be the last. We had a mixture of curries sushi rolls both vegetarian and non veggie. So tasty and fresh. Portion sizes are really good, bigger than what they appear in the pictures. Packaging and presentation was great too.",
+        date: "17 April 2026",
+        platform: "google"
     }],
     facebook: [
         {

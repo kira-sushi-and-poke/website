@@ -1,23 +1,22 @@
-"use client";
-
 import React from "react";
-import * as Sentry from '@sentry/nextjs';
 import { CONTACT_INFO } from "@/lib/constants";
 
-export default function MenuError({ error, reset }) {
-    React.useEffect(() => {
-        // Capture menu errors in Sentry
-        Sentry.captureException(error, {
-            tags: { page: 'menu' }
-        });
-    }, [error]);
-
+/**
+ * Shared error page component
+ * Used by both error.jsx and global-error.jsx for consistent error UI
+ */
+export default function ErrorPage({ 
+    title = "Oops! Something went wrong",
+    message = "We apologize for the inconvenience. Please try refreshing the page or return to the homepage.",
+    errorDetails = null,
+    buttonType = "link" // "link" or "button"
+}) {
     return (
-        <div className="container mx-auto px-4 py-8">
-            <div className="max-w-2xl mx-auto bg-white shadow-lg rounded-lg p-8 text-center">
+        <div className="flex items-center justify-center bg-gray-50 px-4 py-12">
+            <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-8 text-center">
                 <div className="mb-4">
                     <svg
-                        className="mx-auto h-16 w-16 text-yellow"
+                        className="mx-auto h-16 w-16 text-red-500"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -27,21 +26,21 @@ export default function MenuError({ error, reset }) {
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             strokeWidth={2}
-                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                         />
                     </svg>
                 </div>
 
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                    Unable to Load Menu
+                    {title}
                 </h2>
 
                 <p className="text-gray-600 mb-4">
-                    We're having trouble loading our menu right now. Please try again or contact us directly to place your order.
+                    {message}
                 </p>
 
                 <p className="text-gray-600 mb-6">
-                    You can reach us via{" "}
+                    If the problem persists, please {buttonType === "button" ? "contact us" : "let us know"} via{" "}
                     <a
                         href={CONTACT_INFO.social.facebook}
                         target="_blank"
@@ -62,31 +61,33 @@ export default function MenuError({ error, reset }) {
                     .
                 </p>
 
-                {process.env.NODE_ENV === "development" && (
+                {process.env.NODE_ENV === "development" && errorDetails && (
                     <details className="mb-6 text-left">
                         <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">
                             Error details (development only)
                         </summary>
                         <pre className="mt-2 text-xs bg-gray-100 p-3 rounded overflow-auto max-h-40">
-                            {error.message}
+                            {errorDetails.message || errorDetails?.toString() || "Unknown error"}
                         </pre>
                     </details>
                 )}
 
-                <div className="flex gap-3 justify-center flex-wrap">
-                    <button
-                        onClick={reset}
-                        className="bg-hot-pink text-white px-6 py-2 rounded-lg hover:bg-opacity-90 transition-colors font-medium"
-                    >
-                        Try Again
-                    </button>
-
-                    <a
-                        href="/"
-                        className="bg-gray-200 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors font-medium"
-                    >
-                        Go Home
-                    </a>
+                <div className="flex gap-3 justify-center">
+                    {buttonType === "link" ? (
+                        <a
+                            href="/"
+                            className="bg-hot-pink text-white px-6 py-2 rounded-lg hover:bg-opacity-90 transition-colors font-medium"
+                        >
+                            Go Home
+                        </a>
+                    ) : (
+                        <button
+                            onClick={() => window.location.href = "/"}
+                            className="bg-hot-pink text-white px-6 py-2 rounded-lg hover:bg-opacity-90 transition-colors font-medium"
+                        >
+                            Go Home
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

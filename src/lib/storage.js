@@ -3,18 +3,30 @@
  */
 
 /**
+ * Wrapper for localStorage operations with error handling
+ * @param {Function} fn - The localStorage operation to execute
+ * @param {*} defaultReturn - Default value to return on error
+ * @returns {*} Result of the operation or defaultReturn on error
+ */
+function withLocalStorageError(fn, defaultReturn = false) {
+  try {
+    return fn();
+  } catch (error) {
+    return defaultReturn;
+  }
+}
+
+/**
  * Check if localStorage is available and can be used
  * @returns {boolean} True if localStorage is available
  */
 export function isLocalStorageAvailable() {
-  try {
+  return withLocalStorageError(() => {
     const testKey = "__storage_test__";
     localStorage.setItem(testKey, "test");
     localStorage.removeItem(testKey);
     return true;
-  } catch (e) {
-    return false;
-  }
+  }, false);
 }
 
 /**
@@ -22,13 +34,11 @@ export function isLocalStorageAvailable() {
  * @returns {Object|null} Order object { orderId, version } or null if not found
  */
 export function getOrderFromStorage() {
-  try {
+  return withLocalStorageError(() => {
     const storedOrder = localStorage.getItem("order");
     if (!storedOrder) return null;
     return JSON.parse(storedOrder);
-  } catch (error) {
-    return null;
-  }
+  }, null);
 }
 
 /**
@@ -38,12 +48,10 @@ export function getOrderFromStorage() {
  * @returns {boolean} True if save was successful
  */
 export function saveOrderToStorage(orderId, version) {
-  try {
+  return withLocalStorageError(() => {
     localStorage.setItem("order", JSON.stringify({ orderId, version }));
     return true;
-  } catch (error) {
-    return false;
-  }
+  }, false);
 }
 
 /**
@@ -51,10 +59,8 @@ export function saveOrderToStorage(orderId, version) {
  * @returns {boolean} True if removal was successful
  */
 export function clearOrderFromStorage() {
-  try {
+  return withLocalStorageError(() => {
     localStorage.removeItem("order");
     return true;
-  } catch (error) {
-    return false;
-  }
+  }, false);
 }

@@ -1,6 +1,7 @@
 import React from "react";
 import FAQAccordion from "./FAQAccordion";
 import { getLocationData } from "@/lib/getLocationData";
+import { CONTACT_INFO } from "@/lib/constants";
 
 // Revalidate every 3 minutes to keep opening hours fresh
 export const revalidate = 180;
@@ -93,7 +94,7 @@ const FAQPage = async () => {
                     </p>
                     <div className="flex justify-center gap-4">
                         <a
-                            href="https://www.instagram.com/kira_sushi_and_poke"
+                            href={CONTACT_INFO.social.instagram}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="bg-hot-pink text-white px-6 py-3 rounded-lg hover:bg-yellow transition-colors font-bold"
@@ -102,7 +103,7 @@ const FAQPage = async () => {
                             Instagram
                         </a>
                         <a
-                            href="https://www.facebook.com/people/Kira-Sushi-Poke/61583413766423/"
+                            href={CONTACT_INFO.social.facebook}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="bg-hot-pink text-white px-6 py-3 rounded-lg hover:bg-yellow transition-colors font-bold"
