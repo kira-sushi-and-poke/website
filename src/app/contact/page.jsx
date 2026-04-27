@@ -35,7 +35,7 @@ const ContactPage = async () => {
                     <h2 className="font-heading text-hot-pink mb-4">
                         Location and hours
                     </h2>
-                    <LocationInfo openingHoursText={openingHoursText} restaurantStatus={restaurantStatus} />
+                    <LocationInfo openingHoursText={openingHoursText} openingHours={openingHours} restaurantStatus={restaurantStatus} />
                 </div>
 
                 {/* Contact Methods */}

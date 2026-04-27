@@ -1,18 +1,17 @@
 import React from "react";
 import FAQAccordion from "./FAQAccordion";
-import { getLocationData } from "@/lib/getLocationData";
 import { CONTACT_INFO } from "@/lib/constants";
+import Link from "next/link";
 
 // Revalidate every 3 minutes to keep opening hours fresh
 export const revalidate = 180;
 
-const FAQPage = async () => {
-    const { openingHoursText } = await getLocationData();
-
+const FAQPage = () => {
     const faqs = [
         {
             question: "What are your opening hours?",
-            answer: `We're open ${openingHoursText.sentence}. Check our social media for any holiday hours or special closures.`
+            answer: <span>We're open Tuesday to Sunday from 12:00 PM. We close at 7:00 PM Sunday to Thursday, and 7:30 PM on Fridays and Saturdays. We are closed on Mondays. Check our <Link href="/contact" className="text-hot-pink underline hover:text-yellow transition-colors">contact page</Link> or social media for holiday hours and special closures.</span>,
+            schemaAnswer: "We're open Tuesday to Sunday from 12:00 PM. We close at 7:00 PM Sunday to Thursday, and 7:30 PM on Fridays and Saturdays. We are closed on Mondays. Check our contact page or social media for holiday hours and special closures."
         },
     {
         question: "Do you offer delivery?",
@@ -61,7 +60,7 @@ const FAQPage = async () => {
             "name": faq.question,
             "acceptedAnswer": {
                 "@type": "Answer",
-                "text": faq.answer
+                "text": typeof faq.answer === "string" ? faq.answer : faq.schemaAnswer ?? ""
             }
         }))
     };
@@ -92,7 +91,13 @@ const FAQPage = async () => {
                     <p className="text-gray-700 mb-4">
                         We're here to help! Get in touch with us through social media for quick responses.
                     </p>
-                    <div className="flex justify-center gap-4">
+                    <div className="flex justify-center gap-4 flex-wrap">
+                        <Link
+                            href="/contact"
+                            className="bg-yellow text-white px-6 py-3 rounded-lg hover:bg-hot-pink transition-colors font-bold"
+                        >
+                            Contact us
+                        </Link>
                         <a
                             href={CONTACT_INFO.social.instagram}
                             target="_blank"

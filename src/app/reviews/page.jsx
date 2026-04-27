@@ -28,7 +28,7 @@ const ReviewsPage = () => {
                         </p>
                         <p className="text-center font-semibold">
                             <strong>148 Front Street, Chester-le-Street, DH3 3AY</strong><br />
-                            Open 7 days | 11am - 7pm
+                            <Link href="/contact" className="text-hot-pink hover:underline">See opening hours</Link>
                         </p>
                     </div>
                 </div>
@@ -40,7 +40,7 @@ const ReviewsPage = () => {
                     Leave us a review!
                 </h2>
                 <p className="text-gray-700 mb-6">
-                    We'd love to hear about your experience. Share your thoughts on your favorite platform!
+                    We'd love to hear about your experience. Share your thoughts on your favorite platform — and see what others are saying too!
                 </p>
                 <div className="flex flex-wrap justify-center gap-4">
                     <a
