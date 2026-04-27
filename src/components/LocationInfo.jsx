@@ -1,12 +1,18 @@
 import React from "react";
-import { DEFAULT_OPENING_HOURS_TEXT, UK_TZ, CONTACT_INFO } from "@/lib/constants";
+import { DEFAULT_OPENING_HOURS_TEXT, DEFAULT_OPENING_HOURS, UK_TZ, CONTACT_INFO } from "@/lib/constants";
+import { convertTo12Hour } from "@/lib/formatTime";
 import SpecialHoursNotice from "./SpecialHoursNotice";
 import { isToday, isTomorrow } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 
-const LocationInfo = ({ openingHoursText, restaurantStatus }) => {
+const DISPLAY_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+const LocationInfo = ({ openingHoursText, openingHours, restaurantStatus }) => {
     // Use provided text or fallback to centralized default
     const hoursText = openingHoursText || DEFAULT_OPENING_HOURS_TEXT;
+    const hours = openingHours || DEFAULT_OPENING_HOURS;
+    // Get today's day name in UK timezone (server-safe)
+    const todayName = formatInTimeZone(new Date(), UK_TZ, 'EEEE');
     
     const { isOpen, closingSoon, nextOpenDate, overrideActive } = restaurantStatus || {};
 
@@ -20,28 +26,8 @@ const LocationInfo = ({ openingHoursText, restaurantStatus }) => {
             <div className="bg-white rounded-lg p-4 md:p-6 shadow-md border border-gray-100">
             <div className="space-y-5 md:space-y-6">
                 <div>
-                    <h3 className="font-heading text-hot-pink mb-3">Address</h3>
-                    <address className="not-italic text-gray-700 text-base md:text-lg leading-relaxed mb-4">
-                        {CONTACT_INFO.name}<br />
-                        {CONTACT_INFO.address.street}<br />
-                        {CONTACT_INFO.address.city}<br />
-                        {CONTACT_INFO.address.postcode}<br />
-                        {CONTACT_INFO.address.country}
-                    </address>
-                    <a 
-                        href={CONTACT_INFO.maps.directions}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 bg-hot-pink text-white px-5 py-3 rounded-full font-semibold shadow-md active:scale-95 md:hover:bg-hot-pink/90 transition-all min-h-[44px]"
-                    >
-                        <i className="fas fa-directions"></i>
-                        Get Directions
-                    </a>
-                </div>
-
-                <div>
                     <h3 className="font-heading text-hot-pink mb-3">
-                        <i className="fas fa-clock"></i> {overrideActive && restaurantStatus.mobileLocationName ? restaurantStatus.mobileLocationName : 'Opening hours'}
+                        {overrideActive && restaurantStatus?.mobileLocationName ? restaurantStatus.mobileLocationName : 'Opening hours'}
                     </h3>
                     
                     {/* Current Status */}
@@ -75,10 +61,40 @@ const LocationInfo = ({ openingHoursText, restaurantStatus }) => {
                         </div>
                     )}
                     
-                    <div className="text-gray-700 leading-relaxed">
-                        <p className="text-base md:text-lg">{hoursText.days}</p>
-                        <p className="font-bold text-lg md:text-xl">{hoursText.times}</p>
-                    </div>
+                    <ul className="space-y-2">
+                        {DISPLAY_DAYS.map((day) => {
+                            const dayHours = hours[day];
+                            const isToday = day === todayName;
+                            return (
+                                <li key={day} className={`flex justify-between items-center border-b border-gray-100 pb-1.5 ${isToday ? "font-bold" : ""}`}>
+                                    <span className={`text-sm md:text-base ${isToday ? "text-hot-pink" : "text-gray-700"}`}>{day}</span>
+                                    <span className={`text-sm md:text-base ${isToday ? "text-hot-pink" : "text-gray-600"}`}>
+                                        {dayHours ? `${convertTo12Hour(dayHours.open)} – ${convertTo12Hour(dayHours.close)}` : "Closed"}
+                                    </span>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 className="font-heading text-hot-pink mb-3">Address</h3>
+                    <address className="not-italic text-gray-700 text-base md:text-lg leading-relaxed mb-4">
+                        {CONTACT_INFO.name}<br />
+                        {CONTACT_INFO.address.street}<br />
+                        {CONTACT_INFO.address.city}<br />
+                        {CONTACT_INFO.address.postcode}<br />
+                        {CONTACT_INFO.address.country}
+                    </address>
+                    <a 
+                        href={CONTACT_INFO.maps.directions}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 bg-hot-pink text-white px-5 py-3 rounded-full font-semibold shadow-md active:scale-95 md:hover:bg-hot-pink/90 transition-all min-h-[44px]"
+                    >
+                        <i className="fas fa-directions"></i>
+                        Get Directions
+                    </a>
                 </div>
                 
                 {/* Google Map */}

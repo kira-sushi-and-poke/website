@@ -457,6 +457,21 @@ export function checkRestaurantStatus(openingHours, mobileLocationData = null, i
   // No mobile override - use physical hours (existing logic)
   const todayHours = openingHours[getCurrentDay()];
   const currentTime = getCurrentTimeInMinutes();
+
+  // If today has no hours entry, the restaurant is closed all day
+  if (!todayHours) {
+    return {
+      isOpen: false,
+      closingSoon: false,
+      todayHours: null,
+      nextOpenDate: calculateNextOpenFromPhysical(openingHours),
+      overrideActive: false,
+      overridePeriods: [],
+      isTodayOnly: false,
+      mobileLocationName: null
+    };
+  }
+
   const openTime = timeToMinutes(todayHours.open);
   const closeTime = timeToMinutes(todayHours.close);
   

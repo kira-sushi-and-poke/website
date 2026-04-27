@@ -6,6 +6,8 @@ import { convertTo12Hour } from "@/lib/formatTime";
 import { isToday, isTomorrow } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 
+const DISPLAY_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
 const OpeningHoursChat = ({ openingHours, isFallback = false, restaurantStatus }) => {
     const [showModal, setShowModal] = useState(false);
     const [showSign, setShowSign] = useState(true);
@@ -172,12 +174,20 @@ const OpeningHoursChat = ({ openingHours, isFallback = false, restaurantStatus }
                         {/* Regular Weekly Hours */}
                         <h3 className="text-lg font-bold text-gray-800 mb-3">Regular Weekly Hours</h3>
                         <ul className="space-y-3 mb-6">
-                            {Object.entries(openingHours).map(([day, hours]) => (
-                                <li key={day} className="flex justify-between items-center border-b border-gray-200 pb-2">
-                                    <span className="font-semibold text-gray-700">{day}:</span>
-                                    <span className="text-gray-600">{convertTo12Hour(hours.open)} - {convertTo12Hour(hours.close)}</span>
-                                </li>
-                            ))}
+                            {DISPLAY_DAYS.map((day) => {
+                                const dayHours = openingHours?.[day];
+                                return (
+                                    <li key={day} className="flex justify-between items-center border-b border-gray-200 pb-2">
+                                        <span className="font-semibold text-gray-700">{day}:</span>
+                                        <span className="text-gray-600">
+                                            {dayHours
+                                                ? `${convertTo12Hour(dayHours.open)} – ${convertTo12Hour(dayHours.close)}`
+                                                : <span className="text-hot-pink font-medium">Closed</span>
+                                            }
+                                        </span>
+                                    </li>
+                                );
+                            })}
                         </ul>
                         
                         <div className="mt-6 p-3 bg-yellow/10 rounded-lg border border-yellow/30">
