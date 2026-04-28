@@ -1,4 +1,5 @@
 import React, { Suspense } from "react";
+import Link from "next/link";
 import MenuList from "@/components/MenuList";
 import CategoryNavigation from "../CategoryNavigation";
 import MenuSkeleton from "../MenuSkeleton";
@@ -38,7 +39,7 @@ export default async function MenuViewPage() {
             )}
             <div className="py-8 md:py-12 px-5 md:px-10 max-w-7xl mx-auto overflow-visible">
                 <h1 className="text-2xl md:text-4xl font-bold mb-2 md:mb-3 text-hot-pink">Menu | Kira Sushi & Poke</h1>
-                <p className="text-sm md:text-base text-gray-600 mb-3">Real photos, no filters - what you see is what you get!</p>
+                <p className="text-sm md:text-base text-gray-600 mb-3">Real photos, no filters - what you see is what you get! Like something? <Link href="/menu/order" className="text-hot-pink font-semibold hover:underline">Order it here.</Link></p>
 
                 {!success && error && (
                     <ErrorDisplay error={error} />
@@ -57,6 +58,24 @@ export default async function MenuViewPage() {
             
             {/* Scroll-triggered CTA Banner - Only show when restaurant is open */}
             {restaurantStatus.isOpen && <ScrollCTABanner />}
+
+            {/* Call to Action */}
+            <div className="mb-12 text-center bg-hot-pink/10 border-2 border-hot-pink rounded-lg p-6 md:p-8 mx-5 md:mx-10 max-w-7xl xl:mx-auto">
+                <h2 className="text-2xl md:text-3xl font-bold text-hot-pink mb-3">
+                    Ready to order?
+                </h2>
+                <p className="text-gray-700 mb-6">
+                    Add your favourites to the cart and we'll have your order ready for pickup!
+                </p>
+                <div className="flex flex-wrap justify-center gap-4">
+                    <Link
+                        href="/menu/order"
+                        className="flex items-center gap-2 bg-hot-pink text-white px-6 py-3 rounded-full font-semibold border-2 border-hot-pink hover:bg-white hover:text-hot-pink transition-colors"
+                    >
+                        Order Now
+                    </Link>
+                </div>
+            </div>
         </>
     );
 }
