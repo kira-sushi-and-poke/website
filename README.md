@@ -87,3 +87,17 @@ There are potential CORS issues in the background that I can't figure out. So as
             - gets the order again?
             - creates a user based on the card details - not sure if needed, CHECK
             - processes the payment
+
+TODO:
+- Might just need to move some code from processPayment to checkout - maybe add a helper or function for things like validating pickup and adding the notes? (DONE)
+- Need to figure out how to expire or update the current order
+  - Old order remains on draft mode
+  - Might need to update what's in the local storage
+  - Maybe return the order ID and Square's checkout URL from checkout action
+    - This way, we can just update the local storage with the new one
+    - After updating the local storage with the new order ID, we can redirect
+    - If user goes back and forth from checkout and payment, it shouldn't break?? - TO TEST
+      - This is only 
+    - Maybe not - because order ID is in the query param
+      - Unless we update the query param before redirecting
+

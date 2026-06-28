@@ -344,94 +344,257 @@ export async function updateOrderItems(orderId, version, cart) {
   }
 }
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const DAY_NAME_TO_SQUARE = {
+  Sunday: 'SUN', Monday: 'MON', Tuesday: 'TUE',
+  Wednesday: 'WED', Thursday: 'THU', Friday: 'FRI', Saturday: 'SAT',
+};
+
+
+// ─── Pickup Time Validation ───────────────────────────────────────────────────
+
 /**
- * Creates a Square payment link and redirects to Square checkout
- * @param {string} orderId - The Square order ID
- * @returns {Promise<void>} - Redirects to Square checkout or throws error
+ * Validates pickup time (presence, lead time, date validity) and checks
+ * restaurant opening hours including mobile location overrides.
+ * ASAP orders pass immediately — Square handles timing.
+ * Returns an error string or null.
+ * @param {string} pickupTime - ISO string or PICKUP_ASAP constant
+ * @returns {Promise<string|null>}
  */
-export async function checkout(orderId) {
-  try {
-    // First, get the current order to get its line_items
-    const orderData = await fetchSquare(`${API_ORDERS_URL}/${orderId}`, {
-      method: "GET",
-    });
+async function validatePickupTimeAndHours(pickupTime) {
+  if (!pickupTime) return "Pickup time is required";
 
-    const order = orderData.order;
+  if (pickupTime === PICKUP_ASAP) return null;
 
-    // Validate that order has line items
-    if (!order.line_items || order.line_items.length === 0) {
-      throw new Error("Cannot checkout with an empty cart");
-    }
+  const pickupDate = new Date(pickupTime);
+  if (isNaN(pickupDate.getTime())) return "Invalid pickup time";
 
-    // Strip read-only fields from line items (Square calculates these)
-    const sanitizedLineItems = order.line_items.map(item => ({
-      catalog_object_id: item.catalog_object_id,
-      quantity: item.quantity,
-      ...(item.note && { note: item.note }),
-      ...(item.modifiers && { modifiers: item.modifiers.map(mod => ({
+  const minTime = new Date(Date.now() + PICKUP_LEAD_TIME_MINUTES * 60000);
+  if (pickupDate.getTime() < minTime.getTime()) {
+    return `Pickup time must be at least ${PICKUP_LEAD_TIME_MINUTES} minutes from now`;
+  }
+
+  const { mobileLocationData } = await getLocationData();
+  if (mobileLocationData?.status !== 'ACTIVE') return null;
+
+  const pickupTimeUK    = toZonedTime(pickupDate, 'Europe/London');
+  const pickupDaySquare = DAY_NAME_TO_SQUARE[format(pickupTimeUK, 'EEEE')];
+  const mobilePeriods   = mobileLocationData.business_hours?.periods || [];
+  const dayPeriods      = mobilePeriods.filter(p => p.day_of_week === pickupDaySquare);
+
+  if (dayPeriods.length === 0) {
+    return "Restaurant is closed on the selected pickup date. Please choose a different time.";
+  }
+
+  const pickupMinutes = pickupTimeUK.getHours() * 60 + pickupTimeUK.getMinutes();
+  const isOpen = dayPeriods.some(({ start_local_time, end_local_time }) => {
+    const [startH, startM] = start_local_time.substring(0, 5).split(':').map(Number);
+    const [endH, endM]     = end_local_time.substring(0, 5).split(':').map(Number);
+    return pickupMinutes >= startH * 60 + startM && pickupMinutes < endH * 60 + endM;
+  });
+
+  return isOpen
+    ? null
+    : "Pickup time falls outside opening hours. Please select a time during open hours.";
+}
+
+
+// ─── Order Helpers ────────────────────────────────────────────────────────────
+
+/**
+ * Strips read-only fields Square calculates server-side.
+ * @param {object[]} lineItems
+ * @returns {object[]}
+ */
+function sanitizeLineItems(lineItems) {
+  return lineItems.map(item => ({
+    catalog_object_id: item.catalog_object_id,
+    quantity: item.quantity,
+    ...(item.note && { note: item.note }),
+    ...(item.modifiers && {
+      modifiers: item.modifiers.map(mod => ({
         catalog_object_id: mod.catalog_object_id,
         quantity: mod.quantity,
-      })) }),
-    }));
+      })),
+    }),
+  }));
+}
 
-    // Now create the payment link with order details
-    const redirectUrl = `${SITE_URL}/menu/order/confirmation?orderId=${orderId}`;
-    
-    const orderPayload = {
-      location_id: LOCATION_ID,
-      line_items: sanitizedLineItems,
-      metadata: {
-        placed_at: new Date().toISOString(),
-        payment_method: "Square Checkout",
-      },
-    };
-    
-    const data = await fetchSquare(API_PAYMENT_LINKS_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        idempotency_key: crypto.randomUUID(),
-        order: orderPayload,
-        checkout_options: {
-          redirect_url: redirectUrl,
-        },
+/**
+ * Builds the service_charges array for the order payload.
+ * Returns null to omit the field entirely, [] to clear existing charges.
+ * @param {number} tipAmount
+ * @param {string} currentState
+ * @param {object} existingOrder
+ * @returns {object[]|null}
+ */
+function buildServiceCharges(tipAmount, currentState, existingOrder) {
+  if (tipAmount > 0) {
+    return [{
+      name: "Tip",
+      amount_money: { amount: tipAmount, currency: CURRENCY },
+      calculation_phase: "TOTAL_PHASE",
+      ...(currentState === ORDER_STATE_OPEN && existingOrder?.service_charges?.[0]?.uid && {
+        uid: existingOrder.service_charges[0].uid,
       }),
-    });
+    }];
+  }
 
-    if (data.payment_link && data.payment_link.url) {
-      // Add breadcrumb for successful checkout initiation
-      if (process.env.NODE_ENV === 'production') {
-        Sentry.addBreadcrumb({
-          message: 'Checkout initiated',
-          category: 'order',
-          level: 'info',
-          data: {
-            order_id: orderId,
-          }
-        });
-      }
-      
-      // Redirect to Square's hosted checkout page
-      // Note: redirect() throws a special Next.js error - don't catch it
-      redirect(data.payment_link.url);
-    } else {
-      throw new Error("Payment link URL not found");
+  // Clear existing charges when tip is removed on an open order
+  if (currentState === ORDER_STATE_OPEN && existingOrder?.service_charges?.length > 0) {
+    return [];
+  }
+
+  return null;
+}
+
+/**
+ * Builds the fulfillment object for the order payload.
+ * @param {string} pickupTime
+ * @param {string|undefined} specialInstructions
+ * @param {string} currentState
+ * @param {object} existingOrder
+ * @returns {object}
+ */
+function buildFulfillment(pickupTime, specialInstructions, currentState, existingOrder) {
+  const isAsapOrder = pickupTime === PICKUP_ASAP;
+
+  const fulfillment = {
+    type: FULFILLMENT_TYPE_PICKUP,
+    state: FULFILLMENT_STATE_PROPOSED,
+    pickup_details: {
+      schedule_type: isAsapOrder ? "ASAP" : "SCHEDULED",
+      ...(isAsapOrder
+        ? { prep_time_duration: `PT${PICKUP_LEAD_TIME_MINUTES}M` }
+        : { pickup_at: pickupTime, pickup_window_duration: PICKUP_WINDOW_DURATION }
+      ),
+      note: specialInstructions?.trim() || "No special instructions",
+    },
+  };
+
+  if (currentState === ORDER_STATE_OPEN && existingOrder?.fulfillments?.[0]?.uid) {
+    fulfillment.uid = existingOrder.fulfillments[0].uid;
+  }
+
+  return fulfillment;
+}
+
+/**
+ * Assembles the full order payload for the payment link request.
+ * @param {object} params
+ * @returns {object}
+ */
+function buildOrderPayload({ sanitizedLineItems, serviceCharges, fulfillment }) {
+  return {
+    location_id: LOCATION_ID,
+    line_items: sanitizedLineItems,
+    metadata: {
+      placed_at: new Date().toISOString(),
+      payment_method: "Square Checkout",
+    },
+    ...(serviceCharges !== null && { service_charges: serviceCharges }),
+    ...(fulfillment && { fulfillments: [fulfillment] }),
+  };
+}
+
+
+// ─── Payment Link ─────────────────────────────────────────────────────────────
+
+/**
+ * Posts to Square to create a hosted payment link.
+ * Returns the checkout URL and the new Square order ID from payment_link.order_id.
+ * Square appends the new orderId as a query param on the redirect URL automatically,
+ * so the confirmation URL needs no orderId baked in.
+ * @param {object} orderPayload
+ * @returns {Promise<{ squareCheckoutUrl: string, orderId: string }>}
+ */
+async function createPaymentLink(orderPayload) {
+  const data = await fetchSquare(API_PAYMENT_LINKS_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      idempotency_key: crypto.randomUUID(),
+      order: orderPayload,
+      checkout_options: { redirect_url: `${SITE_URL}/menu/order/confirmation` },
+    }),
+  });
+
+  if (!data.payment_link?.url) {
+    throw new Error("Payment link URL not found");
+  }
+
+  return {
+    squareCheckoutUrl: data.payment_link.url,
+    orderId: data.payment_link.order_id,
+  };
+}
+
+
+// ─── Main Entry Point ─────────────────────────────────────────────────────────
+
+/**
+ * Validates pickup time, builds the order payload, and creates a Square
+ * payment link. Returns the checkout URL and new order ID to the client so
+ * it can update session storage before redirecting to Square.
+ *
+ * @param {string} draftOrderId
+ * @param {string} pickupTime
+ * @param {number} tipAmount
+ * @param {string} [specialInstructions]
+ * @returns {Promise<{
+ *   success: boolean,
+ *   error: string | null,
+ *   squareCheckoutUrl: string | null,
+ *   orderId: string | null,
+ * }>}
+ */
+export async function checkout(draftOrderId, pickupTime, tipAmount, specialInstructions) {
+  try {
+    const pickupError = await validatePickupTimeAndHours(pickupTime);
+    if (pickupError) {
+      return { success: false, error: pickupError, squareCheckoutUrl: null, orderId: null };
     }
-  } catch (error) {
-    // Re-throw if it's a Next.js redirect (NEXT_REDIRECT)
-    if (error.digest && error.digest.startsWith("NEXT_REDIRECT")) {
-      throw error;
+
+    const orderData    = await fetchSquare(`${API_ORDERS_URL}/${draftOrderId}`, { method: "GET" });
+    const { order }    = orderData;
+    const currentState = order?.state;
+
+    if (!order.line_items?.length) {
+      return { success: false, error: "Cannot checkout with an empty cart", squareCheckoutUrl: null, orderId: null };
     }
-    
-    // Capture error in Sentry with safe context
+
+    const sanitizedLineItems = sanitizeLineItems(order.line_items);
+    const serviceCharges     = buildServiceCharges(tipAmount, currentState, order);
+    const fulfillment        = buildFulfillment(pickupTime, specialInstructions, currentState, order);
+    const orderPayload       = buildOrderPayload({ sanitizedLineItems, serviceCharges, fulfillment });
+
+    const { squareCheckoutUrl, orderId } = await createPaymentLink(orderPayload);
+
     if (process.env.NODE_ENV === 'production') {
-      Sentry.withScope((scope) => {
+      Sentry.addBreadcrumb({
+        message: 'Checkout initiated',
+        category: 'order',
+        level: 'info',
+        data: { draft_order_id: draftOrderId, new_order_id: orderId },
+      });
+    }
+
+    return { success: true, error: null, squareCheckoutUrl, orderId };
+  } catch (error) {
+    if (process.env.NODE_ENV === 'production') {
+      Sentry.withScope(scope => {
         scope.setTag('action', 'checkout');
-        scope.setTag('order_id', orderId);
+        scope.setTag('order_id', draftOrderId);
         Sentry.captureException(error);
       });
     }
-    
-    throw new Error("Failed to initiate checkout. Please try again.");
+
+    return {
+      success: false,
+      error: "Failed to initiate checkout. Please try again.",
+      squareCheckoutUrl: null,
+      orderId: null,
+    };
   }
 }
 
@@ -477,52 +640,52 @@ export async function processPayment(sourceId, orderId, amount, verificationToke
         const pickupDayName = format(pickupTimeUK, 'EEEE'); // "Monday", "Tuesday", etc.
       
       // Check if mobile override is active
-      if (mobileLocationData?.status === 'ACTIVE') {
-        const mobilePeriods = mobileLocationData.business_hours?.periods || [];
-        
-        // Map day name to Square format
-        const dayMap = {
-          'Sunday': 'SUN', 'Monday': 'MON', 'Tuesday': 'TUE',
-          'Wednesday': 'WED', 'Thursday': 'THU', 'Friday': 'FRI', 'Saturday': 'SAT'
-        };
-        const pickupDaySquare = dayMap[pickupDayName];
-        
-        // Check if there are periods for the pickup day
-        const dayPeriods = mobilePeriods.filter(p => p.day_of_week === pickupDaySquare);
-        
-        if (dayPeriods.length === 0) {
-          // No periods for this day = closed
-          return {
-            success: false,
-            error: "Restaurant is closed on the selected pickup date. Please choose a different time.",
-          };
-        }
-        
-        // Check if pickup time falls within any of the day's periods
-        const pickupHour = pickupTimeUK.getHours();
-        const pickupMinute = pickupTimeUK.getMinutes();
-        const pickupMinutes = pickupHour * 60 + pickupMinute;
-        
-        let isWithinPeriod = false;
-        for (const period of dayPeriods) {
-          const [startHour, startMin] = period.start_local_time.substring(0, 5).split(':').map(Number);
-          const [endHour, endMin] = period.end_local_time.substring(0, 5).split(':').map(Number);
-          const startMinutes = startHour * 60 + startMin;
-          const endMinutes = endHour * 60 + endMin;
+        if (mobileLocationData?.status === 'ACTIVE') {
+          const mobilePeriods = mobileLocationData.business_hours?.periods || [];
           
-          if (pickupMinutes >= startMinutes && pickupMinutes < endMinutes) {
-            isWithinPeriod = true;
-            break;
+          // Map day name to Square format
+          const dayMap = {
+            'Sunday': 'SUN', 'Monday': 'MON', 'Tuesday': 'TUE',
+            'Wednesday': 'WED', 'Thursday': 'THU', 'Friday': 'FRI', 'Saturday': 'SAT'
+          };
+          const pickupDaySquare = dayMap[pickupDayName];
+          
+          // Check if there are periods for the pickup day
+          const dayPeriods = mobilePeriods.filter(p => p.day_of_week === pickupDaySquare);
+          
+          if (dayPeriods.length === 0) {
+            // No periods for this day = closed
+            return {
+              success: false,
+              error: "Restaurant is closed on the selected pickup date. Please choose a different time.",
+            };
+          }
+          
+          // Check if pickup time falls within any of the day's periods
+          const pickupHour = pickupTimeUK.getHours();
+          const pickupMinute = pickupTimeUK.getMinutes();
+          const pickupMinutes = pickupHour * 60 + pickupMinute;
+          
+          let isWithinPeriod = false;
+          for (const period of dayPeriods) {
+            const [startHour, startMin] = period.start_local_time.substring(0, 5).split(':').map(Number);
+            const [endHour, endMin] = period.end_local_time.substring(0, 5).split(':').map(Number);
+            const startMinutes = startHour * 60 + startMin;
+            const endMinutes = endHour * 60 + endMin;
+            
+            if (pickupMinutes >= startMinutes && pickupMinutes < endMinutes) {
+              isWithinPeriod = true;
+              break;
+            }
+          }
+          
+          if (!isWithinPeriod) {
+            return {
+              success: false,
+              error: "Pickup time falls outside opening hours. Please select a time during open hours.",
+            };
           }
         }
-        
-        if (!isWithinPeriod) {
-          return {
-            success: false,
-            error: "Pickup time falls outside opening hours. Please select a time during open hours.",
-          };
-        }
-      }
       } catch (error) {
         // Continue - don't block payment if validation fails
       }

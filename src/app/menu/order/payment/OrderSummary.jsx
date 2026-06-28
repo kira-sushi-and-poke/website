@@ -9,13 +9,13 @@ export default function OrderSummary({ lineItems, total }) {
     <div className="bg-white rounded-lg shadow-lg p-5 mb-5 border-t-4 border-yellow">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex justify-between items-center text-left mb-3"
+        className="w-full flex justify-between text-left mb-3"
         type="button"
       >
-        <h2 className="text-xl font-bold text-hot-pink">
+        <h3 className="font-bold text-hot-pink">
           <i className="fas fa-receipt mr-2"></i>Order Details
-        </h2>
-        <i className={`fas fa-chevron-${isExpanded ? "up" : "down"} text-hot-pink transition-transform`}></i>
+        </h3>
+        <i className={`fas text-xl fa-chevron-${isExpanded ? "up" : "down"} text-hot-pink transition-transform`}></i>
       </button>
       
       {isExpanded && (
