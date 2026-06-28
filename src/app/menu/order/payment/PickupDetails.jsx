@@ -12,7 +12,7 @@ export default function PickupDetails({
   pickupTimeOptions,
   restaurantStatus 
 }) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
   const [pickupMode, setPickupMode] = useState(null); // null, "asap" or "scheduled"
   const containerRef = useRef(null);
   
@@ -61,13 +61,13 @@ export default function PickupDetails({
     <div ref={containerRef} className="bg-white rounded-lg shadow-lg px-5 pt-5 pb-3 mb-5 border-t-4 border-hot-pink">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex justify-between items-center text-left mb-3"
+        className="w-full flex justify-between text-left mb-3"
         type="button"
       >
-        <h3 className="text-xl font-bold text-hot-pink">
+        <h3 className="font-bold text-hot-pink">
           <i className="fas fa-clock mr-2"></i>Pickup Details <small className="text-red-500">(required)</small>
         </h3>
-        <i className={`fas fa-chevron-${isExpanded ? "up" : "down"} text-hot-pink transition-transform`}></i>
+        <i className={`fas text-xl fa-chevron-${isExpanded ? "up" : "down"} text-hot-pink transition-transform`}></i>
       </button>
         
       {isExpanded && (

@@ -41,6 +41,9 @@ export default async function PaymentPage({ searchParams }) {
   }
   
   // Check order state
+  // TODO: CHECK WHAT HAPPENS HERE WITH THE NEW PLAN REGARDING USING SQUARE'S CHECKOUT
+  // MAYBE CHANGE THE STATE TO COMPLETED WHEN PAYMENT IS SUCCESSFUL VIA SQUARE'S CHECKOUT
+  // THIS CAN BE DONE IN THE CONFIRMATION PAGE???? 
   if (order.state === "COMPLETED") {
     redirect(`/menu/order/confirmation?orderId=${orderId}`);
   }
