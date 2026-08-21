@@ -9,7 +9,7 @@ import { generatePickupTimes } from "@/lib/generatePickupTimes";
 import { validateContactDetails, validatePickupTime } from "@/lib/validation";
 import { splitName } from "@/lib/splitName";
 import { checkout, processPayment } from "../actions";
-import { PICKUP_ASAP, TOASTER_CONFIG, TOAST_MESSAGES } from "@/lib/constants";
+import { TOASTER_CONFIG, TOAST_MESSAGES } from "@/lib/constants";
 import PickupDetails from "./PickupDetails";
 import { saveOrderToStorage } from "@/lib/storage";
 
@@ -472,15 +472,15 @@ export default function BrokenPaymentFormComponent({ orderId, totalAmount, openi
         </div>
         
         {/* Quick checkout with digital wallets */}
-        {/* <div className="mb-5">
+        <div className="mb-5">
           <h3 className="text-base font-semibold text-gray-700 mb-3 flex items-center">
             <i className="fas fa-mobile-alt mr-2"></i>
             Quick Checkout
           </h3>
-          */}
+         
           
           {/* Apple Pay - Only in production (requires domain verification) */}
-          {/* {isProduction && (
+          {isProduction && (
             <div className="mb-3 relative" onClickCapture={handleWalletPayClick}>
               <ApplePay />
 
@@ -491,10 +491,10 @@ export default function BrokenPaymentFormComponent({ orderId, totalAmount, openi
                 />
               )}
             </div>
-          )} */}
+          )}
           
           {/* Google Pay */}
-          {/*<div className="mb-3 relative" onClickCapture={handleWalletPayClick}>
+          <div className="mb-3 relative" onClickCapture={handleWalletPayClick}>
             <GooglePay />
 
             {(!contactDetails.pickupTime || contactDetails.pickupTime === "") && (
@@ -508,20 +508,20 @@ export default function BrokenPaymentFormComponent({ orderId, totalAmount, openi
           <p className="text-xs text-gray-500 text-center">
             Contact details collected automatically from your wallet.
           </p>
-        </div> */}
+        </div>
         
         {/* Divider */}
-        {/* <div className="relative my-5">
+        <div className="relative my-5">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-300"></div>
           </div>
           <div className="relative flex justify-center text-sm">
             <span className="px-2 bg-white text-gray-500">Or pay with card</span>
           </div>
-        </div> */}
+        </div>
         
         {/* Contact Form for All Payment Methods */}
-        {/* <div className="mb-6">
+        <div className="mb-6">
           <h3 className="text-lg font-bold mb-3 text-hot-pink flex items-center">
             <i className="fas fa-user mr-2"></i>
             Contact Information
@@ -591,10 +591,10 @@ export default function BrokenPaymentFormComponent({ orderId, totalAmount, openi
               )}
             </div>
           </div>
-        </div> */}
+        </div>
         
         {/* Credit Card */}
-        {/* <CreditCard
+        <CreditCard
           buttonProps={{
             css: {
               backgroundColor: "#FF1493",
@@ -620,7 +620,7 @@ export default function BrokenPaymentFormComponent({ orderId, totalAmount, openi
               )}
             </div>
           )}
-        /> */}
+        />
       </PaymentForm>
       
       <p className="text-xs text-green-500 mt-4 text-center flex items-center justify-center">

@@ -10,50 +10,8 @@ const nextConfig = {
   async headers() {
     return [
       {
-        // Relaxed CSP for payment page to allow all iframes
-        source: '/menu/order/payment',
-        headers: [
-          {
-            key: 'X-Frame-Options',
-            value: 'SAMEORIGIN',
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin',
-          },
-          {
-            key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
-          },
-          {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
-          },
-          {
-            key: 'Content-Security-Policy',
-            value: [
-              "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://web.squarecdn.com https://sandbox.web.squarecdn.com https://connect.squareup.com https://connect.squareupsandbox.com https://*.google.com https://google.com https://*.apple.com https://apple.com https://connect.facebook.net",
-              "style-src 'self' 'unsafe-inline' https://web.squarecdn.com https://sandbox.web.squarecdn.com https://fonts.googleapis.com https://cdnjs.cloudflare.com",
-              "img-src 'self' data: blob: https: http:",
-              "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com https://*.squarecdn.com https://square-fonts-production-f.squarecdn.com https://cash-f.squarecdn.com https://d1g145x70srn7h.cloudfront.net",
-              "connect-src 'self' https://web.squarecdn.com https://sandbox.web.squarecdn.com https://connect.squareup.com https://connect.squareupsandbox.com https://pci-connect.squareup.com https://pci-connect.squareupsandbox.com https://*.google.com https://google.com https://*.apple.com https://apple.com https://apple-pay-gateway.apple.com https://*.facebook.com https://*.facebook.net https://*.browser-intake-datadoghq.com https://*.ingest.sentry.io",
-              "frame-src *",
-              "object-src 'none'",
-              "base-uri 'self'",
-              "form-action *",
-              "frame-ancestors 'self'",
-            ].join('; '),
-          },
-        ],
-      },
-      {
         // Apply security headers to all routes except payment page (which has its own CSP)
-        source: '/:path((?!menu/order/payment$).*)*',
+        source: '/:path*',
         headers: [
           // Prevents clickjacking by disallowing the site to be embedded in external iframes
           {
@@ -104,7 +62,7 @@ const nextConfig = {
               // Allow fonts from Google Fonts, Font Awesome, and Square CDNs
               "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com https://*.squarecdn.com https://square-fonts-production-f.squarecdn.com https://cash-f.squarecdn.com https://d1g145x70srn7h.cloudfront.net",
               // Allow API connections to Square, Google Pay, Apple Pay, Facebook, and monitoring services (Datadog, Sentry)
-              "connect-src 'self' https://web.squarecdn.com https://sandbox.web.squarecdn.com https://connect.squareup.com https://connect.squareupsandbox.com https://pci-connect.squareup.com https://pci-connect.squareupsandbox.com https://*.google.com https://google.com https://*.apple.com https://apple.com https://apple-pay-gateway.apple.com https://*.facebook.com https://*.facebook.net https://*.browser-intake-datadoghq.com https://*.ingest.sentry.io",
+              "connect-src 'self' https://web.squarecdn.com https://sandbox.web.squarecdn.com https://connect.squareup.com https://connect.squareupsandbox.com https://pci-connect.squareup.com https://pci-connect.squareupsandbox.com https://*.google.com https://google.com https://*.apple.com https://apple.com https://apple-pay-gateway.apple.com https://*.facebook.com https://*.facebook.net https://*.browser-intake-datadoghq.com https://*.ingest.de.sentry.io",
               // Allow iframes from Square payments, Google (Pay, Maps), Apple Pay, Facebook embeds, and 3D Secure authentication (with wildcards for card issuers)
               "frame-src 'self' https://web.squarecdn.com https://sandbox.web.squarecdn.com https://*.google.com https://google.com https://*.apple.com https://apple.com https://www.facebook.com https://api.squareup.com https://*.securesuite.co.uk https://*.rsa3dsauth.co.uk https://channel-cards-html.lloydsbankinggroup.com https://*.monzo.com https://*.stripe.com https://*.adyen.com",
               "object-src 'none'",
@@ -113,6 +71,50 @@ const nextConfig = {
               "form-action 'self' https://connect.squareup.com https://connect.squareupsandbox.com https://*.securesuite.co.uk https://*.rsa3dsauth.co.uk https://*.monzo.com https://*.stripe.com https://*.adyen.com",
               // Prevent your site from being embedded in external iframes
               "frame-ancestors 'self'",
+              "report-uri https://o4511179430166528.ingest.de.sentry.io/api/4511179438882896/security/?sentry_key=6c647a5c6658a21a0a7593646c05f49c",
+            ].join('; '),
+          },
+        ],
+      },
+      {
+        // Relaxed CSP for payment page to allow all iframes
+        source: '/menu/order/payment',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://web.squarecdn.com https://sandbox.web.squarecdn.com https://connect.squareup.com https://connect.squareupsandbox.com https://*.google.com https://google.com https://*.apple.com https://apple.com https://connect.facebook.net",
+              "style-src 'self' 'unsafe-inline' https://web.squarecdn.com https://sandbox.web.squarecdn.com https://fonts.googleapis.com https://cdnjs.cloudflare.com",
+              "img-src 'self' data: blob: https: http:",
+              "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com https://*.squarecdn.com https://square-fonts-production-f.squarecdn.com https://cash-f.squarecdn.com https://d1g145x70srn7h.cloudfront.net",
+              "connect-src 'self' https://web.squarecdn.com https://sandbox.web.squarecdn.com https://connect.squareup.com https://connect.squareupsandbox.com https://pci-connect.squareup.com https://pci-connect.squareupsandbox.com https://*.google.com https://google.com https://*.apple.com https://apple.com https://apple-pay-gateway.apple.com https://*.facebook.com https://*.facebook.net https://*.browser-intake-datadoghq.com https://*.ingest.de.sentry.io",
+              "frame-src *",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action *",
+              "frame-ancestors 'self'",
+              "report-uri https://o4511179430166528.ingest.de.sentry.io/api/4511179438882896/security/?sentry_key=6c647a5c6658a21a0a7593646c05f49c",
             ].join('; '),
           },
         ],
