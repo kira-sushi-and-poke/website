@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import PickupOnlyNotice from "@/components/PickupOnlyNotice";
+import { findModifierNames, getModifiersPrice } from "@/lib/cartUtils";
 
 export default function StickyCartSummary({ 
     cart, 
@@ -88,20 +89,15 @@ export default function StickyCartSummary({
         // Handle array case (with modifiers)
         else if (Array.isArray(value)) {
             value.forEach((entry, index) => {
-                // Get modifier names
-                const modifierNames = entry.modifiers?.map(modId => {
-                    const modifier = menuItem?.modifiers?.find(m => m.id === modId);
-                    return modifier?.name || modId;
-                }).join(", ") || "";
-                
+                const modifierNames = findModifierNames(entry.modifiers, menuItem);
                 const displayName = modifierNames ? `${baseName} (${modifierNames})` : baseName;
-                
+
                 items.push({
                     variationId,
                     quantity: entry.quantity,
                     modifiers: entry.modifiers,
                     name: displayName,
-                    price: basePrice,
+                    price: basePrice + getModifiersPrice(entry.modifiers, menuItem),
                     image,
                     cartIndex: index, // Track position in array for removal
                 });

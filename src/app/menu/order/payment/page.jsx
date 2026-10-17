@@ -78,9 +78,11 @@ export default async function PaymentPage({ searchParams }) {
   const menuData = menuResult.success ? menuResult.data : [];
   const enrichedLineItems = enrichLineItems(order.line_items, menuData);
   
-  // Calculate total
+  // Calculate total (gross_sales_money includes modifier prices; excludes tips)
   const total = order.line_items.reduce((sum, item) => {
-    const itemTotal = parseFloat(item.base_price_money?.amount || 0) * parseInt(item.quantity);
+    const itemTotal = item.gross_sales_money
+      ? item.gross_sales_money.amount
+      : parseFloat(item.base_price_money?.amount || 0) * parseInt(item.quantity);
     return sum + itemTotal;
   }, 0);
   

@@ -20,6 +20,7 @@ import {
   PICKUP_LEAD_TIME_MINUTES
 } from "@/lib/constants";
 import { fetchSquare } from "@/lib/squareApi";
+import { matchModifiers, countModifiers, expandModifierIds } from "@/lib/arrayUtils";
 import { splitName } from "@/lib/splitName";
 import { validatePickupTime } from "@/lib/validation";
 import { getLocationData } from "@/lib/getLocationData";
@@ -189,11 +190,17 @@ export async function updateOrderItems(orderId, version, cart) {
 
     const existingLineItems = currentOrderData.order.line_items || [];
 
-    const modifiersMatch = (a = [], b = []) => {
-      const aIds = a.map(m => typeof m === 'string' ? m : m.catalog_object_id);
-      const bIds = b.map(m => typeof m === 'string' ? m : m.catalog_object_id);
-      return aIds.length === bIds.length && aIds.every(id => bIds.includes(id));
-    };
+    // Square modifiers carry a quantity; cart modifiers repeat the ID instead
+    const toModifierIds = (mods = []) =>
+      mods.flatMap(m => typeof m === 'string' ? [m] : expandModifierIds([m]));
+
+    const modifiersMatch = (a = [], b = []) => matchModifiers(toModifierIds(a), toModifierIds(b));
+
+    const toLineItemModifiers = (modifierIds) =>
+      Object.entries(countModifiers(modifierIds)).map(([modId, count]) => ({
+        catalog_object_id: modId,
+        quantity: count.toString()
+      }));
 
     const findMatchingLineItem = (variationId, modifiers = []) => {
       return existingLineItems.find(item => 
@@ -241,19 +248,13 @@ export async function updateOrderItems(orderId, version, cart) {
                 lineItem.uid = matchingItem.uid;
                 if (!modifiersMatch(matchingItem.modifiers || [], entry.modifiers || [])) {
                   if (entry.modifiers && entry.modifiers.length > 0) {
-                    lineItem.modifiers = entry.modifiers.map(modId => ({
-                      catalog_object_id: modId,
-                      quantity: "1"
-                    }));
+                    lineItem.modifiers = toLineItemModifiers(entry.modifiers);
                   }
                 }
               } else {
                 lineItem.catalog_object_id = variationId;
                 if (entry.modifiers && entry.modifiers.length > 0) {
-                  lineItem.modifiers = entry.modifiers.map(modId => ({
-                    catalog_object_id: modId,
-                    quantity: "1"
-                  }));
+                  lineItem.modifiers = toLineItemModifiers(entry.modifiers);
                 }
               }
               

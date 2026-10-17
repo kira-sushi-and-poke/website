@@ -2,6 +2,8 @@
  * Cart utility functions for order rehydration and data transformation
  */
 
+import { countModifiers, expandModifierIds } from "./arrayUtils";
+
 /**
  * Rehydrate cart state from a Square order object
  * Converts order line items back to cart format
@@ -24,20 +26,21 @@ export function rehydrateCartFromOrder(order) {
     
     const variationId = item.catalog_object_id;
     const quantity = parseInt(item.quantity);
-    const modifiers = item.modifiers?.map(m => m.catalog_object_id) || [];
+    const modifiers = expandModifierIds(item.modifiers);
     
+    const existing = cart[variationId];
+
     // If no modifiers, store as simple number (backward compatible)
-    if (modifiers.length === 0) {
-      cart[variationId] = (cart[variationId] || 0) + quantity;
+    if (modifiers.length === 0 && !Array.isArray(existing)) {
+      cart[variationId] = (existing || 0) + quantity;
     } else {
-      // If has modifiers, store as array
-      if (!cart[variationId]) {
+      // Otherwise store as array, keeping any no-modifier quantity as its own entry
+      if (!existing) {
         cart[variationId] = [];
-      } else if (typeof cart[variationId] === "number") {
-        // Convert existing number to array
-        cart[variationId] = [];
+      } else if (typeof existing === "number") {
+        cart[variationId] = [{ quantity: existing, modifiers: [] }];
       }
-      
+
       cart[variationId].push({ quantity, modifiers });
     }
   });
@@ -58,9 +61,27 @@ export function rehydrateCartFromOrder(order) {
  */
 export function findModifierNames(modifiers, menuItem) {
   if (!modifiers || modifiers.length === 0) return "";
-  
-  return modifiers.map(modId => {
+
+  // Modifiers picked more than once are shown as "2× Kira"
+  return Object.entries(countModifiers(modifiers)).map(([modId, count]) => {
     const modifier = menuItem?.modifiers?.find(m => m.id === modId);
-    return modifier?.name || modId;
+    const name = modifier?.name || modId;
+    return count > 1 ? `${count}× ${name}` : name;
   }).join(", ");
+}
+
+/**
+ * Sum the price of the selected modifiers (in pounds)
+ *
+ * @param {Array<string>} modifiers - Array of modifier IDs, repeated for quantity
+ * @param {Object} menuItem - Menu item object with modifiers array
+ * @returns {number} Total modifier price; can be negative for discounts (e.g. Tap Water)
+ */
+export function getModifiersPrice(modifiers, menuItem) {
+  if (!modifiers || modifiers.length === 0) return 0;
+
+  return modifiers.reduce((sum, modId) => {
+    const modifier = menuItem?.modifiers?.find(m => m.id === modId);
+    return sum + (modifier?.price || 0);
+  }, 0);
 }

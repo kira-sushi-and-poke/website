@@ -117,7 +117,7 @@ export default function ConfirmationClient({ orderId, status, order }) {
                         </p>
                         {item.modifiers && item.modifiers.length > 0 && (
                           <p className="text-sm text-gray-500 ml-1">
-                            {item.modifiers.map(mod => mod.name).join(", ")}
+                            {item.modifiers.map(mod => parseInt(mod.quantity, 10) > 1 ? `${mod.quantity}× ${mod.name}` : mod.name).join(", ")}
                           </p>
                         )}
                         <p className="text-sm text-gray-500">

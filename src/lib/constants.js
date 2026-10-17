@@ -148,12 +148,18 @@ export const CATEGORY_CONFIG = {
     "school special": "kids",
     "children": "kids",
     
-    // Sides
+    // Sides (exact "hot sides" entry stops the fuzzy match putting it under "hot")
+    "hot sides": "solo",
+    "small bites": "solo",
     "sides": "solo",
     "appetizers": "solo",
     "starters": "solo",
     "small plates": "solo",
     
+    // Gluten free
+    "gluten free": "glutenfree",
+    "gluten-free": "glutenfree",
+
     // Desserts
     "desserts": "desserts",
     "dessert": "desserts",
@@ -164,7 +170,20 @@ export const CATEGORY_CONFIG = {
     "beverages": "drinks",
     "beverage": "drinks",
     "drink": "drinks",
-  }
+  },
+
+  // Menu sections in display order (used by the menu list and category navigation)
+  sections: [
+    { id: "platters", label: "Chef's Selection", icon: "fa-star" },
+    { id: "sushi", label: "Sushi", icon: "fa-stroopwafel" },
+    { id: "poke", label: "Poke Bowls", icon: "fa-bowl-rice" },
+    { id: "hot", label: "Main Dishes (Hot)", icon: "fa-fire" },
+    { id: "kids", label: "Kids Menu", icon: "fa-child" },
+    { id: "solo", label: "Sides", icon: "fa-utensils" },
+    { id: "glutenfree", label: "Gluten Free", icon: "fa-wheat-awn-circle-exclamation" },
+    { id: "desserts", label: "Desserts", icon: "fa-ice-cream" },
+    { id: "drinks", label: "Drinks", icon: "fa-wine-glass" }
+  ]
 };
 
 /**

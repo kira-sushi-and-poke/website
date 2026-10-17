@@ -28,11 +28,15 @@ export default function OrderSummary({ lineItems, total }) {
                 </span>
                 {item.modifiers && item.modifiers.length > 0 && (
                   <span className="text-xs text-gray-500 ml-1">
-                    {item.modifiers.map(mod => mod.name).join(", ")}
+                    {item.modifiers.map(mod => parseInt(mod.quantity, 10) > 1 ? `${mod.quantity}× ${mod.name}` : mod.name).join(", ")}
                   </span>
                 )}
               </div>
-              <span className="text-sm font-semibold text-gray-900">£{(parseFloat(item.base_price_money?.amount || 0) * parseInt(item.quantity) / 100).toFixed(2)}</span>
+              {/* gross_sales_money includes modifier prices; base_price_money is the item alone */}
+              <span className="text-sm font-semibold text-gray-900">£{(item.gross_sales_money
+                ? item.gross_sales_money.amount / 100
+                : parseFloat(item.base_price_money?.amount || 0) * parseInt(item.quantity) / 100
+              ).toFixed(2)}</span>
             </div>
           ))}
         </div>

@@ -1,17 +1,10 @@
 "use client";
 import React, { useRef, useState, useEffect } from "react";
 
+import { CATEGORY_CONFIG } from "@/lib/constants";
+
 // Category navigation items
-const categoryNavItems = [
-    { id: "platters", label: "Chef's Selection", icon: "fa-star" },
-    { id: "sushi", label: "Sushi", icon: "fa-stroopwafel" },
-    { id: "poke", label: "Poke Bowls", icon: "fa-bowl-rice" },
-    { id: "hot", label: "Main Dishes (Hot)", icon: "fa-fire" },
-    { id: "kids", label: "Kids Menu", icon: "fa-child" },
-    { id: "solo", label: "Sides", icon: "fa-utensils" },
-    { id: "desserts", label: "Desserts", icon: "fa-ice-cream" },
-    { id: "drinks", label: "Drinks", icon: "fa-wine-glass" }
-];
+const categoryNavItems = CATEGORY_CONFIG.sections;
 
 const CategoryNavigation = () => {
     const navRef = useRef(null);
