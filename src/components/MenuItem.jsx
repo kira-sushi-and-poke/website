@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import SauceSelector from "./SauceSelector";
+import PlatterBuilderModal from "./PlatterBuilderModal";
 import { matchModifiers } from "@/lib/arrayUtils";
 
 const MenuItem = ({ 
@@ -22,32 +23,63 @@ const MenuItem = ({
     hideImage = false,
     isVariantCard = false,
     variants = [],
-    modifiers
+    modifierGroups = []
 }) => {
     const [showLightbox, setShowLightbox] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
-    const [selectedModifierIndex, setSelectedModifierIndex] = useState(0);
-    
+    // One selected index per modifier group; -1 = "None" (optional groups start there)
+    const [selectedIndexes, setSelectedIndexes] = useState({});
+    const getSelectedIndex = (group) => selectedIndexes[group.id] ?? (group.required ? 0 : -1);
+
+    // Items with multi-pick lists (e.g. Build Your Own) are configured in a pop-up instead of inline
+    const usesBuilder = modifierGroups.some(group => group.isMultiPick);
+    const [showBuilder, setShowBuilder] = useState(false);
+
+    const selectModifier = (groupId, modifierIndex) => {
+        setSelectedIndexes(prev => ({ ...prev, [groupId]: modifierIndex }));
+    };
+
+    // Modifier IDs currently selected across the inline selectors
+    const selectedModifiers = usesBuilder ? [] : modifierGroups
+        .map(group => group.modifiers[getSelectedIndex(group)]?.id)
+        .filter(Boolean);
+    const selectedModifiersOrUndefined = selectedModifiers.length > 0 ? selectedModifiers : undefined;
+
+    // Total of this item in the order across all modifier combinations (shown on builder cards)
+    const cartValue = cart[variationId];
+    const totalInOrder = Array.isArray(cartValue)
+        ? cartValue.reduce((sum, entry) => sum + entry.quantity, 0)
+        : (cartValue || 0);
+
+    // Unit price including the selected modifiers (e.g. +£1.50 for Spicy Teriyaki)
+    const allGroupModifiers = modifierGroups.flatMap(group => group.modifiers);
+    const modifiersPrice = selectedModifiers.reduce(
+        (sum, modifierId) => sum + (allGroupModifiers.find(m => m.id === modifierId)?.price || 0),
+        0
+    );
+    const unitPrice = (discountedPrice || originalPrice) + modifiersPrice;
+    // Header prices follow the selection only where selectors are shown (order mode)
+    const headerModifiersPrice = isOrderMode ? modifiersPrice : 0;
+
     // Get quantity from cart - handle both number and array cases
     const getQuantity = () => {
         const cartValue = cart[variationId];
-        
-        // Simple number case (no modifiers)
+
+        // Simple number case - only counts entries without modifiers
         if (typeof cartValue === 'number') {
-            return cartValue;
+            return selectedModifiers.length === 0 ? cartValue : 0;
         }
-        
-        // Array case (with modifiers) - find matching entry
-        if (Array.isArray(cartValue) && modifiers && modifiers.length > 0) {
-            const selectedModifiers = [modifiers[selectedModifierIndex].id];
-            const matchingEntry = cartValue.find(entry => 
-                matchModifiers(entry.modifiers, selectedModifiers)
+
+        // Array case - find the entry matching the current selection (may be empty)
+        if (Array.isArray(cartValue)) {
+            const matchingEntry = cartValue.find(entry =>
+                matchModifiers(entry.modifiers || [], selectedModifiers)
             );
-            
+
             return matchingEntry ? matchingEntry.quantity : 0;
         }
-        
+
         return 0;
     };
     
@@ -167,10 +199,10 @@ const MenuItem = ({
                                 {originalPrice !== null && originalPrice !== undefined ? (
                                     <>
                                         <span className={discountedPrice ? `text-gray-400 line-through block ${isCompact ? 'text-[10px] md:text-xs' : 'text-sm'}` : `text-yellow font-bold ${isCompact ? 'text-sm md:text-base' : 'text-base md:text-lg'}`}>
-                                            £{originalPrice.toFixed(2)}
+                                            £{(originalPrice + headerModifiersPrice).toFixed(2)}
                                         </span>
                                         {discountedPrice && (
-                                            <span className={`text-yellow font-bold ${isCompact ? 'text-sm md:text-base' : 'text-base md:text-lg'}`}>£{discountedPrice.toFixed(2)}</span>
+                                            <span className={`text-yellow font-bold ${isCompact ? 'text-sm md:text-base' : 'text-base md:text-lg'}`}>£{(discountedPrice + headerModifiersPrice).toFixed(2)}</span>
                                         )}
                                     </>
                                 ) : (
@@ -196,15 +228,43 @@ const MenuItem = ({
                         </p>
                     )}
                     
-                    {/* Sauce Selector for items with modifiers in order mode */}
-                    {!isVariantCard && isOrderMode && modifiers && modifiers.length > 0 && (
-                        <div className="mt-2 md:mt-3 mb-2 md:mb-3">
-                            <SauceSelector
-                                modifiers={modifiers}
-                                selectedIndex={selectedModifierIndex}
-                                onSelect={setSelectedModifierIndex}
-                                label="Sauce"
-                            />
+                    {/* Builder items: open the step-by-step pop-up instead of inline controls */}
+                    {!isVariantCard && isOrderMode && usesBuilder && variationId && (
+                        <div className="mt-3 flex flex-col items-center gap-1.5">
+                            <button
+                                type="button"
+                                onClick={() => setShowBuilder(true)}
+                                disabled={isUpdating}
+                                className="w-full min-h-[44px] px-4 rounded-full font-bold text-white bg-hot-pink cursor-pointer active:bg-opacity-80 md:hover:bg-opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                            >
+                                {isUpdating ? (
+                                    <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                ) : (
+                                    <i className="fas fa-utensils"></i>
+                                )}
+                                {totalInOrder > 0 ? "Build another" : "Build your platter"}
+                            </button>
+                            {totalInOrder > 0 && (
+                                <span className="text-xs md:text-sm text-gray-600">
+                                    {totalInOrder} in your order - edit from your basket
+                                </span>
+                            )}
+                        </div>
+                    )}
+
+                    {/* One selector per modifier list in order mode */}
+                    {!isVariantCard && isOrderMode && !usesBuilder && modifierGroups.length > 0 && (
+                        <div className="mt-2 md:mt-3 mb-2 md:mb-3 space-y-2">
+                            {modifierGroups.map(group => (
+                                <SauceSelector
+                                    key={group.id}
+                                    modifiers={group.modifiers}
+                                    selectedIndex={getSelectedIndex(group)}
+                                    onSelect={(index) => selectModifier(group.id, index)}
+                                    label={group.name}
+                                    allowNone={!group.required}
+                                />
+                            ))}
                         </div>
                     )}
                     
@@ -276,16 +336,11 @@ const MenuItem = ({
                     )}
                     
                     {/* Quantity Controls for Order Mode - Only for non-variant cards */}
-                    {isOrderMode && variationId && !isVariantCard && (
+                    {isOrderMode && variationId && !isVariantCard && !usesBuilder && (
                         <div className={`${isCompact ? 'mt-1.5 md:mt-2' : 'mt-2 md:mt-3'} flex flex-col items-center gap-1.5 md:gap-2`}>
                             <div className={`flex items-center ${isCompact ? 'gap-2 md:gap-2' : 'gap-3 md:gap-3'}`}>
                                 <button
-                                    onClick={() => {
-                                        const selectedModifiers = modifiers && modifiers.length > 0 
-                                            ? [modifiers[selectedModifierIndex].id] 
-                                            : undefined;
-                                        removeItem(variationId, selectedModifiers);
-                                    }}
+                                    onClick={() => removeItem(variationId, selectedModifiersOrUndefined)}
                                     disabled={isUpdating || quantity === 0}
                                     className={`${isCompact ? 'min-w-[44px] min-h-[44px] w-11 h-11 md:w-10 md:h-10 text-lg' : 'min-w-[44px] min-h-[44px] w-12 h-12 md:w-11 md:h-11 text-xl'} rounded-full bg-gray-200 active:bg-hot-pink active:text-white md:hover:bg-hot-pink md:hover:text-white font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center`}
                                     aria-label="Decrease quantity"
@@ -302,12 +357,7 @@ const MenuItem = ({
                                 </div>
                                 
                                 <button
-                                    onClick={() => {
-                                        const selectedModifiers = modifiers && modifiers.length > 0 
-                                            ? [modifiers[selectedModifierIndex].id] 
-                                            : undefined;
-                                        addItem(variationId, selectedModifiers);
-                                    }}
+                                    onClick={() => addItem(variationId, selectedModifiersOrUndefined)}
                                     disabled={isUpdating}
                                     className={`${isCompact ? 'min-w-[44px] min-h-[44px] w-11 h-11 md:w-10 md:h-10 text-lg' : 'min-w-[44px] min-h-[44px] w-12 h-12 md:w-11 md:h-11 text-xl'} rounded-full bg-hot-pink text-white active:bg-opacity-80 md:hover:bg-opacity-90 font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center`}
                                     aria-label="Increase quantity"
@@ -318,7 +368,7 @@ const MenuItem = ({
                             
                             {quantity > 0 && !isUpdating && (
                                 <div className={`text-yellow font-bold ${isCompact ? 'text-xs md:text-sm' : 'text-sm md:text-base'}`}>
-                                    £{((discountedPrice || originalPrice) * quantity).toFixed(2)}
+                                    £{(unitPrice * quantity).toFixed(2)}
                                 </div>
                             )}
                         </div>
@@ -413,6 +463,17 @@ const MenuItem = ({
                         </div>
                     )}
                 </div>
+            )}
+
+            {usesBuilder && isOrderMode && (
+                <PlatterBuilderModal
+                    isOpen={showBuilder}
+                    onClose={() => setShowBuilder(false)}
+                    name={name}
+                    basePrice={discountedPrice || originalPrice || 0}
+                    modifierGroups={modifierGroups}
+                    onAdd={(modifiers) => addItem(variationId, modifiers)}
+                />
             )}
         </>
     );

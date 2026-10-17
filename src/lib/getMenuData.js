@@ -11,9 +11,16 @@ export async function getMenuData() {
     const accessToken = process.env.ACCESS_TOKEN;
     const catalogUrl = process.env.API_CATALOG_URL;
 
-    const response = await fetch(
-      `${catalogUrl}/list?types=ITEM,CATEGORY,IMAGE,MODIFIER_LIST&include_related_objects=true`,
-      {
+    // ListCatalog is paginated (max 100 objects per page), so follow the cursor
+    // until all pages are fetched — otherwise MODIFIER_LIST/IMAGE objects get cut off
+    const objects = [];
+    let cursor = null;
+
+    do {
+      const url = `${catalogUrl}/list?types=ITEM,CATEGORY,IMAGE,MODIFIER_LIST`
+        + (cursor ? `&cursor=${encodeURIComponent(cursor)}` : "");
+
+      const response = await fetch(url, {
         method: "GET",
         headers: {
           "Square-Version": SQUARE_API_VERSION,
@@ -21,20 +28,22 @@ export async function getMenuData() {
           "Content-Type": "application/json",
         },
         next: { revalidate: 120 }
+      });
+
+      if (!response.ok) {
+        return {
+          success: false,
+          error: "Failed to fetch menu from Square",
+          data: []
+        };
       }
-    );
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      return {
-        success: false,
-        error: "Failed to fetch menu from Square",
-        data: []
-      };
-    }
+      const page = await response.json();
+      objects.push(...(page.objects || []));
+      cursor = page.cursor || null;
+    } while (cursor);
 
-    const data = await response.json();
-    const transformedMenu = transformCatalog(data);
+    const transformedMenu = transformCatalog({ objects });
 
     if (transformedMenu.length === 0) {
       return {
@@ -93,6 +102,10 @@ function transformCatalog(catalogData) {
           id: obj.id,
           name: modifierListData.name,
           selectionType: modifierListData.selection_type,
+          // -1 / missing means "not set" in Square; treat as optional
+          minSelected: modifierListData.min_selected_modifiers ?? -1,
+          maxSelected: modifierListData.max_selected_modifiers ?? -1,
+          allowQuantities: modifierListData.allow_quantities === true,
           modifiers: modifierListData.modifiers.map(mod => ({
             id: mod.id,
             name: mod.modifier_data?.name || "",
@@ -106,7 +119,9 @@ function transformCatalog(catalogData) {
 
   // Second pass: process items and their variations
   catalogData.objects.forEach(obj => {
-    if (obj.type === "ITEM" && !obj.is_deleted && !obj.item_data?.is_archived) {
+    // Skip items hidden from online sales in Square (e.g. alcohol) and anything flagged alcoholic
+    const isHiddenOnline = obj.item_data?.ecom_visibility === "HIDDEN" || obj.item_data?.is_alcoholic === true;
+    if (obj.type === "ITEM" && !obj.is_deleted && !obj.item_data?.is_archived && !isHiddenOnline) {
       const itemData = obj.item_data;
 
       // The ITEM name is the subcategory (e.g., "Makizushi (Sushi Rolls)")
@@ -144,16 +159,38 @@ function transformCatalog(catalogData) {
         .map(imageId => images[imageId])
         .filter(Boolean);
 
-      // Get modifier lists for this item
-      const itemModifiers = [];
+      // Get modifier lists for this item, one group per list (e.g. "Ramen Protein", "Ramen broth base")
+      const modifierGroups = [];
       if (itemData.modifier_list_info && Array.isArray(itemData.modifier_list_info)) {
-        itemData.modifier_list_info.forEach(modListInfo => {
-          if (modListInfo.enabled !== false && modifierLists[modListInfo.modifier_list_id]) {
+        [...itemData.modifier_list_info]
+          .sort((a, b) => (a.ordinal ?? 0) - (b.ordinal ?? 0))
+          .forEach(modListInfo => {
             const modList = modifierLists[modListInfo.modifier_list_id];
-            itemModifiers.push(...modList.modifiers);
-          }
-        });
+            if (modListInfo.enabled === false || modListInfo.hidden_from_customer || !modList) return;
+
+            // Item-level min/max override the list defaults when set (>= 0)
+            const itemMin = modListInfo.min_selected_modifiers ?? -1;
+            const itemMax = modListInfo.max_selected_modifiers ?? -1;
+            const minSelected = itemMin >= 0 ? itemMin : modList.minSelected;
+            const maxSelected = itemMax >= 0 ? itemMax : modList.maxSelected;
+            const allowQuantities = modListInfo.allow_quantities === "YES"
+              || (modListInfo.allow_quantities !== "NO" && modList.allowQuantities);
+
+            modifierGroups.push({
+              id: modList.id,
+              name: modList.name,
+              required: minSelected > 0,
+              // Groups with a max above 1 (e.g. "pick 3 rolls") get a multi-pick UI
+              isMultiPick: maxSelected > 1,
+              minSelected: Math.max(0, minSelected),
+              maxSelected,
+              allowQuantities,
+              modifiers: modList.modifiers,
+            });
+          });
       }
+      // Flat list kept for looking up modifier names in the cart
+      const itemModifiers = modifierGroups.flatMap(group => group.modifiers);
 
       // Loop through each VARIATION and create a menu item
       const variations = itemData.variations || [];
@@ -256,6 +293,7 @@ function transformCatalog(catalogData) {
           variationDescription: finalVariationDescription,
           imageLink: allImageLinks.length > 0 ? allImageLinks : [],
           modifiers: itemModifiers.length > 0 ? itemModifiers : undefined,
+          modifierGroups: modifierGroups.length > 0 ? modifierGroups : undefined,
           apiData: {
             itemId: obj.id,
             variationId: variation.id,

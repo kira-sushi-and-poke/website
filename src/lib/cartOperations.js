@@ -46,8 +46,12 @@ export function addToCartEntry(currentValue, modifiers = undefined) {
     return newArray;
   }
   
-  // Has modifiers - use array structure
-  const newArray = (!currentValue || typeof currentValue === "number") ? [] : [...currentValue];
+  // Has modifiers - use array structure, keeping any existing no-modifier quantity as its own entry
+  const newArray = !currentValue
+    ? []
+    : typeof currentValue === "number"
+      ? [{ quantity: currentValue, modifiers: [] }]
+      : [...currentValue];
   
   // Find matching modifiers entry
   const existingIndex = newArray.findIndex(entry => 
@@ -83,6 +87,8 @@ export function addToCartEntry(currentValue, modifiers = undefined) {
 export function removeFromCartEntry(currentValue, modifiers = undefined) {
   // Handle simple number case (no modifiers)
   if (typeof currentValue === "number") {
+    // Number only tracks entries without modifiers, so nothing to remove for a modifier selection
+    if (modifiers && modifiers.length > 0) return currentValue;
     const newValue = Math.max(0, currentValue - 1);
     return newValue === 0 ? null : newValue;
   }

@@ -125,8 +125,8 @@ export default function OrderMenuClient({ menuData, restaurantStatus }) {
             return newCart;
         };
         
-        // Execute mutation using the hook
-        await executeMutation(variationId, computeNewCart, TOAST_MESSAGES.CART_ITEM_ADDED);
+        // Execute mutation using the hook; returns success so callers (e.g. the platter builder) can react
+        return executeMutation(variationId, computeNewCart, TOAST_MESSAGES.CART_ITEM_ADDED);
     };
 
     const removeItem = async (variationId, modifiers = undefined) => {
